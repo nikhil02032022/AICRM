@@ -1,0 +1,1359 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0B0F1A;
+  --surface: #111827;
+  --surface2: #1A2235;
+  --surface3: #212D42;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #F0F4FF;
+  --text2: #8B96B0;
+  --text3: #4A5568;
+  --accent: #4F8EF7;
+  --accent2: #7C3AED;
+  --green: #10B981;
+  --amber: #F59E0B;
+  --red: #EF4444;
+  --pink: #EC4899;
+  --teal: #06B6D4;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: #070B14;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Screen Switcher Nav ─────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.top-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: #fff;
+}
+
+.logo-text { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.logo-sub  { font-size: 10px; font-weight: 500; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; }
+
+.screen-tabs {
+  display: flex; gap: 2px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.tab-btn {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  letter-spacing: 0.2px;
+}
+
+.tab-btn:hover { color: var(--text); background: var(--surface3); }
+.tab-btn.active { background: var(--accent); color: #fff; }
+
+.top-right { display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+}
+
+/* ── Main Layout ─────────────────────────────────────── */
+.main-layout {
+  display: flex;
+  flex: 1;
+}
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-section {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 12px 8px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(79,142,247,0.15); color: var(--accent); }
+.nav-item .ni-icon { font-size: 14px; width: 18px; text-align: center; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+.nav-badge.green { background: var(--green); }
+.nav-badge.amber { background: var(--amber); color: #000; }
+
+.content-area {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg);
+}
+
+/* ── Screens ─────────────────────────────────────────── */
+.screen { display: none; padding: 24px; }
+.screen.active { display: block; }
+
+/* ── Shared Components ───────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+.page-sub { font-size: 12px; color: var(--text2); margin-top: 2px; font-weight: 400; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-family: var(--font);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #3B7AE8; }
+.btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { background: var(--surface3); color: var(--text); }
+.btn-green { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.mc-blue::before   { background: var(--accent); }
+.mc-green::before  { background: var(--green); }
+.mc-amber::before  { background: var(--amber); }
+.mc-purple::before { background: var(--accent2); }
+.mc-teal::before   { background: var(--teal); }
+.mc-pink::before   { background: var(--pink); }
+
+.metric-label  { font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.metric-value  { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1; }
+.metric-delta  { font-size: 11px; font-weight: 600; margin-top: 4px; }
+.delta-up   { color: var(--green); }
+.delta-down { color: var(--red); }
+.delta-flat { color: var(--text2); }
+
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.badge-must    { background: rgba(239,68,68,0.12);   color: #FCA5A5; }
+.badge-should  { background: rgba(79,142,247,0.12);  color: #93C5FD; }
+.badge-could   { background: rgba(16,185,129,0.12);  color: #6EE7B7; }
+.badge-hot     { background: rgba(239,68,68,0.12);   color: #FCA5A5; }
+.badge-warm    { background: rgba(245,158,11,0.12);  color: #FCD34D; }
+.badge-cold    { background: rgba(79,142,247,0.12);  color: #93C5FD; }
+.badge-new     { background: rgba(6,182,212,0.12);   color: #67E8F9; }
+.badge-done    { background: rgba(16,185,129,0.12);  color: #6EE7B7; }
+.badge-prog    { background: rgba(79,142,247,0.12);  color: #93C5FD; }
+.badge-block   { background: rgba(239,68,68,0.12);   color: #FCA5A5; }
+.badge-review  { background: rgba(245,158,11,0.12);  color: #FCD34D; }
+.badge-ph1     { background: rgba(79,142,247,0.12);  color: #93C5FD; }
+.badge-ph2     { background: rgba(16,185,129,0.12);  color: #6EE7B7; }
+.badge-ph3     { background: rgba(124,58,237,0.12);  color: #C4B5FD; }
+
+.tag-pill {
+  display: inline-flex; align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+}
+
+/* ── SCREEN 1: Dashboard ─────────────────────────────── */
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+.funnel-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.funnel-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.funnel-label { font-size: 11px; color: var(--text2); min-width: 100px; font-weight: 500; }
+.funnel-bar-wrap { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.funnel-bar { height: 100%; border-radius: 4px; }
+.funnel-count { font-size: 11px; font-family: var(--mono); color: var(--text); min-width: 48px; text-align: right; font-weight: 500; }
+
+.activity-list { display: flex; flex-direction: column; gap: 0; margin-top: 10px; }
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.activity-item:last-child { border-bottom: none; }
+.act-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.act-text { font-size: 11px; color: var(--text2); line-height: 1.5; }
+.act-text strong { color: var(--text); font-weight: 600; }
+.act-time { font-size: 10px; color: var(--text3); margin-left: auto; white-space: nowrap; font-family: var(--mono); }
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 80px;
+  margin-top: 12px;
+}
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar-col { width: 100%; border-radius: 4px 4px 0 0; }
+.bar-label { font-size: 9px; color: var(--text3); }
+
+/* ── SCREEN 2: Lead Management ───────────────────────── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 0 14px;
+  height: 38px;
+  margin-bottom: 16px;
+}
+.search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text);
+}
+.search-bar input::placeholder { color: var(--text3); }
+
+.filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-chip:hover  { background: var(--surface2); color: var(--text); }
+.filter-chip.active { background: rgba(79,142,247,0.15); color: var(--accent); border-color: rgba(79,142,247,0.3); }
+
+.leads-table { width: 100%; border-collapse: collapse; }
+.leads-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.leads-table th:first-child { border-radius: 8px 0 0 0; }
+.leads-table th:last-child  { border-radius: 0 8px 0 0; }
+.leads-table td {
+  padding: 11px 14px;
+  font-size: 12px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.leads-table tr:last-child td { border-bottom: none; }
+.leads-table tr:hover td { background: var(--surface2); }
+
+.lead-name  { font-weight: 600; color: var(--text); }
+.lead-email { font-size: 10px; color: var(--text2); font-family: var(--mono); }
+
+.score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+.score-high   { background: rgba(16,185,129,0.15); color: var(--green); }
+.score-medium { background: rgba(245,158,11,0.15); color: var(--amber); }
+.score-low    { background: rgba(239,68,68,0.15);  color: var(--red); }
+
+.progress-mini { height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+.progress-mini-fill { height: 100%; border-radius: 2px; }
+
+/* ── SCREEN 3: Lead Detail / 360 View ────────────────── */
+.lead-detail-grid { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+
+.lead-profile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+.lp-avatar {
+  width: 60px; height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #4F8EF7, #7C3AED);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; color: #fff;
+  margin: 0 auto 12px;
+}
+.lp-name    { text-align: center; font-size: 16px; font-weight: 700; }
+.lp-sub     { text-align: center; font-size: 11px; color: var(--text2); margin-top: 2px; }
+.lp-score-ring {
+  width: 72px; height: 72px;
+  margin: 16px auto;
+  border-radius: 50%;
+  background: conic-gradient(var(--green) 0% 82%, var(--surface3) 82% 100%);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.lp-score-inner {
+  width: 54px; height: 54px;
+  background: var(--surface);
+  border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.lp-score-num  { font-size: 16px; font-weight: 800; color: var(--green); font-family: var(--mono); line-height: 1; }
+.lp-score-lbl  { font-size: 8px; color: var(--text3); font-weight: 600; text-transform: uppercase; }
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-row-key { color: var(--text2); font-weight: 500; }
+.info-row-val { color: var(--text); font-weight: 600; text-align: right; }
+
+.timeline { position: relative; padding-left: 20px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px; top: 6px; bottom: 6px;
+  width: 1px;
+  background: var(--border2);
+}
+.tl-item { position: relative; padding: 0 0 14px; }
+.tl-dot {
+  position: absolute;
+  left: -17px; top: 3px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.tl-title { font-size: 11px; font-weight: 600; color: var(--text); }
+.tl-meta  { font-size: 10px; color: var(--text2); margin-top: 1px; }
+
+.tab-row {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+.tab-item {
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.tab-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── SCREEN 4: Pipeline / Kanban ─────────────────────── */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+}
+.kanban-col {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 180px;
+}
+.kcol-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.kcol-title { font-size: 11px; font-weight: 700; color: var(--text); }
+.kcol-count {
+  background: var(--surface3);
+  color: var(--text2);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-family: var(--mono);
+}
+.kcol-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.kcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.kcard:hover { border-color: var(--border2); transform: translateY(-1px); }
+.kcard-name  { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.kcard-prog  { font-size: 10px; color: var(--text2); margin-bottom: 6px; }
+.kcard-bottom { display: flex; align-items: center; justify-content: space-between; }
+.kcard-avatar {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.kcard-date { font-size: 9px; color: var(--text3); font-family: var(--mono); }
+.kcard-bar  { height: 3px; background: var(--surface3); border-radius: 2px; margin-bottom: 6px; overflow: hidden; }
+.kcard-bar-fill { height: 100%; border-radius: 2px; }
+
+/* ── SCREEN 5: Communication ─────────────────────────── */
+.comm-grid { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
+.chat-list { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.chat-list-header { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; }
+.chat-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.chat-item:hover    { background: var(--surface2); }
+.chat-item.active   { background: rgba(79,142,247,0.08); }
+.chat-item:last-child { border-bottom: none; }
+.chat-avatar {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 700;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.chat-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.chat-preview { font-size: 10px; color: var(--text2); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.chat-time { font-size: 9px; color: var(--text3); margin-left: auto; font-family: var(--mono); }
+.chat-unread {
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.chat-window { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
+.chat-window-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.cw-name { font-size: 13px; font-weight: 700; }
+.cw-sub  { font-size: 10px; color: var(--text2); }
+.channel-tabs { display: flex; gap: 6px; margin-left: auto; }
+.ch-tab {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  background: transparent;
+  transition: all 0.15s;
+}
+.ch-tab.active { background: rgba(79,142,247,0.15); color: var(--accent); border-color: rgba(79,142,247,0.3); }
+
+.messages { flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; overflow: auto; min-height: 200px; }
+.msg-row { display: flex; gap: 8px; align-items: flex-start; }
+.msg-row.outbound { flex-direction: row-reverse; }
+.msg-avatar { width: 28px; height: 28px; border-radius: 8px; background: var(--surface3); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--text2); flex-shrink: 0; }
+.msg-bubble { max-width: 70%; padding: 9px 12px; border-radius: 10px; font-size: 11px; line-height: 1.5; }
+.msg-bubble.inbound  { background: var(--surface2); color: var(--text); border-radius: 2px 10px 10px 10px; }
+.msg-bubble.outbound { background: rgba(79,142,247,0.2); color: var(--text); border-radius: 10px 2px 10px 10px; }
+.msg-time { font-size: 9px; color: var(--text3); margin-top: 3px; font-family: var(--mono); }
+.ai-suggestion {
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0 18px 10px;
+}
+.ai-tag { font-size: 9px; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.ai-text { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+.chat-composer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+.chat-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text);
+  outline: none;
+}
+
+/* ── SCREEN 6: Analytics ─────────────────────────────── */
+.analytics-grid-top { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+.sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+  margin-top: 10px;
+}
+.spark-bar { flex: 1; border-radius: 3px 3px 0 0; min-height: 4px; }
+
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+.donut-svg { flex-shrink: 0; }
+.donut-legend { display: flex; flex-direction: column; gap: 6px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.legend-val { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text); font-weight: 600; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 16px; }
+.kpi-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.kpi-num  { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+.kpi-lbl  { font-size: 10px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.kpi-trend { font-size: 10px; margin-top: 4px; font-weight: 600; }
+
+.source-table { width: 100%; }
+.source-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.source-row:last-child { border-bottom: none; }
+.source-name { font-size: 11px; color: var(--text); font-weight: 500; min-width: 110px; }
+.source-bar-wrap { flex: 1; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.source-bar-fill { height: 100%; border-radius: 3px; }
+.source-count { font-size: 11px; font-family: var(--mono); color: var(--text2); min-width: 40px; text-align: right; }
+
+/* ── SCREEN SIDEBAR ITEMS per screen ──────────────────── */
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <div class="logo">
+    <div class="logo-icon">A²</div>
+    <div>
+      <div class="logo-text">A2A-CRM</div>
+    </div>
+  </div>
+
+  <div class="screen-tabs">
+    <button class="tab-btn active" onclick="switchScreen(0)">Dashboard</button>
+    <button class="tab-btn" onclick="switchScreen(1)">Leads</button>
+    <button class="tab-btn" onclick="switchScreen(2)">360° View</button>
+    <button class="tab-btn" onclick="switchScreen(3)">Pipeline</button>
+    <button class="tab-btn" onclick="switchScreen(4)">Comms</button>
+    <button class="tab-btn" onclick="switchScreen(5)">Analytics</button>
+  </div>
+
+  <div class="top-right">
+    <span style="font-size:11px;color:var(--text2)">Nikhil · MEETCS</span>
+    <div class="avatar">NK</div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">Core CRM</div>
+    <div class="nav-item active" onclick="switchScreen(0)"><span class="ni-icon">⬛</span> Dashboard</div>
+    <div class="nav-item" onclick="switchScreen(1)"><span class="ni-icon">👤</span> Leads <span class="nav-badge">24</span></div>
+    <div class="nav-item" onclick="switchScreen(3)"><span class="ni-icon">📋</span> Pipeline</div>
+    <div class="nav-item" onclick="switchScreen(2)"><span class="ni-icon">🔍</span> Lead Detail</div>
+
+    <div class="sidebar-section">Engagement</div>
+    <div class="nav-item" onclick="switchScreen(4)"><span class="ni-icon">💬</span> Comms <span class="nav-badge">7</span></div>
+    <div class="nav-item"><span class="ni-icon">📧</span> Campaigns</div>
+    <div class="nav-item"><span class="ni-icon">✅</span> Tasks <span class="nav-badge amber">5</span></div>
+    <div class="nav-item"><span class="ni-icon">📞</span> Telecalling</div>
+
+    <div class="sidebar-section">Management</div>
+    <div class="nav-item" onclick="switchScreen(5)"><span class="ni-icon">📊</span> Analytics</div>
+    <div class="nav-item"><span class="ni-icon">📄</span> Applications</div>
+    <div class="nav-item"><span class="ni-icon">💰</span> Fees & Payments</div>
+    <div class="nav-item"><span class="ni-icon">🤝</span> Agents</div>
+
+    <div class="sidebar-section">System</div>
+    <div class="nav-item"><span class="ni-icon">⚙️</span> Settings</div>
+    <div class="nav-item"><span class="ni-icon">🛡️</span> DPDP Consent</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-area">
+
+    <!-- ════════════ SCREEN 0: DASHBOARD ════════════ -->
+    <div class="screen active" id="screen-0">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Good morning, Nikhil 👋</div>
+          <div class="page-sub">Tuesday, 7 April 2026 · Admissions Dashboard · GIM Goa</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost">📤 Export</button>
+          <button class="btn btn-primary">＋ Add Lead</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="metric-grid">
+        <div class="metric-card mc-blue">
+          <div class="metric-label">Total Enquiries</div>
+          <div class="metric-value">4,821</div>
+          <div class="metric-delta delta-up">↑ 18% vs last month</div>
+        </div>
+        <div class="metric-card mc-green">
+          <div class="metric-label">Enrolled</div>
+          <div class="metric-value">612</div>
+          <div class="metric-delta delta-up">↑ 12.6% conversion</div>
+        </div>
+        <div class="metric-card mc-amber">
+          <div class="metric-label">Avg Response Time</div>
+          <div class="metric-value">18<span style="font-size:14px;font-weight:600"> min</span></div>
+          <div class="metric-delta delta-up">↓ 40% — target: 30m</div>
+        </div>
+        <div class="metric-card mc-purple">
+          <div class="metric-label">AI Actions Today</div>
+          <div class="metric-value">284</div>
+          <div class="metric-delta delta-flat">Scored · Drafted · Routed</div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="grid-2col" style="margin-bottom:16px">
+        <!-- Funnel -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:700">Admission Funnel</span>
+            <span class="badge badge-ph1">Apr 2026</span>
+          </div>
+          <div class="funnel-steps">
+            <div class="funnel-step"><span class="funnel-label">Enquiries</span><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--accent);"></div></div><span class="funnel-count">4,821</span></div>
+            <div class="funnel-step"><span class="funnel-label">Qualified</span><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:68%;background:var(--teal);"></div></div><span class="funnel-count">3,278</span></div>
+            <div class="funnel-step"><span class="funnel-label">Applied</span><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:42%;background:var(--accent2);"></div></div><span class="funnel-count">2,026</span></div>
+            <div class="funnel-step"><span class="funnel-label">Offered</span><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:22%;background:var(--amber);"></div></div><span class="funnel-count">1,060</span></div>
+            <div class="funnel-step"><span class="funnel-label">Enrolled</span><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:13%;background:var(--green);"></div></div><span class="funnel-count">612</span></div>
+          </div>
+        </div>
+
+        <!-- Enquiry trend -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:700">Enquiry Trend</span>
+            <span style="font-size:11px;color:var(--text2)">Last 8 weeks</span>
+          </div>
+          <div class="chart-bars">
+            <div class="bar-wrap"><div class="bar-col" style="height:38px;background:rgba(79,142,247,0.4)"></div><span class="bar-label">W1</span></div>
+            <div class="bar-wrap"><div class="bar-col" style="height:52px;background:rgba(79,142,247,0.4)"></div><span class="bar-label">W2</span></div>
+            <div class="bar-wrap"><div class="bar-col" style="height:44px;background:rgba(79,142,247,0.4)"></div><span class="bar-label">W3</span></div>
+            <div class="bar-wrap"><div class="bar-col" style="height:60px;background:rgba(79,142,247,0.5)"></div><span class="bar-label">W4</span></div>
+            <div class="bar-wrap"><div class="bar-col" style="height:56px;background:rgba(79,142,247,0.5)"></div><span class="bar-label">W5</span></div>
+            <div class="bar-wrap"><div class="bar-col" style="height:72px;background:rgba(79,142,247,0.6)"></div><span class="bar-label">W6</span></div>
+            <div class="bar-wrap"><div class="bar-col" style="height:66px;background:rgba(79,142,247,0.6)"></div><span class="bar-label">W7</span></div>
+            <div class="bar-wrap"><div class="bar-col" style="height:80px;background:var(--accent)"></div><span class="bar-label">W8</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--accent)">1,204</div><div style="font-size:9px;color:var(--text3)">THIS WEEK</div></div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--green)">+9.4%</div><div style="font-size:9px;color:var(--text3)">WoW GROWTH</div></div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--amber)">42</div><div style="font-size:9px;color:var(--text3)">TODAY</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom row -->
+      <div class="grid-3col">
+        <!-- Counsellor leaderboard -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px">🏆 Counsellor Leaderboard</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px"><div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#F59E0B,#EF4444);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff">1</div><span style="font-size:11px;font-weight:600;flex:1">Priya Sharma</span><span style="font-size:11px;color:var(--green);font-family:var(--mono);font-weight:700">148 leads</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><div style="width:22px;height:22px;border-radius:6px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text2)">2</div><span style="font-size:11px;font-weight:600;flex:1">Rajan Mehta</span><span style="font-size:11px;color:var(--text2);font-family:var(--mono);font-weight:700">132 leads</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><div style="width:22px;height:22px;border-radius:6px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text2)">3</div><span style="font-size:11px;font-weight:600;flex:1">Anita Desai</span><span style="font-size:11px;color:var(--text2);font-family:var(--mono);font-weight:700">119 leads</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><div style="width:22px;height:22px;border-radius:6px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text2)">4</div><span style="font-size:11px;font-weight:600;flex:1">Arjun Nair</span><span style="font-size:11px;color:var(--text2);font-family:var(--mono);font-weight:700">101 leads</span></div>
+          </div>
+        </div>
+
+        <!-- AI Actions -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px">⚡ AI Actions Today</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:var(--text2)">Leads scored</span><span style="font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono)">142</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:var(--text2)">Msgs auto-drafted</span><span style="font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono)">87</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:var(--text2)">NBA recommendations</span><span style="font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono)">55</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:var(--text2)">Duplicates merged</span><span style="font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono)">12</span></div>
+            <div style="margin-top:4px;padding:8px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px">
+              <div style="font-size:9px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">🤖 AI Insight</div>
+              <div style="font-size:10px;color:var(--text2);line-height:1.4">3 high-score leads have been uncontacted for 48h. Recommend immediate WhatsApp outreach.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;margin-bottom:4px">Recent Activity</div>
+          <div class="activity-list">
+            <div class="activity-item"><div class="act-dot" style="background:var(--green)"></div><div class="act-text"><strong>Ritika Joshi</strong> enrolled in MBA Finance</div><span class="act-time">2m</span></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--accent)"></div><div class="act-text"><strong>Sameer Khan</strong> completed application form</div><span class="act-time">11m</span></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--amber)"></div><div class="act-text"><strong>Priya S.</strong> called <strong>Dev Patel</strong> — 8 min</div><span class="act-time">23m</span></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--accent2)"></div><div class="act-text">AI scored 28 new leads from Meta campaign</div><span class="act-time">1h</span></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--teal)"></div><div class="act-text"><strong>WhatsApp blast</strong> sent to 320 warm leads</div><span class="act-time">2h</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SCREEN 1: LEADS ════════════ -->
+    <div class="screen" id="screen-1">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Lead Management</div>
+          <div class="page-sub">4,821 total leads · 24 unassigned · AI scoring active</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost">📥 Import</button>
+          <button class="btn btn-primary">＋ New Lead</button>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <span style="color:var(--text3);font-size:14px">🔍</span>
+        <input placeholder="Search by name, email, phone, programme...">
+        <span style="font-size:10px;color:var(--text3);font-family:var(--mono);padding:3px 6px;background:var(--surface3);border-radius:4px">⌘K</span>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-chip active">All Leads</div>
+        <div class="filter-chip">🔴 Hot</div>
+        <div class="filter-chip">🟡 Warm</div>
+        <div class="filter-chip">🔵 Cold</div>
+        <div class="filter-chip">📋 Applied</div>
+        <div class="filter-chip">⚡ Uncontacted</div>
+        <div class="filter-chip">🚫 Blocked</div>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">⚙️ Columns</button>
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">↓ Sort</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="leads-table">
+          <thead>
+            <tr>
+              <th style="width:200px">Lead</th>
+              <th>Programme Interest</th>
+              <th>Source</th>
+              <th style="width:80px">Score</th>
+              <th style="width:100px">Status</th>
+              <th style="width:110px">Counsellor</th>
+              <th style="width:90px">Last Touch</th>
+              <th style="width:70px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="lead-name">Ritika Joshi</div><div class="lead-email">ritika.j@gmail.com</div></td>
+              <td><span style="font-size:11px">MBA — Finance</span></td>
+              <td><span class="tag-pill">Meta Ads</span></td>
+              <td><span class="score-pill score-high">82</span></td>
+              <td><span class="badge badge-hot">Hot</span></td>
+              <td><span style="font-size:11px">Priya S.</span></td>
+              <td><span style="font-size:10px;color:var(--text2);font-family:var(--mono)">2h ago</span></td>
+              <td style="display:flex;gap:4px"><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">📞</button><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">💬</button></td>
+            </tr>
+            <tr>
+              <td><div class="lead-name">Sameer Khan</div><div class="lead-email">sameer.k@outlook.com</div></td>
+              <td><span style="font-size:11px">MBA — Marketing</span></td>
+              <td><span class="tag-pill">Website Form</span></td>
+              <td><span class="score-pill score-high">77</span></td>
+              <td><span class="badge badge-prog">Applied</span></td>
+              <td><span style="font-size:11px">Rajan M.</span></td>
+              <td><span style="font-size:10px;color:var(--text2);font-family:var(--mono)">11m ago</span></td>
+              <td style="display:flex;gap:4px"><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">📞</button><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">💬</button></td>
+            </tr>
+            <tr>
+              <td><div class="lead-name">Dev Patel</div><div class="lead-email">devpatel92@yahoo.com</div></td>
+              <td><span style="font-size:11px">PGDM — Operations</span></td>
+              <td><span class="tag-pill">IVR</span></td>
+              <td><span class="score-pill score-medium">61</span></td>
+              <td><span class="badge badge-warm">Warm</span></td>
+              <td><span style="font-size:11px">Priya S.</span></td>
+              <td><span style="font-size:10px;color:var(--text2);font-family:var(--mono)">1d ago</span></td>
+              <td style="display:flex;gap:4px"><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">📞</button><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">💬</button></td>
+            </tr>
+            <tr>
+              <td><div class="lead-name">Anjali Menon</div><div class="lead-email">anjali.m@rediff.com</div></td>
+              <td><span style="font-size:11px">MBA — HR</span></td>
+              <td><span class="tag-pill">Agent Portal</span></td>
+              <td><span class="score-pill score-medium">55</span></td>
+              <td><span class="badge badge-new">New</span></td>
+              <td><span style="font-size:11px;color:var(--red)">Unassigned</span></td>
+              <td><span style="font-size:10px;color:var(--red);font-family:var(--mono)">Just now</span></td>
+              <td style="display:flex;gap:4px"><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">📞</button><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">💬</button></td>
+            </tr>
+            <tr>
+              <td><div class="lead-name">Karan Verma</div><div class="lead-email">kv2002@gmail.com</div></td>
+              <td><span style="font-size:11px">MBA — Finance</span></td>
+              <td><span class="tag-pill">Google Ads</span></td>
+              <td><span class="score-pill score-low">31</span></td>
+              <td><span class="badge badge-cold">Cold</span></td>
+              <td><span style="font-size:11px">Arjun N.</span></td>
+              <td><span style="font-size:10px;color:var(--amber);font-family:var(--mono)">5d ago</span></td>
+              <td style="display:flex;gap:4px"><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">📞</button><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">💬</button></td>
+            </tr>
+            <tr>
+              <td><div class="lead-name">Sneha Pillai</div><div class="lead-email">sneha.p@gmail.com</div></td>
+              <td><span style="font-size:11px">PGDM — Strategy</span></td>
+              <td><span class="tag-pill">Walk-in</span></td>
+              <td><span class="score-pill score-high">91</span></td>
+              <td><span class="badge badge-review">In Review</span></td>
+              <td><span style="font-size:11px">Anita D.</span></td>
+              <td><span style="font-size:10px;color:var(--text2);font-family:var(--mono)">30m ago</span></td>
+              <td style="display:flex;gap:4px"><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">📞</button><button class="btn btn-ghost" style="padding:3px 7px;font-size:10px">💬</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:0 2px">
+        <span style="font-size:11px;color:var(--text2)">Showing 1–6 of 4,821 leads</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px">← Prev</button>
+          <button class="btn btn-primary" style="padding:4px 10px;font-size:11px">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SCREEN 2: 360 LEAD VIEW ════════════ -->
+    <div class="screen" id="screen-2">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px">← Back</button>
+          <div>
+            <div class="page-title">Ritika Joshi</div>
+            <div class="page-sub">CRM-LC-001 · Lead since 02 Apr 2026 · GIM Goa</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost">📋 Application</button>
+          <button class="btn btn-green">✓ Convert to Student</button>
+        </div>
+      </div>
+
+      <div class="lead-detail-grid">
+        <!-- Left: Profile card -->
+        <div>
+          <div class="lead-profile">
+            <div class="lp-avatar">RJ</div>
+            <div class="lp-name">Ritika Joshi</div>
+            <div class="lp-sub">MBA Finance · Applying 2026</div>
+            <div class="lp-score-ring">
+              <div class="lp-score-inner">
+                <div class="lp-score-num">82</div>
+                <div class="lp-score-lbl">AI Score</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:6px;margin-bottom:12px">
+              <span class="badge badge-hot">🔴 Hot Lead</span>
+              <span class="badge badge-must">Priority</span>
+            </div>
+
+            <div style="border-top:1px solid var(--border);padding-top:12px">
+              <div class="info-row"><span class="info-row-key">📱 Phone</span><span class="info-row-val" style="font-family:var(--mono);font-size:10px">+91 98201 44312</span></div>
+              <div class="info-row"><span class="info-row-key">📧 Email</span><span class="info-row-val" style="font-family:var(--mono);font-size:10px">ritika.j@gmail.com</span></div>
+              <div class="info-row"><span class="info-row-key">🎓 Programme</span><span class="info-row-val">MBA Finance</span></div>
+              <div class="info-row"><span class="info-row-key">📍 City</span><span class="info-row-val">Pune, MH</span></div>
+              <div class="info-row"><span class="info-row-key">📥 Source</span><span class="info-row-val">Meta Ads</span></div>
+              <div class="info-row"><span class="info-row-key">👤 Counsellor</span><span class="info-row-val">Priya Sharma</span></div>
+              <div class="info-row"><span class="info-row-key">📅 ETA</span><span class="info-row-val" style="color:var(--amber)">15 Apr 2026</span></div>
+            </div>
+
+            <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+              <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">AI Next Best Action</div>
+              <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:10px">
+                <div style="font-size:10px;color:var(--accent2);font-weight:700;margin-bottom:4px">⚡ Recommended</div>
+                <div style="font-size:11px;color:var(--text2);line-height:1.5">Send scholarship details via WhatsApp. Ritika viewed the fee page 3× — pricing is likely a concern.</div>
+                <button class="btn btn-primary" style="margin-top:8px;padding:5px 10px;font-size:10px;width:100%">Send AI-Drafted Message</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Timeline & tabs -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <!-- Stats row -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <div class="metric-card mc-blue" style="padding:12px"><div class="metric-label">Touchpoints</div><div class="metric-value" style="font-size:20px">14</div></div>
+            <div class="metric-card mc-green" style="padding:12px"><div class="metric-label">Days Active</div><div class="metric-value" style="font-size:20px">5</div></div>
+            <div class="metric-card mc-amber" style="padding:12px"><div class="metric-label">Page Views</div><div class="metric-value" style="font-size:20px">22</div></div>
+            <div class="metric-card mc-purple" style="padding:12px"><div class="metric-label">Form Fill</div><div class="metric-value" style="font-size:20px">68<span style="font-size:12px">%</span></div></div>
+          </div>
+
+          <!-- Tabs + content -->
+          <div class="card" style="flex:1">
+            <div class="tab-row">
+              <div class="tab-item active">Timeline</div>
+              <div class="tab-item">Documents</div>
+              <div class="tab-item">Fees</div>
+              <div class="tab-item">Comms</div>
+              <div class="tab-item">Notes</div>
+            </div>
+
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-title">Application form — 68% complete</div><div class="tl-meta">Today, 10:32 AM · Web Portal</div></div>
+              <div class="tl-item"><div class="tl-dot" style="background:var(--accent)"></div><div class="tl-title">Priya Sharma called — 12 minutes</div><div class="tl-meta">Today, 9:15 AM · Discussed fee structure & scholarships</div></div>
+              <div class="tl-item"><div class="tl-dot" style="background:var(--teal)"></div><div class="tl-title">WhatsApp message sent by AI</div><div class="tl-meta">Yesterday, 6:01 PM · Programme brochure + scholarship info</div></div>
+              <div class="tl-item"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-title">Lead score updated: 71 → 82</div><div class="tl-meta">Yesterday, 3:44 PM · AI scored based on 3× fee page visits</div></div>
+              <div class="tl-item"><div class="tl-dot" style="background:var(--accent2)"></div><div class="tl-title">Enquiry received via Meta Ads</div><div class="tl-meta">02 Apr 2026 · Auto-assigned to Priya Sharma</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SCREEN 3: PIPELINE / KANBAN ════════════ -->
+    <div class="screen" id="screen-3">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Admission Pipeline</div>
+          <div class="page-sub">MBA Finance 2026 · 2,026 applications in pipeline</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost">☰ List View</button>
+          <button class="btn btn-primary">＋ Add Stage</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <span class="filter-chip active">All Programmes</span>
+        <span class="filter-chip">MBA Finance</span>
+        <span class="filter-chip">MBA Marketing</span>
+        <span class="filter-chip">PGDM</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:var(--text2)">Total value:</span>
+          <span style="font-size:13px;font-weight:700;color:var(--green);font-family:var(--mono)">₹12.4 Cr</span>
+        </div>
+      </div>
+
+      <div class="kanban-board">
+        <!-- Enquiry -->
+        <div class="kanban-col">
+          <div class="kcol-header"><div style="display:flex;align-items:center;gap:6px"><div class="kcol-dot" style="background:var(--text3)"></div><span class="kcol-title">Enquiry</span></div><span class="kcol-count">1,543</span></div>
+          <div class="kcard"><div class="kcard-name">Anjali Menon</div><div class="kcard-prog">MBA HR · Meta Ads</div><div class="kcard-bar"><div class="kcard-bar-fill" style="width:15%;background:var(--text3)"></div></div><div class="kcard-bottom"><span class="badge badge-new" style="font-size:9px">New</span><span class="kcard-date">Just now</span></div></div>
+          <div class="kcard"><div class="kcard-name">Vivek Rao</div><div class="kcard-prog">PGDM Ops · Walk-in</div><div class="kcard-bar"><div class="kcard-bar-fill" style="width:10%;background:var(--text3)"></div></div><div class="kcard-bottom"><span class="badge badge-cold" style="font-size:9px">Cold</span><span class="kcard-date">1h ago</span></div></div>
+          <div style="text-align:center;padding:8px;font-size:10px;color:var(--text3)">+ 1,541 more</div>
+        </div>
+        <!-- Qualified -->
+        <div class="kanban-col">
+          <div class="kcol-header"><div style="display:flex;align-items:center;gap:6px"><div class="kcol-dot" style="background:var(--teal)"></div><span class="kcol-title">Qualified</span></div><span class="kcol-count">280</span></div>
+          <div class="kcard"><div class="kcard-name">Dev Patel</div><div class="kcard-prog">PGDM Ops · IVR</div><div class="kcard-bar"><div class="kcard-bar-fill" style="width:40%;background:var(--teal)"></div></div><div class="kcard-bottom"><span class="score-pill score-medium" style="font-size:9px;padding:1px 5px">61</span><span class="kcard-date">1d ago</span></div></div>
+          <div class="kcard"><div class="kcard-name">Pooja Iyer</div><div class="kcard-prog">MBA Fin · Website</div><div class="kcard-bar"><div class="kcard-bar-fill" style="width:55%;background:var(--teal)"></div></div><div class="kcard-bottom"><span class="score-pill score-high" style="font-size:9px;padding:1px 5px">74</span><span class="kcard-date">2h ago</span></div></div>
+          <div style="text-align:center;padding:8px;font-size:10px;color:var(--text3)">+ 278 more</div>
+        </div>
+        <!-- Applied -->
+        <div class="kanban-col">
+          <div class="kcol-header"><div style="display:flex;align-items:center;gap:6px"><div class="kcol-dot" style="background:var(--accent)"></div><span class="kcol-title">Applied</span></div><span class="kcol-count">148</span></div>
+          <div class="kcard"><div class="kcard-name">Sameer Khan</div><div class="kcard-prog">MBA Mktg · Website</div><div class="kcard-bar"><div class="kcard-bar-fill" style="width:68%;background:var(--accent)"></div></div><div class="kcard-bottom"><span class="badge badge-prog" style="font-size:9px">In Review</span><span class="kcard-date">11m ago</span></div></div>
+          <div class="kcard"><div class="kcard-name">Meera Sinha</div><div class="kcard-prog">PGDM Strat · Agent</div><div class="kcard-bar"><div class="kcard-bar-fill" style="width:90%;background:var(--accent)"></div></div><div class="kcard-bottom"><span class="badge badge-prog" style="font-size:9px">Complete</span><span class="kcard-date">3h ago</span></div></div>
+          <div style="text-align:center;padding:8px;font-size:10px;color:var(--text3)">+ 146 more</div>
+        </div>
+        <!-- Offered -->
+        <div class="kanban-col">
+          <div class="kcol-header"><div style="display:flex;align-items:center;gap:6px"><div class="kcol-dot" style="background:var(--amber)"></div><span class="kcol-title">Offer Sent</span></div><span class="kcol-count">43</span></div>
+          <div class="kcard"><div class="kcard-name">Sneha Pillai</div><div class="kcard-prog">PGDM Strat</div><div class="kcard-bar"><div class="kcard-bar-fill" style="width:85%;background:var(--amber)"></div></div><div class="kcard-bottom"><span class="badge badge-review" style="font-size:9px">Awaiting</span><span class="kcard-date">30m ago</span></div></div>
+          <div style="text-align:center;padding:8px;font-size:10px;color:var(--text3)">+ 42 more</div>
+        </div>
+        <!-- Enrolled -->
+        <div class="kanban-col">
+          <div class="kcol-header"><div style="display:flex;align-items:center;gap:6px"><div class="kcol-dot" style="background:var(--green)"></div><span class="kcol-title">Enrolled</span></div><span class="kcol-count">12</span></div>
+          <div class="kcard" style="border-color:rgba(16,185,129,0.2)"><div class="kcard-name">Ritika Joshi</div><div class="kcard-prog">MBA Finance</div><div class="kcard-bar"><div class="kcard-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kcard-bottom"><span class="badge badge-done" style="font-size:9px">✓ Done</span><span class="kcard-date">2m ago</span></div></div>
+          <div style="text-align:center;padding:8px;font-size:10px;color:var(--text3)">+ 11 more</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SCREEN 4: COMMUNICATION ════════════ -->
+    <div class="screen" id="screen-4">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Communication Hub</div>
+          <div class="page-sub">Unified Email · SMS · WhatsApp · Voice</div>
+        </div>
+        <button class="btn btn-primary">✏️ Compose</button>
+      </div>
+
+      <div class="comm-grid">
+        <!-- Conversation list -->
+        <div>
+          <div class="chat-list">
+            <div class="chat-list-header" style="display:flex;align-items:center;justify-content:space-between">
+              <span>Conversations</span>
+              <span style="font-size:10px;color:var(--accent);font-weight:700">7 unread</span>
+            </div>
+            <div class="chat-item active">
+              <div class="chat-avatar" style="background:linear-gradient(135deg,#4F8EF7,#7C3AED)">RJ</div>
+              <div style="flex:1;min-width:0">
+                <div class="chat-name">Ritika Joshi</div>
+                <div class="chat-preview">Sure, can you send the scholarship brochure?</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                <span class="chat-time">2m</span>
+                <div class="chat-unread">2</div>
+              </div>
+            </div>
+            <div class="chat-item">
+              <div class="chat-avatar" style="background:linear-gradient(135deg,#10B981,#06B6D4)">SK</div>
+              <div style="flex:1;min-width:0">
+                <div class="chat-name">Sameer Khan</div>
+                <div class="chat-preview">My application form — question about docs</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="chat-time">15m</span><div class="chat-unread">1</div></div>
+            </div>
+            <div class="chat-item">
+              <div class="chat-avatar" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">DP</div>
+              <div style="flex:1;min-width:0">
+                <div class="chat-name">Dev Patel</div>
+                <div class="chat-preview">Thanks for the info. Will call back tomorrow.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="chat-time">1h</span></div>
+            </div>
+            <div class="chat-item">
+              <div class="chat-avatar" style="background:linear-gradient(135deg,#EC4899,#8B5CF6)">AM</div>
+              <div style="flex:1;min-width:0">
+                <div class="chat-name">Anjali Menon</div>
+                <div class="chat-preview">When is the last date to apply?</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="chat-time">2h</span><div class="chat-unread">3</div></div>
+            </div>
+            <div class="chat-item">
+              <div class="chat-avatar" style="background:var(--surface3)">SP</div>
+              <div style="flex:1;min-width:0">
+                <div class="chat-name">Sneha Pillai</div>
+                <div class="chat-preview">Offer letter received. Reviewing.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="chat-time">3h</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat window -->
+        <div class="chat-window">
+          <div class="chat-window-header">
+            <div class="chat-avatar" style="width:36px;height:36px;background:linear-gradient(135deg,#4F8EF7,#7C3AED);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">RJ</div>
+            <div><div class="cw-name">Ritika Joshi</div><div class="cw-sub">Hot Lead · Score 82 · MBA Finance · Online now</div></div>
+            <div class="channel-tabs">
+              <div class="ch-tab active">WhatsApp</div>
+              <div class="ch-tab">Email</div>
+              <div class="ch-tab">SMS</div>
+              <div class="ch-tab">Call</div>
+            </div>
+          </div>
+
+          <div class="messages">
+            <div class="msg-row inbound">
+              <div class="msg-avatar" style="background:linear-gradient(135deg,#4F8EF7,#7C3AED);color:#fff">RJ</div>
+              <div>
+                <div class="msg-bubble inbound">Hi, I saw the MBA Finance programme on Instagram. Can you share more details about the curriculum?</div>
+                <div class="msg-time">Apr 5, 10:12 AM</div>
+              </div>
+            </div>
+            <div class="msg-row outbound">
+              <div>
+                <div class="msg-bubble outbound">Hi Ritika! 👋 Great to hear from you. GIM's MBA Finance is a 2-year residential programme with AICTE approval. I'm sending you the full brochure now. What batch are you targeting — 2026 or 2027?</div>
+                <div class="msg-time" style="text-align:right">Apr 5, 10:18 AM · Priya Sharma ✓✓</div>
+              </div>
+              <div class="msg-avatar">PS</div>
+            </div>
+            <div class="msg-row inbound">
+              <div class="msg-avatar" style="background:linear-gradient(135deg,#4F8EF7,#7C3AED);color:#fff">RJ</div>
+              <div>
+                <div class="msg-bubble inbound">2026 batch! Also, are there any scholarships? The fees seem a bit high for me.</div>
+                <div class="msg-time">Apr 6, 2:44 PM</div>
+              </div>
+            </div>
+            <div class="msg-row inbound">
+              <div class="msg-avatar" style="background:linear-gradient(135deg,#4F8EF7,#7C3AED);color:#fff">RJ</div>
+              <div>
+                <div class="msg-bubble inbound">Sure, can you send the scholarship brochure?</div>
+                <div class="msg-time">Today, 10:28 AM</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-suggestion">
+            <div class="ai-tag">⚡ AI Draft · Anthropic</div>
+            <div class="ai-text">"Hi Ritika! Absolutely — GIM offers merit scholarships up to ₹2L for eligible candidates. I'd love to explain the criteria on a quick 10-minute call. Are you free today at 4 PM or 6 PM? 😊"</div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <button class="btn btn-primary" style="padding:4px 10px;font-size:10px">Use Draft</button>
+              <button class="btn btn-ghost" style="padding:4px 10px;font-size:10px">Edit</button>
+              <button class="btn btn-ghost" style="padding:4px 10px;font-size:10px">Regenerate</button>
+            </div>
+          </div>
+
+          <div class="chat-composer">
+            <input class="chat-input" placeholder="Type a message...">
+            <button class="btn btn-ghost" style="padding:6px 10px;font-size:12px">📎</button>
+            <button class="btn btn-primary" style="padding:6px 14px;font-size:12px">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SCREEN 5: ANALYTICS ════════════ -->
+    <div class="screen" id="screen-5">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Analytics & Reporting</div>
+          <div class="page-sub">Live data · GIM Goa · April 2026</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost">📅 Date Range</button>
+          <button class="btn btn-ghost">📤 Export PDF</button>
+        </div>
+      </div>
+
+      <!-- KPI row -->
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="kpi-lbl">Enquiry → Enrolled</div><div class="kpi-num" style="color:var(--green)">12.7%</div><div class="kpi-trend delta-up">↑ 2.1pp vs last year · Target: 15%</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">Avg Lead Response</div><div class="kpi-num" style="color:var(--accent)">18<span style="font-size:14px"> min</span></div><div class="kpi-trend delta-up">↓ 40% — Target: ≤30 min ✓</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">Revenue Pipeline</div><div class="kpi-num" style="color:var(--amber)">₹12.4<span style="font-size:14px">Cr</span></div><div class="kpi-trend delta-up">↑ 18% vs same period</div></div>
+      </div>
+
+      <div class="analytics-grid-top">
+        <!-- Conversion by source -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">Lead Source Performance</div>
+          <div style="font-size:10px;color:var(--text2);margin-bottom:12px">Leads · Conversion rate · This month</div>
+          <div class="source-table">
+            <div class="source-row"><span class="source-name">Meta Ads</span><div class="source-bar-wrap"><div class="source-bar-fill" style="width:100%;background:var(--accent)"></div></div><span class="source-count">1,842</span><span style="font-size:10px;color:var(--green);margin-left:6px;font-weight:600;min-width:32px">15.2%</span></div>
+            <div class="source-row"><span class="source-name">Google Ads</span><div class="source-bar-wrap"><div class="source-bar-fill" style="width:72%;background:var(--teal)"></div></div><span class="source-count">1,326</span><span style="font-size:10px;color:var(--green);margin-left:6px;font-weight:600;min-width:32px">11.8%</span></div>
+            <div class="source-row"><span class="source-name">Website Form</span><div class="source-bar-wrap"><div class="source-bar-fill" style="width:48%;background:var(--accent2)"></div></div><span class="source-count">881</span><span style="font-size:10px;color:var(--amber);margin-left:6px;font-weight:600;min-width:32px">9.4%</span></div>
+            <div class="source-row"><span class="source-name">Walk-in</span><div class="source-bar-wrap"><div class="source-bar-fill" style="width:30%;background:var(--green)"></div></div><span class="source-count">547</span><span style="font-size:10px;color:var(--green);margin-left:6px;font-weight:600;min-width:32px">22.1%</span></div>
+            <div class="source-row"><span class="source-name">IVR</span><div class="source-bar-wrap"><div class="source-bar-fill" style="width:22%;background:var(--amber)"></div></div><span class="source-count">401</span><span style="font-size:10px;color:var(--red);margin-left:6px;font-weight:600;min-width:32px">6.2%</span></div>
+            <div class="source-row"><span class="source-name">Agent Referral</span><div class="source-bar-wrap"><div class="source-bar-fill" style="width:12%;background:var(--pink)"></div></div><span class="source-count">224</span><span style="font-size:10px;color:var(--green);margin-left:6px;font-weight:600;min-width:32px">18.7%</span></div>
+          </div>
+        </div>
+
+        <!-- Status donut -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">Pipeline by Status</div>
+          <div style="font-size:10px;color:var(--text2);margin-bottom:8px">Current distribution</div>
+          <div class="donut-wrap">
+            <svg class="donut-svg" width="90" height="90" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="34" fill="none" stroke="#1A2235" stroke-width="16"/>
+              <circle cx="45" cy="45" r="34" fill="none" stroke="#4F8EF7" stroke-width="16" stroke-dasharray="53 161" stroke-dashoffset="0" transform="rotate(-90 45 45)"/>
+              <circle cx="45" cy="45" r="34" fill="none" stroke="#10B981" stroke-width="16" stroke-dasharray="34 180" stroke-dashoffset="-53" transform="rotate(-90 45 45)"/>
+              <circle cx="45" cy="45" r="34" fill="none" stroke="#F59E0B" stroke-width="16" stroke-dasharray="26 188" stroke-dashoffset="-87" transform="rotate(-90 45 45)"/>
+              <circle cx="45" cy="45" r="34" fill="none" stroke="#EF4444" stroke-width="16" stroke-dasharray="14 200" stroke-dashoffset="-113" transform="rotate(-90 45 45)"/>
+              <text x="45" y="49" text-anchor="middle" fill="#F0F4FF" font-size="11" font-weight="700" font-family="Plus Jakarta Sans">4,821</text>
+            </svg>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Enquiry<span class="legend-val">2,546</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Qualified<span class="legend-val">1,280</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Applied<span class="legend-val">701</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Blocked<span class="legend-val">294</span></div>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:var(--text2)">App completion rate</span><span style="font-size:11px;font-weight:700;color:var(--green)">73.4%</span></div>
+            <div style="height:5px;background:var(--surface3);border-radius:3px;overflow:hidden"><div style="width:73%;height:100%;background:var(--green);border-radius:3px"></div></div>
+            <div style="font-size:9px;color:var(--text3);margin-top:3px">Target: ≥70% ✓ Achieved</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Counsellor performance -->
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">Counsellor Performance · April 2026</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:8px 10px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border);background:var(--surface2)">Counsellor</th>
+              <th style="text-align:center;padding:8px 10px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border);background:var(--surface2)">Leads</th>
+              <th style="text-align:center;padding:8px 10px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border);background:var(--surface2)">Conversions</th>
+              <th style="text-align:center;padding:8px 10px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border);background:var(--surface2)">Rate</th>
+              <th style="text-align:left;padding:8px 10px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border);background:var(--surface2)">Avg Response</th>
+              <th style="text-align:center;padding:8px 10px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border);background:var(--surface2)">Rank</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:9px 10px;border-bottom:1px solid var(--border);font-weight:600">Priya Sharma</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono)">148</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono)">23</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;color:var(--green);font-weight:700">15.5%</td><td style="padding:9px 10px;border-bottom:1px solid var(--border)"><div style="height:4px;background:var(--surface3);border-radius:2px;overflow:hidden"><div style="width:90%;height:100%;background:var(--green)"></div></div><span style="font-size:9px;color:var(--text2)">14 min</span></td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center"><span style="background:rgba(245,158,11,0.2);color:var(--amber);font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px">🥇 1</span></td></tr>
+            <tr style="background:var(--surface2)"><td style="padding:9px 10px;border-bottom:1px solid var(--border);font-weight:600">Rajan Mehta</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono)">132</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono)">18</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;color:var(--accent);font-weight:700">13.6%</td><td style="padding:9px 10px;border-bottom:1px solid var(--border)"><div style="height:4px;background:var(--surface3);border-radius:2px;overflow:hidden"><div style="width:75%;height:100%;background:var(--accent)"></div></div><span style="font-size:9px;color:var(--text2)">19 min</span></td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center"><span style="color:var(--text2);font-size:11px;font-weight:700;padding:2px 8px">🥈 2</span></td></tr>
+            <tr><td style="padding:9px 10px;border-bottom:1px solid var(--border);font-weight:600">Anita Desai</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono)">119</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono)">14</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center;color:var(--amber);font-weight:700">11.8%</td><td style="padding:9px 10px;border-bottom:1px solid var(--border)"><div style="height:4px;background:var(--surface3);border-radius:2px;overflow:hidden"><div style="width:60%;height:100%;background:var(--amber)"></div></div><span style="font-size:9px;color:var(--text2)">24 min</span></td><td style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:center"><span style="color:var(--text2);font-size:11px;font-weight:700;padding:2px 8px">🥉 3</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main-layout -->
+</div><!-- /app-shell -->
+
+<script>
+function switchScreen(idx) {
+  document.querySelectorAll('.screen').forEach((s,i) => s.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  const navItems = document.querySelectorAll('.nav-item');
+  const navMap = [0,1,3,2,4,10];
+  navItems.forEach(n => n.classList.remove('active'));
+  if(navMap[idx] !== undefined) navItems[navMap[idx]]?.classList.add('active');
+}
+
+document.querySelectorAll('.nav-item').forEach((item, idx) => {
+  const screenMap = {0:0, 1:1, 2:3, 3:2, 4:4, 10:5};
+  if(screenMap[idx] !== undefined) {
+    item.addEventListener('click', () => switchScreen(screenMap[idx]));
+  }
+});
+</script>
+</body>
+</html>
