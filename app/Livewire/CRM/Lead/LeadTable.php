@@ -9,6 +9,7 @@ use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LeadTemperature;
 use App\Models\CRM\Lead;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -33,7 +34,24 @@ final class LeadTable extends Component
     public string $sortField     = 'created_at';
     public string $sortDirection = 'desc';
 
-    public int $perPage = 25;
+    public int $perPage = 10;
+
+    /**
+     * Refresh table after a lead is created via the modal.
+     * Resets all active filters so the new lead is always visible at the top.
+     */
+    #[On('lead-created')]
+    public function onLeadCreated(): void
+    {
+        $this->search             = '';
+        $this->filterStatus       = '';
+        $this->filterTemperature  = '';
+        $this->filterSource       = '';
+        $this->sortField          = 'created_at';
+        $this->sortDirection      = 'desc';
+        $this->resetPage();
+        unset($this->leads);
+    }
 
     /** Reset pagination when filters change */
     public function updatedSearch(): void      { $this->resetPage(); }
@@ -56,10 +74,14 @@ final class LeadTable extends Component
     public function leads(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $query = Lead::select([
-            'id', 'uuid', 'first_name', 'last_name',
+            'id', 'uuid', 'first_name', 'last_name', 'email',
             'lead_score', 'temperature', 'status', 'source',
-            'assigned_counsellor_id', 'created_at',
-        ])->with(['assignedCounsellor:id,name']);
+            'assigned_counsellor_id', 'created_at', 'updated_at',
+            'is_duplicate_suspected',
+        ])->with([
+            'assignedCounsellor:id,name',
+            'programmeInterests:id,name',
+        ]);
 
         if ($this->search !== '') {
             $term = '%' . $this->search . '%';

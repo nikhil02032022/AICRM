@@ -287,6 +287,216 @@ test('deleting a lead soft-deletes — record remains in DB (CRM-LC-011)', funct
 
 // ─── LeadStatus enum ───────────────────────────────────────────────────────
 
+// ─── PUT /api/v1/crm/leads/{uuid} — Update ────────────────────────────────
+
+// BRD: CRM-LC-011 — Lead update via API (integration use only)
+
+test('counsellor can update lead fields via API (CRM-LC-011)', function (): void {
+    [$institution, $counsellor] = makeInstitutionAndCounsellor();
+
+    $lead = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    $response = $this->actingAs($counsellor, 'sanctum')
+        ->putJson("/api/v1/crm/leads/{$lead}", [
+            'first_name' => 'Rahul',
+            'last_name'  => 'Verma',
+            'notes'      => 'Updated via integration test.',
+        ]);
+
+    $response->assertStatus(200)
+        ->assertJsonPath('data.first_name', 'Rahul')
+        ->assertJsonPath('data.last_name', 'Verma')
+        ->assertJsonMissing(['id']);
+});
+
+test('update response never exposes internal id or institution_id (CRM-LC-011)', function (): void {
+    [, $counsellor] = makeInstitutionAndCounsellor();
+
+    $uuid = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    $res = $this->actingAs($counsellor, 'sanctum')
+        ->putJson("/api/v1/crm/leads/{$uuid}", ['notes' => 'test'])
+        ->assertStatus(200);
+
+    // JsonResource wraps in 'data' key; raw 'id' and 'institution_id' must never appear at top level or inside data
+    expect($res->json('id'))->toBeNull();
+    expect($res->json('data.id'))->toBeNull();
+    expect($res->json('data.institution_id'))->toBeNull();
+});
+
+test('valid status transition is applied via update API (CRM-LC-011)', function (): void {
+    [, $counsellor] = makeInstitutionAndCounsellor();
+
+    $uuid = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    // NEW_ENQUIRY → CONTACTED is permitted
+    $this->actingAs($counsellor, 'sanctum')
+        ->putJson("/api/v1/crm/leads/{$uuid}", ['status' => LeadStatus::CONTACTED->value])
+        ->assertStatus(200)
+        ->assertJsonPath('data.status', LeadStatus::CONTACTED->value)
+        ->assertJsonStructure(['data']);
+});
+
+test('invalid status transition returns 422 (CRM-LC-011)', function (): void {
+    [, $counsellor] = makeInstitutionAndCounsellor();
+
+    $uuid = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    // NEW_ENQUIRY → ENROLLED is not in allowedTransitions
+    $this->actingAs($counsellor, 'sanctum')
+        ->putJson("/api/v1/crm/leads/{$uuid}", ['status' => LeadStatus::ENROLLED->value])
+        ->assertStatus(422)
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('error.code', 'INVALID_OPERATION');
+});
+
+test('update validates email format (CRM-LC-011)', function (): void {
+    [, $counsellor] = makeInstitutionAndCounsellor();
+
+    $uuid = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    $this->actingAs($counsellor, 'sanctum')
+        ->putJson("/api/v1/crm/leads/{$uuid}", ['email' => 'not-an-email'])
+        ->assertStatus(422)
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('error.code', 'VALIDATION_ERROR');
+});
+
+test('unauthenticated update request returns 401 (CRM-LC-011)', function (): void {
+    // Auth middleware fires before route resolution — no real lead required
+    $this->putJson('/api/v1/crm/leads/00000000-0000-0000-0000-000000000001', ['first_name' => 'Ghost'])
+        ->assertStatus(401)
+        ->assertJsonPath('error.code', 'UNAUTHENTICATED');
+});
+
+test('user without crm.leads.edit permission gets 403 on update (CRM-LC-011)', function (): void {
+    [$institution, $counsellor] = makeInstitutionAndCounsellor();
+
+    $uuid = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    // Viewer has only view permission, not edit
+    $viewer = User::create([
+        'name' => 'View Only', 'email' => 'viewonly@tu.com',
+        'password' => bcrypt('p'), 'institution_id' => $institution->id,
+    ]);
+    $viewer->givePermissionTo('crm.leads.view');
+
+    $this->actingAs($viewer, 'sanctum')
+        ->putJson("/api/v1/crm/leads/{$uuid}", ['notes' => 'attempt'])
+        ->assertStatus(403)
+        ->assertJsonPath('error.code', 'FORBIDDEN');
+});
+
+test('counsellor cannot update lead from different institution (NFR-MT-001)', function (): void {
+    [$instA, $counsellorA] = makeInstitutionAndCounsellor();
+    $instB = Institution::create(['name' => 'Inst B', 'code' => 'IB02', 'is_active' => true]);
+    $counsellorB = User::create([
+        'name' => 'Counsellor B', 'email' => 'cb2@b.com',
+        'password' => bcrypt('p'), 'institution_id' => $instB->id,
+    ]);
+    $counsellorB->givePermissionTo(['crm.leads.view', 'crm.leads.create', 'crm.leads.edit']);
+
+    // Lead belongs to Institution A
+    $uuid = $this->actingAs($counsellorA, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    // Counsellor B tries to update it — must not see it (404, not 403)
+    $this->actingAs($counsellorB, 'sanctum')
+        ->putJson("/api/v1/crm/leads/{$uuid}", ['notes' => 'cross-tenant attempt'])
+        ->assertStatus(404);
+});
+
+test('programme interests can be synced via update API (CRM-LC-011)', function (): void {
+    [, $counsellor] = makeInstitutionAndCounsellor();
+
+    $uuid = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    // Sync with valid programme IDs (may not exist in DB but sync should not error; empty pivot is fine)
+    $this->actingAs($counsellor, 'sanctum')
+        ->putJson("/api/v1/crm/leads/{$uuid}", ['programme_ids' => []])
+        ->assertStatus(200)
+        ->assertJsonStructure(['data']);
+});
+
+// ─── DELETE /api/v1/crm/leads/{uuid} — Destroy ────────────────────────────
+
+// BRD: CRM-LC-011 — Soft-delete only; hard delete is prohibited
+
+test('unauthenticated delete request returns 401 (CRM-LC-011)', function (): void {
+    // Auth middleware fires before route resolution — no real lead required
+    $this->deleteJson('/api/v1/crm/leads/00000000-0000-0000-0000-000000000002')
+        ->assertStatus(401)
+        ->assertJsonPath('error.code', 'UNAUTHENTICATED');
+});
+
+test('user without crm.leads.delete permission gets 403 on delete (CRM-LC-011)', function (): void {
+    [$institution, $counsellor] = makeInstitutionAndCounsellor();
+
+    $uuid = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    $noDelPerm = User::create([
+        'name' => 'No Delete', 'email' => 'nodelperm@tu.com',
+        'password' => bcrypt('p'), 'institution_id' => $institution->id,
+    ]);
+    $noDelPerm->givePermissionTo(['crm.leads.view', 'crm.leads.edit']);
+
+    $this->actingAs($noDelPerm, 'sanctum')
+        ->deleteJson("/api/v1/crm/leads/{$uuid}")
+        ->assertStatus(403)
+        ->assertJsonPath('error.code', 'FORBIDDEN');
+});
+
+test('counsellor cannot delete lead from different institution (NFR-MT-001)', function (): void {
+    [$instA, $counsellorA] = makeInstitutionAndCounsellor();
+    $instB = Institution::create(['name' => 'Inst C', 'code' => 'IC03', 'is_active' => true]);
+    $counsellorB = User::create([
+        'name' => 'Del Counsellor', 'email' => 'delc3@c.com',
+        'password' => bcrypt('p'), 'institution_id' => $instB->id,
+    ]);
+    $counsellorB->givePermissionTo(['crm.leads.view', 'crm.leads.create', 'crm.leads.delete']);
+
+    $uuid = $this->actingAs($counsellorA, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    $this->actingAs($counsellorB, 'sanctum')
+        ->deleteJson("/api/v1/crm/leads/{$uuid}")
+        ->assertStatus(404);
+});
+
+test('delete response envelope contains success and message (CRM-LC-011)', function (): void {
+    [, $counsellor] = makeInstitutionAndCounsellor();
+
+    $uuid = $this->actingAs($counsellor, 'sanctum')
+        ->postJson('/api/v1/crm/leads', minimalLeadPayload())
+        ->json('data.uuid');
+
+    $this->actingAs($counsellor, 'sanctum')
+        ->deleteJson("/api/v1/crm/leads/{$uuid}")
+        ->assertStatus(200)
+        ->assertJsonStructure(['success', 'message'])
+        ->assertJsonPath('success', true);
+});
+
+// ─── LeadStatus enum (unit) ────────────────────────────────────────────────
+
 test('LeadStatus transitions follow allowed pipeline', function (): void {
     $status = LeadStatus::NEW_ENQUIRY;
 

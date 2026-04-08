@@ -89,11 +89,20 @@ final class LeadService
     /**
      * Update non-sensitive lead fields.
      *
+     * BRD: CRM-LC-018 — Re-run duplicate detection when mobile or email changes.
+     *
      * @param array<string, mixed> $data
      */
     public function update(Lead $lead, array $data): Lead
     {
-        return $this->repository->update($lead, $data);
+        $updated = $this->repository->update($lead, $data);
+
+        // BRD: CRM-LC-018 — Any change to contact details may reveal a new duplicate
+        if (array_key_exists('mobile', $data) || array_key_exists('email', $data)) {
+            DetectLeadDuplicatesJob::dispatch($lead->uuid, $lead->institution_id);
+        }
+
+        return $updated;
     }
 
     public function delete(Lead $lead): void

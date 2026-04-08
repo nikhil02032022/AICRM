@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // BRD: CRM-LC-011 — Lead entity is the central CRM record for an enquiring prospective student
@@ -68,6 +69,9 @@ class Lead extends Model
         'call_consent_given',
         'erp_student_uuid',
         'pii_anonymised_at',
+        // BRD: CRM-LC-018 — duplicate detection flag columns
+        'is_duplicate_suspected',
+        'duplicate_of_uuid',
         'city',
         'state',
         'nationality',
@@ -95,6 +99,8 @@ class Lead extends Model
             'consent_timestamp'  => 'datetime',
             'opt_out_at'         => 'datetime',
             'pii_anonymised_at'  => 'datetime',
+            // BRD: CRM-LC-018 — duplicate flag
+            'is_duplicate_suspected' => 'boolean',
         ];
     }
 
@@ -125,6 +131,13 @@ class Lead extends Model
             'lead_id',
             'crm_programme_id',
         )->withPivot('is_primary')->withTimestamps();
+    }
+
+    // BRD: CRM-LC-011 — Audit trail for this lead (read-only, append-only)
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class, 'entity_id')
+                    ->where('entity_type', static::class);
     }
 
     // -------------------------------------------------------------------------

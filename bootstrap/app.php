@@ -12,6 +12,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Enable Sanctum stateful API auth for same-domain SPA/Blade fetch requests
+        $middleware->statefulApi();
+
         $middleware->alias([
             'tenancy' => EnsureInstitutionTenancy::class,
             'mfa' => RequireMfa::class,
@@ -51,6 +55,31 @@ return Application::configure(basePath: dirname(__DIR__))
                         'error' => ['code' => 'VALIDATION_ERROR', 'message' => 'The given data was invalid.'],
                         'errors' => $e->errors(),
                     ], 422);
+                }
+
+                // Business rule violations (e.g. invalid status transition)
+                if ($e instanceof \DomainException) {
+                    return response()->json([
+                        'success' => false,
+                        'error'   => ['code' => 'INVALID_OPERATION', 'message' => $e->getMessage()],
+                    ], 422);
+                }
+
+                // HttpExceptions produced by abort() — e.g. FormRequest::authorize() returning false
+                if ($e instanceof HttpException) {
+                    $httpCode = $e->getStatusCode();
+                    $httpLabel = match($httpCode) {
+                        401     => 'UNAUTHENTICATED',
+                        403     => 'FORBIDDEN',
+                        404     => 'NOT_FOUND',
+                        405     => 'METHOD_NOT_ALLOWED',
+                        default => 'HTTP_ERROR',
+                    };
+
+                    return response()->json([
+                        'success' => false,
+                        'error'   => ['code' => $httpLabel, 'message' => $e->getMessage() ?: 'HTTP error.'],
+                    ], $httpCode);
                 }
 
                 // Generic: never expose internal message in production

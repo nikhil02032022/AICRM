@@ -1,8 +1,4 @@
 import './bootstrap';
 
-import Alpine from 'alpinejs';
-
-// Alpine.js v3 — lightweight interactivity (dropdowns, modals, tabs, toggles)
-// Per blade-frontend-standards: no inline <script> blocks with business logic
-window.Alpine = Alpine;
-Alpine.start();
+// Alpine.js is owned and started by Livewire v4 — do NOT import or start it here.
+// Registering Alpine separately causes "multiple Alpine instances" and breaks $wire.

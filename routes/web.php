@@ -44,12 +44,20 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/leads', [LeadWebController::class, 'index'])
             ->name('leads.index')
             ->middleware('can:crm.leads.view');
-        Route::get('/leads/create', [LeadWebController::class, 'create'])
-            ->name('leads.create')
+        // BRD: CRM-LC-011 — Web form POST; session auth, returns JSON for the modal
+        Route::post('/leads', [LeadWebController::class, 'store'])
+            ->name('leads.store')
             ->middleware('can:crm.leads.create');
         Route::get('/leads/{lead:uuid}', [LeadWebController::class, 'show'])
             ->name('leads.show')
             ->middleware('can:crm.leads.view');
+        // BRD: CRM-LC-011 — Web PUT/DELETE; session auth, returns JSON for modals
+        Route::put('/leads/{lead:uuid}', [LeadWebController::class, 'update'])
+            ->name('leads.update')
+            ->middleware('can:crm.leads.edit');
+        Route::delete('/leads/{lead:uuid}', [LeadWebController::class, 'destroy'])
+            ->name('leads.destroy')
+            ->middleware('can:crm.leads.delete');
     });
 
     Route::post('/logout', function (Request $request) {
