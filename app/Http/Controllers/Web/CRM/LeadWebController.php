@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CRM\StoreLeadRequest;
 use App\Http\Requests\Api\CRM\UpdateLeadRequest;
 use App\Models\CRM\Lead;
+use App\Models\CRM\ScoreOverride;
 use App\Services\CRM\Lead\LeadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -59,10 +60,16 @@ final class LeadWebController extends Controller
             ->limit(20)
             ->get();
 
+        // BRD: CRM-LQ-007 — Score override history for the scoring tab
+        $scoreOverrides = ScoreOverride::where('lead_id', $lead->id)
+            ->with('overriddenBy:id,name')
+            ->latest('created_at')
+            ->get();
+
         $sourceOptions = LeadSource::optionsForSelect();
         $statusOptions = collect(LeadStatus::cases())->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all();
 
-        return view('crm.leads.show', compact('lead', 'auditLogs', 'sourceOptions', 'statusOptions'));
+        return view('crm.leads.show', compact('lead', 'auditLogs', 'scoreOverrides', 'sourceOptions', 'statusOptions'));
     }
 
     /**

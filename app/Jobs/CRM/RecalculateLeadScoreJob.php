@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Jobs\CRM;
 
+use App\Events\CRM\LeadTemperatureChangedEvent;
+use App\Events\CRM\ScoreChangedEvent;
 use App\Models\CRM\Lead;
+use App\Services\CRM\Scoring\LeadScoringService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,7 +16,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-// BRD: CRM-LQ-001 â€” Recalculate lead score based on engagement history, profile completeness, and source
+// BRD: CRM-LQ-001, CRM-LQ-004 — Recalculate lead score on every qualifying activity
 final class RecalculateLeadScoreJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -24,72 +27,66 @@ final class RecalculateLeadScoreJob implements ShouldQueue, ShouldBeUnique
     public function __construct(
         public readonly string $leadUuid,
     ) {
-        $this->onQueue('default');
+        // BRD: CRM-LQ-004 — Dedicated queue keeps scoring isolated from other operations
+        $this->onQueue('crm-scoring');
     }
 
-    /** Unique key prevents duplicate score recalculations for the same lead. */
+    /** Unique key prevents duplicate score recalculations queuing for the same lead. */
     public function uniqueId(): string
     {
         return "recalc-score:{$this->leadUuid}";
     }
 
-    public function handle(): void
+    /**
+     * Method injection resolves the service from the container (testable).
+     * BRD: CRM-LQ-001 — Full configurable scoring engine replaces the previous stub.
+     * BRD: CRM-LQ-003 — AI scoring engine augments this in Phase 2 (Should Have).
+     */
+    public function handle(LeadScoringService $scoringService): void
     {
         $lead = Lead::withoutGlobalScopes()
+            ->with('programmeInterests')
             ->where('uuid', $this->leadUuid)
             ->first();
 
         if ($lead === null) {
-            // Lead deleted before job ran â€” safe to discard
+            // Lead deleted before job ran — safe to discard
             return;
         }
 
-        // BRD: CRM-LQ-001 â€” Score algorithm stub; AI scoring engine replaces this in Phase 2
-        $score = $this->calculateBasicScore($lead);
+        // BRD: CRM-LQ-007 — Do NOT auto-recalculate if score was manually overridden
+        if ($lead->score_manually_overridden) {
+            return;
+        }
+
+        $previousScore       = $lead->lead_score;
+        $previousTemperature = $lead->temperature;
+
+        $config   = $scoringService->getScoringConfig($lead->institution_id);
+        $newScore = $scoringService->calculateScore($lead, $config);
+
+        // BRD: CRM-LQ-005 — Temperature derived from institution-configured thresholds
+        $newTemperature = $scoringService->deriveTemperature($newScore, $config);
 
         $lead->update([
-            'lead_score'  => $score,
-            'temperature' => \App\Enums\CRM\LeadTemperature::fromScore($score)->value,
+            'lead_score'  => $newScore,
+            'temperature' => $newTemperature->value,
         ]);
 
-        // BRD: CRM-CR-002 â€” No PII in logs
+        // BRD: CRM-CR-002 — No PII in logs
         Log::info('Lead score recalculated', [
             'lead_uuid' => $this->leadUuid,
-            'new_score' => $score,
+            'old_score' => $previousScore,
+            'new_score' => $newScore,
         ]);
-    }
 
-    private function calculateBasicScore(Lead $lead): int
-    {
-        $score = 0;
-
-        // Profile completeness signals (max 40 pts)
-        if ($lead->email !== null) {
-            $score += 10;
-        }
-        if ($lead->city !== null) {
-            $score += 10;
-        }
-        if ($lead->programmeInterests()->exists()) {
-            $score += 20;
+        // BRD: CRM-LQ-006 — Fire events only when values actually change
+        if ($newScore !== $previousScore) {
+            ScoreChangedEvent::dispatch($lead, $previousScore, $newScore);
         }
 
-        // Source quality signals (max 30 pts)
-        $score += match($lead->source) {
-            \App\Enums\CRM\LeadSource::REFERRAL,
-            \App\Enums\CRM\LeadSource::WALK_IN    => 30,
-            \App\Enums\CRM\LeadSource::GOOGLE_ADS,
-            \App\Enums\CRM\LeadSource::FACEBOOK   => 20,
-            \App\Enums\CRM\LeadSource::IVR,
-            \App\Enums\CRM\LeadSource::WHATSAPP   => 15,
-            default                               => 10,
-        };
-
-        // Consent given (max 10 pts)
-        if ($lead->consent_given) {
-            $score += 10;
+        if ($newTemperature !== $previousTemperature) {
+            LeadTemperatureChangedEvent::dispatch($lead, $previousTemperature, $newTemperature);
         }
-
-        return min(100, $score);
     }
 }

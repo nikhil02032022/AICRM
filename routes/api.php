@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\CRM\LeadController;
+use App\Http\Controllers\Api\CRM\LeadScoringController;
 use App\Http\Controllers\Api\CRM\WebFormController;
 use App\Http\Controllers\Api\CRM\Webhooks\EducationPortalWebhookController;
 use App\Http\Controllers\Api\CRM\Webhooks\GoogleLeadWebhookController;
@@ -36,6 +37,14 @@ Route::prefix('v1/crm')
         // BRD: CRM-LC-009 — QR code PNG download
         Route::get('forms/{form:uuid}/qr', [WebFormController::class, 'qr'])
             ->name('crm.forms.qr');
+
+        // BRD: CRM-LQ-001, CRM-LQ-005, CRM-LQ-007 — Scoring configuration + manual override
+        Route::get('scoring/config', [LeadScoringController::class, 'config'])
+            ->name('scoring.config');
+        Route::put('scoring/config', [LeadScoringController::class, 'updateConfig'])
+            ->name('scoring.config.update');
+        Route::post('leads/{lead:uuid}/score-override', [LeadScoringController::class, 'override'])
+            ->name('leads.score-override');
     });
 
 // -----------------------------------------------------------------------

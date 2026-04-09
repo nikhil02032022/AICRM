@@ -106,4 +106,59 @@
         </div>
     </div>
 
+    {{-- ── Lead Quality by Source widget (BRD: CRM-LQ-008) ── --}}
+    @can('viewReport', \App\Models\CRM\InstitutionScoringConfig::class)
+    @php
+        $sourceQualityWidget = app(\App\Services\CRM\Scoring\LeadScoringService::class)
+            ->getSourceQualityReport(auth()->user()->institution_id)
+            ->take(5);
+    @endphp
+    @if($sourceQualityWidget->isNotEmpty())
+    <div class="mt-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h3 class="text-base font-semibold text-gray-800">Lead Quality by Source</h3>
+            <a href="{{ route('crm.scoring.source-quality') }}"
+               class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+                Full Report →
+            </a>
+        </div>
+        <div class="card overflow-hidden p-0">
+            <table class="w-full text-left text-sm">
+                <thead class="border-b border-gray-100 bg-gray-50 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                    <tr>
+                        <th class="px-5 py-3">Source</th>
+                        <th class="px-5 py-3 text-right">Avg Score</th>
+                        <th class="px-5 py-3 text-right">Leads</th>
+                        <th class="px-5 py-3 text-right">Conv. Rate</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach($sourceQualityWidget as $row)
+                    @php
+                        $srcLabel = '';
+                        try { $srcLabel = \App\Enums\CRM\LeadSource::from($row->source)->label(); }
+                        catch (\Throwable) { $srcLabel = ucwords(str_replace('_', ' ', $row->source)); }
+                    @endphp
+                    <tr class="hover:bg-gray-50 transition-colors duration-100">
+                        <td class="px-5 py-3">
+                            <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-700">{{ $srcLabel }}</span>
+                        </td>
+                        <td class="px-5 py-3 text-right">
+                            <span class="font-bold tabular-nums {{ $row->avg_score >= 70 ? 'text-green-600' : ($row->avg_score >= 50 ? 'text-blue-600' : 'text-gray-400') }}">
+                                {{ $row->avg_score }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 text-right font-semibold text-gray-700">{{ number_format($row->total) }}</td>
+                        <td class="px-5 py-3 text-right font-semibold {{ $row->conversion_rate >= 30 ? 'text-green-600' : 'text-gray-500' }}">
+                            {{ $row->conversion_rate }}%
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+    @endcan
+
 </x-layouts.crm>

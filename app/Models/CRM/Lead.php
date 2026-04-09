@@ -72,6 +72,8 @@ class Lead extends Model
         // BRD: CRM-LC-018 — duplicate detection flag columns
         'is_duplicate_suspected',
         'duplicate_of_uuid',
+        // BRD: CRM-LQ-007 — manual score override flag
+        'score_manually_overridden',
         'city',
         'state',
         'nationality',
@@ -101,6 +103,8 @@ class Lead extends Model
             'pii_anonymised_at'  => 'datetime',
             // BRD: CRM-LC-018 — duplicate flag
             'is_duplicate_suspected' => 'boolean',
+            // BRD: CRM-LQ-007 — manual override lock flag
+            'score_manually_overridden' => 'boolean',
         ];
     }
 

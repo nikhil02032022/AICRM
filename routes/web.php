@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Public\PublicFormController;
 use App\Http\Controllers\Web\CRM\IntegrationWebController;
 use App\Http\Controllers\Web\CRM\LeadImportWebController;
+use App\Http\Controllers\Web\CRM\LeadScoringWebController;
 use App\Http\Controllers\Web\CRM\LeadWebController;
 use App\Http\Controllers\Web\CRM\WebFormWebController;
 use Illuminate\Http\Request;
@@ -133,6 +134,21 @@ Route::middleware('auth')->group(function (): void {
                 ->name('integrations.destroy')
                 ->middleware('can:crm.integrations.manage');
         });
+
+        // BRD: CRM-LQ-001, CRM-LQ-005, CRM-LQ-007, CRM-LQ-008 — Lead scoring configuration + reports
+        Route::prefix('scoring')->name('scoring.')->group(function (): void {
+            Route::get('/config', [LeadScoringWebController::class, 'config'])
+                ->name('config');
+            Route::post('/config', [LeadScoringWebController::class, 'updateConfig'])
+                ->name('config.update');
+            Route::get('/source-quality', [LeadScoringWebController::class, 'sourceQualityReport'])
+                ->name('source-quality');
+        });
+
+        // BRD: CRM-LQ-007 — Manual score override (posted from lead show page)
+        Route::post('/leads/{lead:uuid}/score-override', [LeadScoringWebController::class, 'override'])
+            ->name('leads.score-override')
+            ->middleware('can:crm.leads.edit');
     });
 
     Route::post('/logout', function (Request $request) {

@@ -246,6 +246,40 @@ return [
             'timeout' => 300,
             'nice' => 10,
         ],
+        // BRD: CRM-LQ-001, CRM-LQ-004 — Lead scoring recalculation (isolated queue)
+        'supervisor-scoring' => [
+            'connection' => 'redis',
+            'queue' => ['crm-scoring'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 3,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 30,
+            'nice' => 5,
+        ],
+        // BRD: CRM-LQ-006 — HOT lead notifications (high priority, fast — counsellor must be alerted immediately)
+        'supervisor-notifications' => [
+            'connection' => 'redis',
+            'queue' => ['crm-notifications'],
+            'balance' => 'auto',
+            'maxProcesses' => 3,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 30,
+            'nice' => 0,
+        ],
+        // BRD: CRM-LQ-006 — Cold lead → nurture drip sequence (Group F Communication Engine hook)
+        'supervisor-nurture' => [
+            'connection' => 'redis',
+            'queue' => ['crm-nurture'],
+            'balance' => 'simple',
+            'maxProcesses' => 1,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 60,
+            'nice' => 10,
+        ],
     ],
 
     'environments' => [
@@ -254,6 +288,9 @@ return [
             'supervisor-communications' => ['maxProcesses' => 10, 'balanceMaxShift' => 3, 'balanceCooldown' => 3],
             'supervisor-ai' => ['maxProcesses' => 5],
             'supervisor-bulk' => ['maxProcesses' => 4],
+            'supervisor-scoring' => ['maxProcesses' => 5, 'balanceMaxShift' => 2, 'balanceCooldown' => 3],
+            'supervisor-notifications' => ['maxProcesses' => 5],
+            'supervisor-nurture' => ['maxProcesses' => 2],
         ],
 
         'local' => [
@@ -261,6 +298,9 @@ return [
             'supervisor-communications' => ['maxProcesses' => 1],
             'supervisor-ai' => ['maxProcesses' => 1],
             'supervisor-bulk' => ['maxProcesses' => 1],
+            'supervisor-scoring' => ['maxProcesses' => 1],
+            'supervisor-notifications' => ['maxProcesses' => 1],
+            'supervisor-nurture' => ['maxProcesses' => 1],
         ],
     ],
 

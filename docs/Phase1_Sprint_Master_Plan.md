@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0  
 **Phase:** 1 — Must Have (Months 1–4)  
-**Last Updated:** 9 April 2026
+**Last Updated:** 9 April 2026 (Group D complete)
 
 ---
 
@@ -12,7 +12,7 @@
 | **A** | Lead Foundation — Manual Creation, Source, Dedup | LC-011, LC-014, LC-015 (partial), LC-018 | ✅ **Complete** | (inline — no separate doc) |
 | **B** | Web Enquiry Forms, Conditional Logic, QR, UTM | LC-001, LC-002, LC-009, LC-015 (complete) | ✅ **Complete** | [Sprint_Group_B_Web_Forms.md](Sprint_Group_B_Web_Forms.md) |
 | **C** | Digital Lead Channels — Google, Meta, Portals, CSV | LC-003, LC-004, LC-008, LC-012 | ✅ **Complete** | (inline) |
-| **D** | Lead Scoring Engine + Temperature + Override | LQ-001, LQ-002, LQ-004, LQ-005, LQ-006, LQ-007 | 🔴 Not Started | TBD |
+| **D** | Lead Scoring Engine + Temperature + Override | LQ-001, LQ-002, LQ-004, LQ-005, LQ-006, LQ-007, LQ-008 | ✅ **Complete** | [lead-scoring-engine.md](usermanual/lead-scoring-engine.md) |
 | **E** | Enquiry & Counselling Pipeline | EC-001 to EC-019 | 🔴 Not Started | TBD |
 | **F** | WhatsApp, IVR, Communication Engine | LC-007, LC-010, CC-001 to CC-023 | 🔴 Not Started | TBD |
 | **G** | Duplicate Merge + ERP Lead Match | LC-019, LC-020 | 🔴 Not Started | TBD |
@@ -74,18 +74,27 @@
 
 ---
 
-## Group D — Planned 📋
+## Group D — Complete ✅
 
-**Theme:** Lead Scoring Engine + Temperature + Manual Override
+**Theme:** Lead Scoring Engine + Temperature Classification + Manual Override + Source Quality Report  
+**Completed:** 9 April 2026  
+**User Manual:** [lead-scoring-engine.md](usermanual/lead-scoring-engine.md)
 
-| Req ID | Feature | Notes |
+| Req ID | Feature | Files |
 |--------|---------|-------|
-| LQ-001 | Configurable rule-based scoring engine 0–100 | Replace `RecalculateLeadScoreJob` stub |
-| LQ-002 | Scoring parameters — demographics, course match, engagement, response time, geography | |
-| LQ-004 | Score recalculated on every qualifying activity | Event-driven: email open, WhatsApp read, form revisit |
-| LQ-005 | Per-institution configurable temperature thresholds (Hot/Warm/Cold) | `institution_scoring_config` table or JSON config |
-| LQ-006 | Score threshold → automated action triggers (Hot → alert counsellor, Cold → nurture) | Listeners on `ScoreChangedEvent` |
-| LQ-007 | Manual score override with documented reason | `score_overrides` table, UI in show view |
+| LQ-001 | Per-institution configurable rule-based scoring engine (0–100, 7 signal categories, configurable weights) | `InstitutionScoringConfig`, `LeadScoringService`, `UpdateScoringConfigDTO`, `CrmScoringServiceProvider`, migration `2026_04_12_000001` |
+| LQ-002 | 7 scoring parameters: profile completeness, programme interest, source quality (5 tiers), engagement, consent, geographic, response time stub | `LeadScoringService::calculateScore()` with 7 private signal calculators |
+| LQ-004 | Score recalculated on web form submission via `WebFormSubmittedEvent → RecalculateScoreOnFormSubmit → RecalculateLeadScoreJob` | `RecalculateScoreOnFormSubmit`, `RecalculateLeadScoreJob` (replaced stub with full engine) |
+| LQ-005 | Per-institution configurable HOT/WARM thresholds with validation UI; `deriveTemperature()` uses institution thresholds | `config.blade.php` (7 sliders + threshold inputs + live preview), `UpdateScoringConfigRequest`, `CrmScoringServiceProvider` |
+| LQ-006 | Temperature change events trigger automated workflows: HOT → DB notification + email alert to counsellor; COLD downgrade → nurture queue stub | `LeadTemperatureChangedEvent`, `TriggerScoringWorkflowListener`, `SendHotLeadAlertJob`, `HotLeadAlertNotification`, `HotLeadAlertMail`, `hot-lead-alert.blade.php`, `QueueNurtureSequenceJob` |
+| LQ-007 | Manual score override with reason, permission check, immutable audit trail; scoring auto-recalc paused when overridden | `ScoreOverride`, `StoreScoreOverrideRequest`, `ScoreOverrideDTO`, `LeadScoringWebController::override()`, `show.blade.php` Scoring tab, migration `2026_04_12_000002` |
+| LQ-008 | Source quality report: avg score + volume + conversion rate by channel; 3 access points (standalone, lead index tab, dashboard widget); Chart.js bar + donut | `source-quality.blade.php`, `LeadScoringService::getSourceQualityReport()`, `dashboard.blade.php` widget |
+
+**New files (29):** `InstitutionScoringConfig`, `ScoreOverride`, `ScoreOverrideDTO`, `UpdateScoringConfigDTO`, `ScoringConfigRepositoryInterface`, `EloquentScoringConfigRepository`, `LeadScoringService`, `RecalculateLeadScoreJob` (replaced), `ScoreChangedEvent`, `LeadTemperatureChangedEvent`, `TriggerScoringWorkflowListener`, `RecalculateScoreOnFormSubmit`, `SendHotLeadAlertJob`, `QueueNurtureSequenceJob`, `HotLeadAlertNotification`, `HotLeadAlertMail`, `hot-lead-alert.blade.php`, `UpdateScoringConfigRequest`, `StoreScoreOverrideRequest`, `LeadScoringWebController`, `LeadScoringController` (API), `ScoringConfigResource`, `ScoreOverrideResource`, `ScoringConfigPolicy`, `CrmScoringServiceProvider`, `config.blade.php`, `source-quality.blade.php`, migrations ×2  
+**Modified files (9):** `RecalculateLeadScoreJob` (replaced stub), `Lead` model (`score_manually_overridden` fillable + cast), `LeadWebController` (show + scoreOverrides), `AppServiceProvider` (2 listeners), `bootstrap/providers.php`, `horizon.php` (3 supervisors), `routes/web.php` (4 routes), `routes/api.php` (3 routes), `show.blade.php` (Scoring tab), `dashboard.blade.php` (widget)  
+**Tests:** 24 tests passing (0 regressions — pre-existing failures unchanged)  
+**Queues added:** `crm-scoring` (3 workers), `crm-notifications` (priority), `crm-nurture` (stub)  
+**Security:** RBAC gates via `ScoringConfigPolicy`; no PII in logs; all DB mutations audited
 
 ---
 
@@ -150,10 +159,11 @@
 ### Lead Scoring (LQ)
 | Req ID | Priority | Group | Status |
 |--------|----------|-------|--------|
-| LQ-001 | Must Have | D | ⚠️ Stub |
-| LQ-002 | Must Have | D | ⚠️ Stub |
-| LQ-004 | Must Have | D | ⚠️ Stub |
-| LQ-005 | Must Have | D | ⚠️ Partial |
-| LQ-006 | Must Have | D | 🔴 |
-| LQ-007 | Must Have | D | 🔴 |
-| LQ-008 | Must Have | D | 🔴 |
+| LQ-001 | Must Have | D | ✅ |
+| LQ-002 | Must Have | D | ✅ |
+| LQ-003 | Should Have | Phase 2 | ⏳ Phase 2 |
+| LQ-004 | Must Have | D | ✅ |
+| LQ-005 | Must Have | D | ✅ |
+| LQ-006 | Must Have | D | ✅ |
+| LQ-007 | Must Have | D | ✅ |
+| LQ-008 | Must Have | D | ✅ |
