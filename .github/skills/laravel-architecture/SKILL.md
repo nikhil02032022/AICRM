@@ -44,6 +44,107 @@ Is this a domain concept with validation behaviour (phone, email, money)?
 
 Is this data moving between layers without behaviour?
   → DTO (readonly class, no methods except static factories)
+
+Is this a browser user (counsellor, admin) interacting with the CRM?
+  → Web Controller (Controllers/CRM/Web/) in routes/web.php, session auth, returns view/redirect
+
+Is this a machine consumer (mobile app, ERP, third-party)?
+  → API Controller (Controllers/CRM/Api/) in routes/api.php, Sanctum token, returns JsonResource
+```
+
+---
+
+## Web vs API Controller Separation
+
+This is a hard architectural boundary. Never cross it.
+
+```
+┌─────────────────────────────────┬────────────────────────────────────┐
+│ Web App (Blade + Livewire)      │ Integration API (external only)    │
+├─────────────────────────────────┼────────────────────────────────────┤
+│ routes/web.php                  │ routes/api.php                     │
+│ /crm/...                        │ /api/v1/crm/...                    │
+│ auth middleware (session)        │ auth:sanctum (Bearer token)        │
+│ Controllers/CRM/Web/            │ Controllers/CRM/Api/               │
+│ Returns: view() redirect()      │ Returns: JsonResource JsonResponse │
+│ Consumers: browser users        │ Consumers: mobile, ERP, 3rd-party  │
+│ Livewire: injects Service       │ N/A                                │
+└─────────────────────────────────┴────────────────────────────────────┘
+                        ↑ Both share the same Service layer ↑
+```
+
+### Rule: One Service, Two Controllers, Correct Routes
+
+```php
+// ✅ Shared Service — business logic belongs here, not in controllers
+final class LeadService
+{
+    public function create(array $validated, string $ip): Lead
+    {
+        // BRD: CRM-LC-001 — same logic regardless of whether caller is web or API
+        $dto = CreateLeadDTO::fromRequest($validated + ['_ip' => $ip]);
+        $lead = $this->repository->create($dto);
+        LeadCreatedEvent::dispatch($lead);
+        return $lead;
+    }
+}
+
+// ✅ Web Controller — injects Service, returns view/redirect
+// Namespace: App\Http\Controllers\CRM\Web
+final class LeadController extends Controller
+{
+    public function store(StoreLeadRequest $request): RedirectResponse
+    {
+        Gate::authorize('crm.leads.create');
+        $lead = $this->leadService->create($request->validated(), $request->ip());
+        return redirect()->route('crm.leads.show', $lead->uuid);
+    }
+}
+
+// ✅ API Controller — same Service injected, returns JsonResource
+// Namespace: App\Http\Controllers\CRM\Api
+final class LeadController extends Controller
+{
+    public function store(StoreLeadRequest $request): JsonResponse
+    {
+        Gate::authorize('crm.leads.create');
+        $lead = $this->leadService->create($request->validated(), $request->ip());
+        return response()->json(['success' => true, 'data' => new LeadResource($lead)], 201);
+    }
+}
+
+// ✅ Livewire — injects Service directly (no HTTP hop, no API call)
+final class LeadCreate extends Component
+{
+    public function save(): void
+    {
+        Gate::authorize('crm.leads.create');
+        $this->validate();
+        $this->leadService->create($this->all(), request()->ip());
+        $this->redirectRoute('crm.leads.index');
+    }
+}
+```
+
+### Web vs API Anti-Patterns to Reject
+
+```php
+// ❌ Web controller returning JSON for consumption by Blade JS
+public function store(): JsonResponse { return response()->json($lead); }
+
+// ❌ API controller returning Blade view
+public function index(): View { return view('crm.leads.index'); }
+
+// ❌ Livewire fetching /api/v1/ internally
+public function save(): void {
+    Http::withToken(session('api_token'))->post('/api/v1/crm/leads', $this->all());
+}
+
+// ❌ fetch() targeting /api/v1/ from Blade JS script block
+// fetch('/api/v1/crm/leads', { headers: { Authorization: 'Bearer ...' } })
+
+// ❌ auth:sanctum on web route
+Route::post('/crm/leads', [LeadController::class, 'store'])->middleware('auth:sanctum');
 ```
 
 ---

@@ -1,9 +1,24 @@
 ---
-description: "Use when designing or implementing REST API endpoints, API controllers, response structures, authentication, pagination, error handling, or reviewing API contracts for A2A-CRM. Enforces versioned routes, standard response envelope, Sanctum auth, RBAC gate checks, and OWASP API security."
+description: "Use when designing or implementing REST API endpoints, API controllers, response structures, authentication, pagination, error handling, or reviewing API contracts for A2A-CRM. Enforces versioned routes, standard response envelope, Sanctum auth, RBAC gate checks, and OWASP API security. API routes are for external integrations ONLY (React Native mobile, A2A ERP, third-party). The CRM web application (Blade + Livewire) must never call these routes."
 applyTo: "routes/api*.php"
 ---
 
 # A2A-CRM API Design Standards
+
+## Scope — External Integrations Only
+
+> **The `/api/v1/crm/...` namespace is reserved exclusively for external integration consumers.**
+
+| Allowed Consumer | How | Auth |
+|---|---|---|
+| React Native mobile app | Bearer token | `auth:sanctum` |
+| A2A ERP server-to-server | API key | `auth:sanctum` |
+| Approved third-party services | API key | `auth:sanctum` |
+| **CRM web application (Blade/Livewire)** | **NEVER** | — |
+
+The CRM web application uses `routes/web.php` with session auth exclusively. For every feature, build a **Web Controller** (`Controllers/CRM/Web/`) and an **API Controller** (`Controllers/CRM/Api/`) as separate classes. They share the same `Service` layer but are otherwise independent.
+
+---
 
 ## Route Structure
 
@@ -178,3 +193,7 @@ Ensure API responses include:
 - ❌ Webhook handlers that process synchronously (always dispatch job)
 - ❌ Raw `response()->json($model->toArray())` — use JsonResource
 - ❌ Accepting file uploads via JSON API body — use multipart/form-data with S3 direct upload
+- ❌ Calling `/api/v1/...` endpoints from Blade views, Livewire components, or any CRM web app JS
+- ❌ Using `auth:sanctum` middleware in `routes/web.php`
+- ❌ Placing web UI logic, `view()` returns, or `redirect()` in API controllers
+- ❌ Sharing the same controller class between web routes and API routes

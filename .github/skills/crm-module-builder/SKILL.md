@@ -62,22 +62,55 @@ app/Services/CRM/{Module}/{Feature}Service.php
 
 ### Step 4 — Generate HTTP Layer
 
-Create FormRequest (validate all inputs, consent if PII):
+Create FormRequest (shared by both web and API controllers):
 ```
 app/Http/Requests/CRM/Store{Entity}Request.php
+app/Http/Requests/CRM/Update{Entity}Request.php
 ```
 
-Create JsonResource (expose uuid, never id/institution_id):
+Create JsonResource (for API controller only — never used by web controller):
 ```
 app/Http/Resources/CRM/{Entity}Resource.php
 ```
 
-Create Controller (thin: FormRequest → Gate → Service → Resource):
+Create **Web Controller** (primary — session auth, returns view/redirect):
 ```
-app/Http/Controllers/CRM/{Module}/{Entity}Controller.php
+app/Http/Controllers/CRM/Web/{Entity}Controller.php
+```
+- Namespace: `App\Http\Controllers\CRM\Web`
+- Middleware: `auth` (session, never `auth:sanctum`)
+- Returns: `view()`, `redirect()`, `back()` — never `JsonResource` or `JsonResponse`
+- Injects: Service class directly
+
+Create **API Controller** (integration-only — Sanctum token, returns JsonResource):
+```
+app/Http/Controllers/CRM/Api/{Entity}Controller.php
+```
+- Namespace: `App\Http\Controllers\CRM\Api`
+- Middleware: `auth:sanctum`
+- Returns: `JsonResource`, `JsonResponse` — never `view()` or `redirect()`
+- Consumers: React Native mobile app, A2A ERP server-to-server, approved third-party services
+- Injects: Same Service class as web controller
+
+Create **Livewire component** (if reactive UI needed — injects Service directly, no HTTP hop):
+```
+app/Livewire/CRM/{Module}/{Entity}Table.php
+resources/views/livewire/crm/{module}/{entity}-table.blade.php
 ```
 
-Add routes under `/api/v1/crm/`.
+Add routes to the **correct** route files:
+
+```php
+// routes/web.php — web app (session auth)
+Route::prefix('crm')->middleware(['auth', 'verified', 'institution.scope'])->group(function (): void {
+    Route::resource('{entities}', \App\Http\Controllers\CRM\Web\{Entity}Controller::class);
+});
+
+// routes/api.php — external integrations only (Sanctum token auth)
+Route::prefix('v1/crm')->middleware(['auth:sanctum', 'institution.scope'])->group(function (): void {
+    Route::apiResource('{entities}', \App\Http\Controllers\CRM\Api\{Entity}Controller::class);
+});
+```
 
 ### Step 5 — Generate Events + Jobs
 

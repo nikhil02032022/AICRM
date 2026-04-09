@@ -20,6 +20,27 @@ A2A-CRM is a **native module within the A2A ERP**. It is NOT a standalone CRM. E
 3. **19 BRD modules** — Lead Capture · Lead Scoring · Enquiry & Counselling · Application Pipeline · Communication Engine · Marketing Automation · Fee & Payments · Document Management · Tasks & Follow-ups · Telecalling · Student Portal · Agent Management · Alumni Bridge · Analytics · AI/Agentic Layer · Mobile App · ERP Integration · Third-Party Integrations · System Administration.
 4. **DPDP Act 2023 compliance** — Every feature touching PII must enforce consent, minimisation, and erasure. Non-negotiable.
 5. **Concurrent load** — Minimum 500 concurrent users per institution; API responses ≤ 500ms at P95.
+6. **Strict Web vs API separation** — The CRM **web application** (Blade + Livewire) communicates with the server exclusively through **web routes** (`routes/web.php`) using session authentication. The `/api/v1/...` namespace is reserved for external integrations only (React Native mobile app, A2A ERP server-to-server, approved third-party services). See the table below.
+
+### Web vs API Architecture
+
+| Dimension | Web App (Blade + Livewire) | Integration API |
+|---|---|---|
+| Route file | `routes/web.php` | `routes/api.php` |
+| Route prefix | `/crm/...` | `/api/v1/crm/...` |
+| Authentication | Session (`auth` middleware) | Sanctum token (`auth:sanctum`) |
+| Controller namespace | `app/Http/Controllers/CRM/Web/` | `app/Http/Controllers/CRM/Api/` |
+| Response type | `view()` · `redirect()` · `back()` | `JsonResource` · `JsonResponse` |
+| Livewire components | Inject `Service` directly — no HTTP hop | N/A |
+| Consumers | CRM staff, counsellors, admins (browser) | React Native app, A2A ERP, third-party |
+
+**Data flow:**
+```
+Web App:     Blade View → web route → Web Controller → Service → Repository
+             Livewire Component → Service → Repository (no HTTP hop)
+
+Integration: Mobile/ERP/Third-party → /api/v1/crm/ → API Controller → Service → Repository
+```
 
 ---
 
@@ -52,8 +73,9 @@ A2A-CRM is a **native module within the A2A ERP**. It is NOT a standalone CRM. E
 - Soft deletes (`SoftDeletes` trait) on all CRM core entities — hard delete is prohibited for lead/application/payment records.
 - DPDP anonymisation uses `anonymisePII()` method, not deletion.
 
-### API Design
+### API Design (External Integrations Only)
 - All APIs versioned: `/api/v1/crm/...`
+- **Consumers:** React Native mobile app · A2A ERP server-to-server · approved third-party services. NOT the CRM web application.
 - Standard response envelope: `{ success, data, message, meta }` where meta includes pagination.
 - Error responses: `{ success: false, error: { code, message, field? } }`
 - All endpoints authenticated via Laravel Sanctum with RBAC gate checks.
@@ -149,3 +171,8 @@ public function detectDuplicates(CreateLeadRequest $request): Collection
 - Do not call Anthropic API synchronously in a web request — always dispatch a job.
 - Do not hard-code programme IDs, fee amounts, or gateway credentials.
 - Do not merge duplicate lead records without preserving full activity history.
+- **Do not call `/api/v1/...` routes from the CRM web app** — no `fetch()`, `axios`, or `$.ajax()` targeting API routes from Blade or Livewire.
+- **Do not use `auth:sanctum` middleware on web routes** — web routes use session `auth` middleware only.
+- **Do not return `JsonResource` from Web Controllers** — web controllers return `view()`, `redirect()`, or `back()`.
+- **Do not place web app controllers in `Controllers/CRM/Api/`** — separate namespaces are mandatory.
+- **Do not add web UI logic to API controllers** — API controllers are stateless, token-authenticated, integration-only.

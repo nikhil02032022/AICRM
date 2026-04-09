@@ -66,6 +66,14 @@ class PermissionSeeder extends Seeder
             'crm.config.manage',
             // Agents
             'crm.agents.manage',
+            // Web Forms (BRD: CRM-LC-001)
+            'crm.forms.view',
+            'crm.forms.create',
+            'crm.forms.edit',
+            'crm.forms.delete',
+            // Integrations (BRD: CRM-SA-010)
+            'crm.integrations.view',
+            'crm.integrations.manage',
         ];
     }
 

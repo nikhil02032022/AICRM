@@ -58,6 +58,7 @@ class RoleSeeder extends Seeder
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
                 'crm.reports.view', 'crm.reports.export',
                 'crm.agents.manage',
+                'crm.integrations.view',
             ]);
 
         // admissions-manager: team-level management
@@ -71,6 +72,7 @@ class RoleSeeder extends Seeder
                 'crm.documents.view', 'crm.documents.verify',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
                 'crm.reports.view', 'crm.reports.export',
+                'crm.integrations.view',
             ]);
 
         // senior-counsellor: own leads + communication + limited reports
@@ -127,6 +129,20 @@ class RoleSeeder extends Seeder
 
         // applicant: student portal — no CRM permissions (portal has its own guard)
         Role::firstOrCreate(['name' => 'applicant']);
+
+        // ---------------------------------------------------------------
+        // BRD: CRM-LC-001 — Web Form permissions assigned to relevant roles
+        // ---------------------------------------------------------------
+        $formManageRoles = ['super-admin', 'institution-admin', 'admissions-manager'];
+        foreach ($formManageRoles as $roleName) {
+            Role::findByName($roleName)
+                ->givePermissionTo(['crm.forms.view', 'crm.forms.create', 'crm.forms.edit', 'crm.forms.delete']);
+        }
+
+        // Counsellors can view forms (to access public URL/QR) but not manage them
+        foreach (['senior-counsellor', 'junior-counsellor', 'admissions-director'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo('crm.forms.view');
+        }
 
         $this->command->info('✅ 11 BRD roles and permissions seeded successfully.');
     }

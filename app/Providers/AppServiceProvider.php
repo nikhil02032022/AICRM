@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Events\CRM\BulkImportCompletedEvent;
+use App\Events\CRM\DigitalLeadImportedEvent;
+use App\Listeners\CRM\NotifyImportCompleted;
+use App\Listeners\CRM\TriggerDuplicateDetectionOnImport;
 use App\Services\CRM\TenantManager;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -17,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        // BRD: CRM-LC-003, CRM-LC-004, CRM-LC-008 — Trigger dedup after every digital channel import
+        Event::listen(DigitalLeadImportedEvent::class, TriggerDuplicateDetectionOnImport::class);
+
+        // BRD: CRM-LC-012 — Notify initiating user when bulk import batch completes
+        Event::listen(BulkImportCompletedEvent::class, NotifyImportCompleted::class);
     }
 }

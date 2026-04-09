@@ -9,6 +9,7 @@ enum LeadSource: string
 {
     case GOOGLE_ADS       = 'google_ads';
     case FACEBOOK         = 'facebook';
+    case INSTAGRAM        = 'instagram';  // BRD: CRM-LC-004 — Meta distinguishes FB vs Instagram
     case WALK_IN          = 'walk_in';
     case REFERRAL         = 'referral';
     case EDUCATION_PORTAL = 'education_portal';
@@ -25,6 +26,7 @@ enum LeadSource: string
         return match($this) {
             self::GOOGLE_ADS       => 'Google Ads',
             self::FACEBOOK         => 'Facebook',
+            self::INSTAGRAM        => 'Instagram',
             self::WALK_IN          => 'Walk-In',
             self::REFERRAL         => 'Referral',
             self::EDUCATION_PORTAL => 'Education Portal',
@@ -44,6 +46,7 @@ enum LeadSource: string
         return in_array($this, [
             self::GOOGLE_ADS,
             self::FACEBOOK,
+            self::INSTAGRAM,
             self::WEBSITE_ORGANIC,
         ], true);
     }

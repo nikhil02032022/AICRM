@@ -335,6 +335,206 @@ AI output is always a suggestion — human must confirm before action.
 
 ---
 
+## Web App Server Integration Rules
+
+> **The CRM web app communicates with the server through `routes/web.php` only.**
+> The `/api/v1/...` namespace is for external integrations (mobile app, A2A ERP). Never call it from Blade or Livewire.
+
+### How the web app talks to the server
+
+| Operation | Correct Pattern | Prohibited |
+|---|---|---|
+| Form submit | `<form method="POST" action="{{ route('crm.leads.store') }}">` + `@csrf` | `fetch('/api/v1/crm/leads', {...})` |
+| Reactive data | Livewire `wire:click`, `wire:model`, `$this->method()` | `axios.get('/api/v1/...')` in Alpine |
+| Page navigation | `{{ route('crm.leads.show', $lead->uuid) }}` or `redirect()` | SPA-style client routing |
+| Chart / analytics data | Controller passes `@json($data)` to Blade via web route | AJAX call to `/api/v1/crm/analytics/...` |
+| File uploads | `multipart/form-data` form to web route + `store()` action | Direct API upload from JS |
+
+### Authentication
+
+- Web routes use `auth` middleware (session-based) — **never** `auth:sanctum`
+- CSRF token is mandatory on all mutating forms — always include `@csrf`
+- Never pass or store Bearer tokens in Blade/JS for use against web routes
+
+### Livewire — Direct Service Injection (no HTTP hop)
+
+```php
+// ✅ Livewire component injects Service directly — no fetch to /api/v1/
+final class LeadCreate extends Component
+{
+    public function __construct(
+        private readonly LeadService $leadService,
+    ) {}
+
+    public function save(): void
+    {
+        Gate::authorize('crm.leads.create');
+        $this->validate(); // uses $rules property
+        $this->leadService->create($this->all());
+        $this->redirectRoute('crm.leads.index');
+    }
+}
+```
+
+```php
+// ❌ PROHIBITED — Livewire calling API route via HTTP
+public function save(): void
+{
+    Http::withToken(session('api_token'))->post('/api/v1/crm/leads', $this->all());
+}
+```
+
+### Web Controller Response Types
+
+```php
+// ✅ Web Controller — always returns view, redirect, or back
+final class LeadController extends Controller
+{
+    public function store(StoreLeadRequest $request): RedirectResponse
+    {
+        Gate::authorize('crm.leads.create');
+        $lead = $this->leadService->create($request->validated());
+        return redirect()->route('crm.leads.show', $lead->uuid)
+                         ->with('success', 'Lead created successfully.');
+    }
+
+    public function show(Lead $lead): View
+    {
+        Gate::authorize('crm.leads.view', $lead);
+        return view('crm.leads.show', compact('lead'));
+    }
+}
+
+// ❌ PROHIBITED — Web controller returning JsonResource
+public function store(StoreLeadRequest $request): JsonResponse
+{
+    return response()->json(new LeadResource($lead)); // This is API controller territory
+}
+```
+
+### Passing Data to Blade / Chart.js
+
+```blade
+{{-- ✅ Chart data via @json() from controller — uses web route + session auth --}}
+<canvas id="funnelChart"></canvas>
+@push('scripts')
+<script>
+    new Chart(document.getElementById('funnelChart').getContext('2d'), {
+        data: { labels: @json($funnel->pluck('stage')), datasets: [{ data: @json($funnel->pluck('count')) }] }
+    })
+</script>
+@endpush
+
+{{-- ❌ PROHIBITED — fetching chart data from API route --}}
+@push('scripts')
+<script>
+    fetch('/api/v1/crm/analytics/funnel').then(r => r.json()).then(data => { /* ... */ })
+</script>
+@endpush
+```
+
+---
+
+## Web App Server Integration Rules
+
+> **The CRM web app communicates with the server through `routes/web.php` only.**
+> The `/api/v1/...` namespace is for external integrations (mobile app, A2A ERP). Never call it from Blade or Livewire.
+
+### How the web app talks to the server
+
+| Operation | Correct Pattern | Prohibited |
+|---|---|---|
+| Form submit | `<form method="POST" action="{{ route('crm.leads.store') }}">` + `@csrf` | `fetch('/api/v1/crm/leads', {...})` |
+| Reactive data | Livewire `wire:click`, `wire:model`, `$this->method()` | `axios.get('/api/v1/...')` in Alpine |
+| Page navigation | `{{ route('crm.leads.show', $lead->uuid) }}` or `redirect()` | SPA-style client routing |
+| Chart / analytics data | Controller passes `@json($data)` to Blade via web route | AJAX call to `/api/v1/crm/analytics/...` |
+| File uploads | `multipart/form-data` form to web route + `store()` action | Direct API upload from JS |
+
+### Authentication
+
+- Web routes use `auth` middleware (session-based) — **never** `auth:sanctum`
+- CSRF token is mandatory on all mutating forms — always include `@csrf`
+- Never pass or store Bearer tokens in Blade/JS for use against web routes
+
+### Livewire — Direct Service Injection (no HTTP hop)
+
+```php
+// ✅ Livewire component injects Service directly — no fetch to /api/v1/
+final class LeadCreate extends Component
+{
+    public function __construct(
+        private readonly LeadService $leadService,
+    ) {}
+
+    public function save(): void
+    {
+        Gate::authorize('crm.leads.create');
+        $this->validate(); // uses $rules property
+        $this->leadService->create($this->all());
+        $this->redirectRoute('crm.leads.index');
+    }
+}
+```
+
+```php
+// ❌ PROHIBITED — Livewire calling API route via HTTP
+public function save(): void
+{
+    Http::withToken(session('api_token'))->post('/api/v1/crm/leads', $this->all());
+}
+```
+
+### Web Controller Response Types
+
+```php
+// ✅ Web Controller — always returns view, redirect, or back
+final class LeadController extends Controller
+{
+    public function store(StoreLeadRequest $request): RedirectResponse
+    {
+        Gate::authorize('crm.leads.create');
+        $lead = $this->leadService->create($request->validated());
+        return redirect()->route('crm.leads.show', $lead->uuid)
+                         ->with('success', 'Lead created successfully.');
+    }
+
+    public function show(Lead $lead): View
+    {
+        Gate::authorize('crm.leads.view', $lead);
+        return view('crm.leads.show', compact('lead'));
+    }
+}
+
+// ❌ PROHIBITED — Web controller returning JsonResource
+public function store(StoreLeadRequest $request): JsonResponse
+{
+    return response()->json(new LeadResource($lead)); // This is API controller territory
+}
+```
+
+### Passing Data to Blade / Chart.js
+
+```blade
+{{-- ✅ Chart data via @json() from controller — uses web route + session auth --}}
+<canvas id="funnelChart"></canvas>
+@push('scripts')
+<script>
+    new Chart(document.getElementById('funnelChart').getContext('2d'), {
+        data: { labels: @json($funnel->pluck('stage')), datasets: [{ data: @json($funnel->pluck('count')) }] }
+    })
+</script>
+@endpush
+
+{{-- ❌ PROHIBITED — fetching chart data from API route --}}
+@push('scripts')
+<script>
+    fetch('/api/v1/crm/analytics/funnel').then(r => r.json()).then(data => { /* ... */ })
+</script>
+@endpush
+```
+
+---
+
 ## Prohibited Patterns
 
 - ❌ `{!! $userInput !!}` without sanitisation — XSS risk
@@ -349,6 +549,16 @@ AI output is always a suggestion — human must confirm before action.
 - ❌ Missing `cursor-pointer` on clickable non-button elements
 - ❌ `wire:model.live` without `.debounce` on text inputs
 - ❌ Raw hex colors in Blade — use Tailwind semantic tokens
+- ❌ `fetch('/api/v1/...')` or `axios.get('/api/v1/...')` from any Blade or Livewire file
+- ❌ `auth:sanctum` middleware on any web route or Livewire component
+- ❌ `JsonResource` returned from Web Controllers
+- ❌ Bearer tokens stored in Blade/Alpine for web app requests
+- ❌ Livewire calling `Http::` client internally to relay to API routes
+- ❌ `fetch('/api/v1/...')` or `axios.get('/api/v1/...')` from any Blade or Livewire file
+- ❌ `auth:sanctum` middleware on any web route or Livewire component
+- ❌ `JsonResource` returned from Web Controllers
+- ❌ Bearer tokens stored in Blade/Alpine for web app requests
+- ❌ Livewire calling `Http::` client internally to relay to API routes
 
 ---
 
