@@ -36,6 +36,22 @@
 
         @include('crm.leads._partials.modals')
 
+        {{-- BRD: CRM-CC-002 — Send Email modal (Livewire) --}}
+        @can('crm.communication.send')
+        <livewire:crm.lead.send-email-modal
+            :lead-uuid="$lead->uuid"
+            :lead-id="$lead->getKey()"
+            :key="'send-email-'.$lead->uuid" />
+        @endcan
+
+        {{-- BRD: CRM-CC-006 — Send SMS modal (Livewire) --}}
+        @can('crm.communication.send')
+        <livewire:crm.lead.send-sms-modal
+            :lead-uuid="$lead->uuid"
+            :lead-id="$lead->getKey()"
+            :key="'send-sms-'.$lead->uuid" />
+        @endcan
+
     </div>{{-- end x-data="leadDetailPage()" --}}
 
     @push('scripts')

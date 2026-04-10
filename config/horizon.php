@@ -280,6 +280,54 @@ return [
             'timeout' => 60,
             'nice' => 10,
         ],
+        // BRD: CRM-CC-001 to CRM-CC-005 — Bulk email delivery (SendGrid / SES / Mailgun)
+        'supervisor-comms-email' => [
+            'connection' => 'redis',
+            'queue' => ['crm-comms-email'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 10,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 90,
+            'nice' => 2,
+        ],
+        // BRD: CRM-CC-006 to CRM-CC-010 — Bulk SMS delivery (MSG91 / Textlocal / Kaleyra)
+        'supervisor-comms-sms' => [
+            'connection' => 'redis',
+            'queue' => ['crm-comms-sms'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 8,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 60,
+            'nice' => 2,
+        ],
+        // BRD: CRM-CC-011 to CRM-CC-015 — WhatsApp inbound + broadcast (Meta Cloud API / BSPs)
+        'supervisor-comms-whatsapp' => [
+            'connection' => 'redis',
+            'queue' => ['crm-comms-whatsapp'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 15,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 60,
+            'nice' => 1,
+        ],
+        // BRD: CRM-CC-016 to CRM-CC-020 — Voice / IVR call processing (Exotel / Ozonetel / Knowlarity)
+        'supervisor-comms-voice' => [
+            'connection' => 'redis',
+            'queue' => ['crm-comms-voice'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 6,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 60,
+            'nice' => 2,
+        ],
     ],
 
     'environments' => [
@@ -291,6 +339,10 @@ return [
             'supervisor-scoring' => ['maxProcesses' => 5, 'balanceMaxShift' => 2, 'balanceCooldown' => 3],
             'supervisor-notifications' => ['maxProcesses' => 5],
             'supervisor-nurture' => ['maxProcesses' => 2],
+            'supervisor-comms-email' => ['maxProcesses' => 10, 'balanceMaxShift' => 3, 'balanceCooldown' => 2],
+            'supervisor-comms-sms' => ['maxProcesses' => 8, 'balanceMaxShift' => 2, 'balanceCooldown' => 2],
+            'supervisor-comms-whatsapp' => ['maxProcesses' => 15, 'balanceMaxShift' => 5, 'balanceCooldown' => 2],
+            'supervisor-comms-voice' => ['maxProcesses' => 6, 'balanceMaxShift' => 2, 'balanceCooldown' => 3],
         ],
 
         'local' => [
@@ -301,6 +353,10 @@ return [
             'supervisor-scoring' => ['maxProcesses' => 1],
             'supervisor-notifications' => ['maxProcesses' => 1],
             'supervisor-nurture' => ['maxProcesses' => 1],
+            'supervisor-comms-email' => ['maxProcesses' => 1],
+            'supervisor-comms-sms' => ['maxProcesses' => 1],
+            'supervisor-comms-whatsapp' => ['maxProcesses' => 1],
+            'supervisor-comms-voice' => ['maxProcesses' => 1],
         ],
     ],
 

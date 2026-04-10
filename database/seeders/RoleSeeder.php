@@ -53,6 +53,7 @@ class RoleSeeder extends Seeder
                 'crm.leads.export', 'crm.leads.import', 'crm.leads.merge',
                 'crm.applications.view', 'crm.applications.edit', 'crm.applications.convert',
                 'crm.communications.send', 'crm.communications.view',
+                'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',
                 'crm.fees.view', 'crm.fees.approve-discount',
                 'crm.documents.view', 'crm.documents.verify',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
@@ -68,6 +69,7 @@ class RoleSeeder extends Seeder
                 'crm.leads.export', 'crm.leads.import', 'crm.leads.merge',
                 'crm.applications.view', 'crm.applications.edit',
                 'crm.communications.send', 'crm.communications.view',
+                'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',
                 'crm.fees.view', 'crm.fees.approve-discount',
                 'crm.documents.view', 'crm.documents.verify',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
@@ -81,6 +83,7 @@ class RoleSeeder extends Seeder
                 'crm.leads.view', 'crm.leads.create', 'crm.leads.edit',
                 'crm.applications.view', 'crm.applications.create', 'crm.applications.edit',
                 'crm.communications.send', 'crm.communications.view',
+                'crm.communication.send', 'crm.communication.templates.manage',
                 'crm.fees.view',
                 'crm.documents.view', 'crm.documents.upload',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
@@ -93,6 +96,7 @@ class RoleSeeder extends Seeder
                 'crm.leads.view', 'crm.leads.create', 'crm.leads.edit',
                 'crm.applications.view', 'crm.applications.create',
                 'crm.communications.send', 'crm.communications.view',
+                'crm.communication.send',
                 'crm.documents.view', 'crm.documents.upload',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
             ]);
@@ -103,6 +107,7 @@ class RoleSeeder extends Seeder
                 'crm.leads.view', 'crm.leads.import', 'crm.leads.export',
                 'crm.campaigns.manage',
                 'crm.communications.send', 'crm.communications.view',
+                'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',
                 'crm.reports.view', 'crm.reports.export',
             ]);
 
@@ -173,6 +178,35 @@ class RoleSeeder extends Seeder
         foreach (['institution-admin', 'admissions-director', 'admissions-manager'] as $roleName) {
             Role::findByName($roleName)->givePermissionTo('crm.settings.scoring');
         }
+
+        // ---------------------------------------------------------------
+        // BRD: CRM-CC-004, CRM-CC-019 — Settings: Sender Domains + IVR
+        // admissions-manager needs settings access to manage comms infrastructure
+        // ---------------------------------------------------------------
+        Role::findByName('admissions-manager')->givePermissionTo('crm.settings.manage');
+
+        // ---------------------------------------------------------------
+        // BRD: CRM-CC-001 to CRM-CC-023 — Communication Engine (Group F)
+        // Sync permissions for roles that were seeded before Group F was added.
+        // givePermissionTo() is idempotent (no duplicates).
+        // ---------------------------------------------------------------
+        $commFullRoles = ['super-admin', 'institution-admin', 'admissions-director', 'admissions-manager', 'marketing-manager'];
+        foreach ($commFullRoles as $roleName) {
+            Role::findByName($roleName)->givePermissionTo([
+                'crm.communication.send',
+                'crm.communication.templates.manage',
+                'crm.campaigns.send',
+            ]);
+        }
+
+        // Senior counsellors: send + manage templates (no bulk campaigns)
+        Role::findByName('senior-counsellor')->givePermissionTo([
+            'crm.communication.send',
+            'crm.communication.templates.manage',
+        ]);
+
+        // Junior counsellors: send only
+        Role::findByName('junior-counsellor')->givePermissionTo('crm.communication.send');
 
         $this->command->info('✅ 11 BRD roles and permissions seeded successfully.');
     }

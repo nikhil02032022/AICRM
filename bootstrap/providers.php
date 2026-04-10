@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Providers\AppServiceProvider;
+use App\Providers\CRM\CrmCommunicationServiceProvider;
 use App\Providers\CRM\CrmCounsellingServiceProvider;
 use App\Providers\CRM\CrmImportServiceProvider;
 use App\Providers\CRM\CrmLeadServiceProvider;
@@ -18,4 +19,5 @@ return [
     CrmImportServiceProvider::class,
     CrmScoringServiceProvider::class,
     CrmCounsellingServiceProvider::class,
+    CrmCommunicationServiceProvider::class,
 ];

@@ -6,8 +6,13 @@ use App\Http\Controllers\Api\CRM\LeadController;
 use App\Http\Controllers\Api\CRM\LeadScoringController;
 use App\Http\Controllers\Api\CRM\WebFormController;
 use App\Http\Controllers\Api\CRM\Webhooks\EducationPortalWebhookController;
+use App\Http\Controllers\Api\CRM\Webhooks\EmailWebhookController;
 use App\Http\Controllers\Api\CRM\Webhooks\GoogleLeadWebhookController;
+use App\Http\Controllers\Api\CRM\Webhooks\IvrWebhookController;
 use App\Http\Controllers\Api\CRM\Webhooks\MetaLeadWebhookController;
+use App\Http\Controllers\Api\CRM\Webhooks\SmsGatewayWebhookController;
+use App\Http\Controllers\Api\CRM\Webhooks\TelephonyWebhookController;
+use App\Http\Controllers\Api\CRM\Webhooks\WhatsAppWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -72,4 +77,32 @@ Route::prefix('v1/crm/webhooks')
         Route::post('portal/{channel}/{integration}', EducationPortalWebhookController::class)
             ->middleware('crm.webhook:portal')
             ->name('portal');
+
+        // -----------------------------------------------------------------------
+        // Group F — Communication Engine webhook receivers
+        // No Sanctum auth — verified internally per controller (HMAC / IP allowlist)
+        // BRD: CRM-CC-003, CRM-CC-008, CRM-CC-011, CRM-CC-017, CRM-CC-019
+        // -----------------------------------------------------------------------
+
+        // F1: Email delivery/open/bounce webhooks (Mailgun, SendGrid, SES)
+        Route::post('email/{provider}', EmailWebhookController::class)
+            ->name('email');
+
+        // F2: SMS delivery receipt webhooks (MSG91, Textlocal, Kaleyra)
+        Route::post('sms/{gateway}', SmsGatewayWebhookController::class)
+            ->name('sms');
+
+        // F3: WhatsApp inbound + status updates (Meta Cloud API)
+        Route::get('whatsapp', [WhatsAppWebhookController::class, 'verify'])
+            ->name('whatsapp.verify');
+        Route::post('whatsapp', [WhatsAppWebhookController::class, 'receive'])
+            ->name('whatsapp.receive');
+
+        // F4: Telephony call status callbacks (Exotel, Ozonetel, Knowlarity)
+        Route::post('telephony/{provider}', TelephonyWebhookController::class)
+            ->name('telephony');
+
+        // F4: IVR inbound call → lead auto-creation
+        Route::post('ivr/{provider}', IvrWebhookController::class)
+            ->name('ivr');
     });

@@ -83,6 +83,10 @@ class PermissionSeeder extends Seeder
             'crm.settings.manage',
             // Settings / Scoring Config (BRD: CRM-LQ-005)
             'crm.settings.scoring',
+            // Communication Engine — Group F (BRD: CRM-CC-001 to CRM-CC-025)
+            'crm.communication.send',             // send/view individual comms + call log + WA inbox
+            'crm.communication.templates.manage', // create/edit email/SMS/WA templates + DLT templates
+            'crm.campaigns.send',                 // create + launch bulk email/SMS campaigns
         ];
     }
 

@@ -28,7 +28,7 @@
         @endif
 
         @forelse($credentials as $credential)
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm" x-data="{ confirmDelete: false }">
+        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
                     <div class="flex items-center gap-3">
@@ -72,25 +72,19 @@
                     <a href="{{ route('crm.settings.integrations.edit', $credential->uuid) }}"
                        class="btn-secondary text-xs">Edit</a>
 
-                    <div x-show="!confirmDelete">
-                        <button type="button" @click="confirmDelete = true"
-                                class="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 transition-colors">
-                            Remove
-                        </button>
-                    </div>
-                    <div x-show="confirmDelete" x-transition class="flex items-center gap-2" style="display:none">
-                        <span class="text-xs text-gray-600">Remove this integration?</span>
-                        <form method="POST" action="{{ route('crm.settings.integrations.destroy', $credential->uuid) }}" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                    class="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors">
-                                Confirm
-                            </button>
-                        </form>
-                        <button type="button" @click="confirmDelete = false"
-                                class="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
-                    </div>
+                    {{-- Hidden delete form --}}
+                    <form id="form-del-int-{{ $credential->uuid }}"
+                          method="POST"
+                          action="{{ route('crm.settings.integrations.destroy', $credential->uuid) }}"
+                          class="hidden">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                    <button type="button"
+                            @click="$dispatch('confirm-delete', { formId: 'form-del-int-{{ $credential->uuid }}', itemName: '{{ addslashes($credential->label) }}' })"
+                            class="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 transition-colors cursor-pointer">
+                        Remove
+                    </button>
                 </div>
                 @endcan
             </div>
@@ -110,4 +104,6 @@
         @endforelse
 
     </div>
+
+    <x-crm.confirm-modal variant="delete" title="Remove integration?" subtext="This channel integration and its credentials will be permanently deleted." confirm-label="Yes, remove" />
 </x-layouts.crm>

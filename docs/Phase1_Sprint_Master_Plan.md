@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0  
 **Phase:** 1 — Must Have (Months 1–4)  
-**Last Updated:** April 2026 (Group F planned — 80 tests designed ✅)
+**Last Updated:** April 2026 (Group F complete ✅ — all 80 tests implemented)
 
 ---
 
@@ -14,7 +14,7 @@
 | **C** | Digital Lead Channels — Google, Meta, Portals, CSV | LC-003, LC-004, LC-008, LC-012 | ✅ **Complete** | (inline) |
 | **D** | Lead Scoring Engine + Temperature + Override | LQ-001, LQ-002, LQ-004, LQ-005, LQ-006, LQ-007, LQ-008 | ✅ **Complete** | [lead-scoring-engine.md](usermanual/lead-scoring-engine.md) |
 | **E** | Enquiry & Counselling Pipeline | EC-001 to EC-019 | ✅ **Complete** | [enquiry-counselling.md](usermanual/enquiry-counselling.md) |
-| **F** | Communication Engine — Email, SMS, WhatsApp, Voice, IVR, Unified Inbox | LC-007, LC-010, CC-001 to CC-023 | 📋 **Planned** | [Sprint_Group_F_Communication_Engine.md](Sprint_Group_F_Communication_Engine.md) |
+| **F** | Communication Engine — Email, SMS, WhatsApp, Voice, IVR, Unified Inbox | LC-007, LC-010, CC-001 to CC-023 | ✅ **Complete** | [Sprint_Group_F_Communication_Engine.md](Sprint_Group_F_Communication_Engine.md) |
 | **G** | Duplicate Merge + ERP Lead Match | LC-019, LC-020 | 🔴 Not Started | TBD |
 
 ---
@@ -145,42 +145,62 @@
 
 ---
 
-## Group F — Planned 📋
+## Group F — Complete ✅
 
 **Theme:** Communication Engine — Email · SMS · WhatsApp · Voice · IVR · Unified Inbox  
+**Completed:** April 2026  
 **Sprint Doc:** [Sprint_Group_F_Communication_Engine.md](Sprint_Group_F_Communication_Engine.md)  
-**User Manual:** [communication-engine.md](usermanual/communication-engine.md)  
 **Depends on:** Groups A–E ✅
 
 ### Sub-Groups
 
-| Sub-Group | Theme | BRD Req IDs |
-|-----------|-------|-------------|
-| F1 | Email Communication Engine — templates, campaigns, tracking, sender domains, DPDP unsubscribe | CC-001 to CC-005 |
-| F2 | SMS Communication — DLT registration, MSG91/Textlocal/Kaleyra, bulk campaigns, DNC | CC-006 to CC-009 |
-| F3 | WhatsApp BSP + Click-to-Chat auto-lead | CC-010 to CC-015, LC-007 |
-| F4 | Voice + IVR + Click-to-Call + IVR auto-lead | CC-016 to CC-020, LC-010 |
-| F5 | Unified Inbox + in-app/email notifications | CC-021 to CC-023 |
+| Sub-Group | Theme | BRD Req IDs | Status |
+|-----------|-------|-------------|--------|
+| F1 | Email Communication Engine — templates, campaigns, tracking, sender domains, DPDP unsubscribe | CC-001 to CC-005 | ✅ Complete |
+| F2 | SMS Communication — DLT registration, MSG91/Textlocal/Kaleyra, bulk campaigns, DNC | CC-006 to CC-009 | ✅ Complete |
+| F3 | WhatsApp BSP + Click-to-Chat auto-lead (LC-007) | CC-010 to CC-015, LC-007 | ✅ Complete |
+| F4 | Voice + IVR + Click-to-Call + IVR auto-lead (LC-010) | CC-016 to CC-020, LC-010 | ✅ Complete |
+| F5 | Unified Inbox + in-app/email notifications | CC-021 to CC-023 | ✅ Complete |
 
 ### File Count Summary
 
 | Layer | New Files | Modified Files |
 |-------|-----------|----------------|
 | Migrations | 12 | 0 |
-| Enums | 14 | 1 |
-| Models | 8 | 1 (Lead) |
-| Repository interfaces + impl | 14 | 0 |
-| Services + Gateway/BSP adapters | 17 | 0 |
-| Events + Listeners | 24 | 0 |
-| Jobs | 10 | 0 |
-| Notifications | 3 | 0 |
-| Controllers (Web + API Webhooks) | 13 | 1 |
-| Livewire Components | 4 | 0 |
-| Blade Views | 20 | 3 |
-| Service Provider | 1 | 2 |
-| **Total** | **~157** | **~10** |
+| Enums | 15 | 0 (IVR/WHATSAPP + EMAIL_SENT/WHATSAPP_SENT pre-existed) |
+| Models | 10 | 1 (Lead — unsubscribe fields) |
+| Repository interfaces + impl | 6 | 0 |
+| Services + Gateway/BSP/Telephony adapters | 20 | 0 |
+| Events + Listeners | 19 | 0 |
+| Jobs | 11 | 0 |
+| Notifications + Mail | 4 | 0 |
+| Form Requests | 4 | 0 |
+| Controllers (Web 8 + API Webhooks 5) | 13 | 1 (CallLogWebController) |
+| Livewire Components + Views | 6 | 0 |
+| Blade Views | 18 | 0 |
+| Service Provider | 1 | 3 (AppServiceProvider, bootstrap/providers.php, horizon.php) |
+| Routes | 0 | 2 (web.php, api.php) |
+| **Total** | **~149** | **~8** |
 
-### Tests: 80 Tests Target
+### Key Implementation Details
+
+- **Strategy Pattern:** SMS gateways (`SmsGatewayInterface` → Msg91/Textlocal/Kaleyra), WhatsApp BSPs (`WhatsAppBspInterface` → MetaCloud/Interakt/Gupshup), Telephony (`TelephonyProviderInterface` → Exotel/Ozonetel/Knowlarity)
+- **LC-007:** `ProcessInboundWhatsAppJob` auto-creates Lead from WhatsApp number if not found; `consent_given = false` (DPDP)
+- **LC-010:** `ProcessIvrLeadCreationJob` auto-creates Lead from IVR inbound call; `LeadSource::IVR`
+- **Event-driven:** All state changes fire Events consumed by queued Listeners (Email → Activity, Bounce → HandleEmailBounce, WA Inbound → Notify, Call → Activity + MissedCall notify)
+- **Queues added to Horizon:** `crm-comms-email` (2–10), `crm-comms-sms` (2–8), `crm-comms-whatsapp` (3–15), `crm-comms-voice` (2–6)
+
+### Key Security Controls
+- All webhook signatures verified via `hash_equals(hmac_sha256(...))` — all 5 providers (Mailgun/SendGrid/SES, MSG91/Textlocal/Kaleyra, Meta Cloud API)
+- WhatsApp webhook: `X-Hub-Signature-256` verified per Meta spec
+- Telephony/IVR webhooks: IP allowlist from `config('services.telephony.allowed_ips')`, fail-closed
+- `wa_phone_number`, `wa_display_name`, `from_number`, `to_number` encrypted at rest (`Crypt::encryptString`)
+- Call recording gated by `call_consent_given = true` (DPDP Act 2023)
+- Unsubscribe enforced within 24h via idempotent `EnforceUnsubscribeJob` (DPDP)
+- Gateway credentials AES-256 in `integration_credentials` — never hardcoded
+- No PII in logs (`PiiScrubber` active)
+
+### Tests: 80 Tests Implemented
 
 | Sub-Group | File | Tests |
 |-----------|------|-------|
@@ -190,14 +210,6 @@
 | F4 — Voice/IVR | `tests/Feature/CRM/Communication/VoiceCommunicationTest.php` | 15 |
 | F5 — Unified Inbox | `tests/Feature/CRM/Communication/UnifiedInboxTest.php` | 10 |
 | **Total** | | **80** |
-
-### Key Security Controls
-- All webhook signatures verified via `hash_equals(hmac_sha256(...))` — all 5 providers
-- `wa_phone_number`, `from_number`, `to_number` encrypted in DB (`Crypt::encryptString`)
-- Call recording gated by `call_consent_given = true` (DPDP)
-- Unsubscribe enforced within 24h via `EnforceUnsubscribeJob` (DPDP)
-- Gateway credentials AES-256 in `integration_credentials` — never hardcoded
-- No PII in logs (`PiiScrubber` already active)
 
 ### New Queues Added
 `crm-comms-email` (2–10 workers) · `crm-comms-whatsapp` (3–15 workers) · `crm-comms-sms` (2–8 workers) · `crm-comms-voice` (2–6 workers)
@@ -224,10 +236,10 @@
 | LC-002 | Must Have | B | ✅ |
 | LC-003 | Must Have | C | ✅ |
 | LC-004 | Must Have | C | ✅ |
-| LC-007 | Must Have | F | � Planned |
+| LC-007 | Must Have | F | ✅ |
 | LC-008 | Must Have | C | ✅ |
 | LC-009 | Must Have | B | ✅ |
-| LC-010 | Must Have | F | � Planned |
+| LC-010 | Must Have | F | ✅ |
 | LC-011 | Must Have | A | ✅ |
 | LC-012 | Must Have | C | ✅ |
 | LC-014 | Must Have | A | ✅ |
@@ -239,29 +251,29 @@
 ### Communication Engine (CC)
 | Req ID | Priority | Group | Status |
 |--------|----------|-------|--------|
-| CC-001 | Must Have | F1 | 📋 Planned |
-| CC-002 | Must Have | F1 | 📋 Planned |
-| CC-003 | Must Have | F1 | 📋 Planned |
-| CC-004 | Must Have | F1 | 📋 Planned |
-| CC-005 | Must Have | F1 | 📋 Planned |
-| CC-006 | Must Have | F2 | 📋 Planned |
-| CC-007 | Must Have | F2 | 📋 Planned |
-| CC-008 | Must Have | F2 | 📋 Planned |
-| CC-009 | Must Have | F2 | 📋 Planned |
-| CC-010 | Must Have | F3 | 📋 Planned |
-| CC-011 | Must Have | F3 | 📋 Planned |
-| CC-012 | Must Have | F3 | 📋 Planned |
+| CC-001 | Must Have | F1 | ✅ |
+| CC-002 | Must Have | F1 | ✅ |
+| CC-003 | Must Have | F1 | ✅ |
+| CC-004 | Must Have | F1 | ✅ |
+| CC-005 | Must Have | F1 | ✅ |
+| CC-006 | Must Have | F2 | ✅ |
+| CC-007 | Must Have | F2 | ✅ |
+| CC-008 | Must Have | F2 | ✅ |
+| CC-009 | Must Have | F2 | ✅ |
+| CC-010 | Must Have | F3 | ✅ |
+| CC-011 | Must Have | F3 | ✅ |
+| CC-012 | Must Have | F3 | ✅ |
 | CC-013 | Should Have | F3 | ⏳ Phase 2 |
-| CC-014 | Must Have | F3 | 📋 Planned |
-| CC-015 | Must Have | F3 | 📋 Planned |
-| CC-016 | Must Have | F4 | 📋 Planned |
-| CC-017 | Must Have | F4 | 📋 Planned |
-| CC-018 | Must Have | F4 | 📋 Planned |
-| CC-019 | Should Have | F4 | 📋 Planned |
-| CC-020 | Should Have | F4 | 📋 Planned |
-| CC-021 | Must Have | F5 | 📋 Planned |
-| CC-022 | Must Have | F5 | 📋 Planned |
-| CC-023 | Must Have | F5 | 📋 Planned |
+| CC-014 | Must Have | F3 | ✅ |
+| CC-015 | Must Have | F3 | ✅ |
+| CC-016 | Must Have | F4 | ✅ |
+| CC-017 | Must Have | F4 | ✅ |
+| CC-018 | Must Have | F4 | ✅ |
+| CC-019 | Should Have | F4 | ✅ |
+| CC-020 | Should Have | F4 | ✅ |
+| CC-021 | Must Have | F5 | ✅ |
+| CC-022 | Must Have | F5 | ✅ |
+| CC-023 | Must Have | F5 | ✅ |
 
 ### Lead Scoring (LQ)
 | Req ID | Priority | Group | Status |

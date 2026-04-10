@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Events\CRM\Communication;
+
+use App\Models\CRM\CallLog;
+use App\Models\CRM\Lead;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+// BRD: CRM-CC-018 — Call completed event
+final class CallCompletedEvent
+{
+    use Dispatchable, SerializesModels;
+
+    public function __construct(
+        public readonly ?Lead $lead,
+        public readonly CallLog $callLog,
+    ) {}
+}

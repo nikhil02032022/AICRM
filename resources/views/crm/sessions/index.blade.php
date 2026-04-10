@@ -50,13 +50,18 @@
                                                     <a href="#" class="text-indigo-600 hover:text-indigo-900 mr-3">Update Outcome</a>
                                                 @endcan
                                                 @can('crm.sessions.cancel')
-                                                    <form method="POST" action="{{ route('crm.sessions.destroy', $session) }}" class="inline">
+                                                    {{-- Hidden cancel form --}}
+                                                    <form id="form-cancel-sess-{{ $session->uuid }}"
+                                                          method="POST"
+                                                          action="{{ route('crm.sessions.destroy', $session) }}"
+                                                          class="hidden">
                                                         @csrf @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900"
-                                                                onclick="return confirm('Cancel this session?')">
-                                                            Cancel
-                                                        </button>
                                                     </form>
+                                                    <button type="button"
+                                                            @click="$dispatch('confirm-cancel', { formId: 'form-cancel-sess-{{ $session->uuid }}', itemName: 'session on {{ $session->scheduled_at?->format(\'d M Y H:i\') ?? \'this session\' }}' })"
+                                                            class="text-red-600 hover:text-red-900 cursor-pointer text-sm font-medium">
+                                                        Cancel
+                                                    </button>
                                                 @endcan
                                             </td>
                                         </tr>
@@ -72,4 +77,11 @@
 
         </div>
     </div>
+
+    <x-crm.confirm-modal
+        variant="cancel"
+        title="Cancel this session?"
+        subtext="The counselling session will be cancelled."
+        confirm-label="Yes, cancel session"
+    />
 </x-layouts.crm>

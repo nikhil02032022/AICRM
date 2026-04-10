@@ -3,14 +3,24 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Public\PublicFormController;
+use App\Http\Controllers\Web\CRM\CallLogWebController;
+use App\Http\Controllers\Web\CRM\CommunicationTemplateWebController;
 use App\Http\Controllers\Web\CRM\CounsellingWebController;
+use App\Http\Controllers\Web\CRM\DltTemplateWebController;
+use App\Http\Controllers\Web\CRM\EmailCampaignWebController;
 use App\Http\Controllers\Web\CRM\IntegrationWebController;
+use App\Http\Controllers\Web\CRM\IvrConfigWebController;
 use App\Http\Controllers\Web\CRM\LeadImportWebController;
 use App\Http\Controllers\Web\CRM\LeadScoringWebController;
 use App\Http\Controllers\Web\CRM\LeadWebController;
 use App\Http\Controllers\Web\CRM\PublicBookingController;
+use App\Http\Controllers\Web\CRM\SenderDomainWebController;
 use App\Http\Controllers\Web\CRM\SessionWebController;
+use App\Http\Controllers\Web\CRM\SmsCampaignWebController;
+use App\Http\Controllers\Web\CRM\UnifiedInboxWebController;
 use App\Http\Controllers\Web\CRM\WebFormWebController;
+use App\Http\Controllers\Web\CRM\WhatsAppBroadcastWebController;
+use App\Http\Controllers\Web\CRM\WhatsAppWebController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -196,6 +206,123 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/counsellors/workload', [CounsellingWebController::class, 'workloadDashboard'])
             ->name('counsellors.workload')
             ->middleware('can:crm.leads.view');
+
+        // -----------------------------------------------------------------------
+        // Group F — Communication Engine (F1: Email, F2: SMS, F3: WhatsApp,
+        //           F4: Voice/IVR, F5: Unified Inbox)
+        // BRD: CRM-CC-001 to CRM-CC-025
+        // -----------------------------------------------------------------------
+
+        // F1 + F2: Communication templates
+        Route::prefix('communication')->name('communication.')->group(function (): void {
+            Route::resource('templates', CommunicationTemplateWebController::class)
+                ->parameters(['templates' => 'template:uuid'])
+                ->middleware('can:crm.communication.send');
+
+            // F1: Email campaigns
+            Route::prefix('email')->name('email.')->group(function (): void {
+                Route::resource('campaigns', EmailCampaignWebController::class)
+                    ->parameters(['campaigns' => 'emailCampaign:uuid'])
+                    ->middleware('can:crm.communication.send');
+                Route::post('campaigns/{emailCampaign:uuid}/launch', [EmailCampaignWebController::class, 'launch'])
+                    ->name('campaigns.launch')
+                    ->middleware('can:crm.communication.send');
+            });
+
+            // F2: SMS campaigns
+            Route::prefix('sms')->name('sms.')->group(function (): void {
+                Route::resource('campaigns', SmsCampaignWebController::class)
+                    ->parameters(['campaigns' => 'smsCampaign:uuid'])
+                    ->middleware('can:crm.communication.send');
+                Route::post('campaigns/{smsCampaign:uuid}/launch', [SmsCampaignWebController::class, 'launch'])
+                    ->name('campaigns.launch')
+                    ->middleware('can:crm.communication.send');
+
+                // F2: DLT template management
+                Route::prefix('dlt')->name('dlt.')->group(function (): void {
+                    Route::resource('templates', DltTemplateWebController::class)
+                        ->parameters(['templates' => 'dltTemplate:uuid'])
+                        ->middleware('can:crm.communication.send');
+                    Route::post('templates/{dltTemplate:uuid}/submit', [DltTemplateWebController::class, 'submitForApproval'])
+                        ->name('submit')
+                        ->middleware('can:crm.communication.send');
+                });
+            });
+
+            // F3: WhatsApp inbox + conversations + broadcasts
+            Route::prefix('whatsapp')->name('whatsapp.')->group(function (): void {
+                Route::get('/', [WhatsAppWebController::class, 'index'])
+                    ->name('index')
+                    ->middleware('can:crm.communication.send');
+
+                // BRD: CRM-CC-015 — WhatsApp broadcast campaigns
+                Route::prefix('broadcasts')->name('broadcasts.')->middleware('can:crm.campaigns.send')->group(function (): void {
+                    Route::get('/', [WhatsAppBroadcastWebController::class, 'index'])->name('index');
+                    Route::get('/create', [WhatsAppBroadcastWebController::class, 'create'])->name('create');
+                    Route::post('/', [WhatsAppBroadcastWebController::class, 'store'])->name('store');
+                    Route::get('/{broadcast:uuid}', [WhatsAppBroadcastWebController::class, 'show'])->name('show');
+                    Route::post('/{broadcast:uuid}/launch', [WhatsAppBroadcastWebController::class, 'launch'])->name('launch');
+                });
+
+                Route::get('{conversation:uuid}', [WhatsAppWebController::class, 'show'])
+                    ->name('conversation')
+                    ->middleware('can:crm.communication.send');
+                Route::post('{conversation:uuid}/send', [WhatsAppWebController::class, 'send'])
+                    ->name('send')
+                    ->middleware('can:crm.communication.send');
+                Route::post('{conversation:uuid}/assign', [WhatsAppWebController::class, 'assign'])
+                    ->name('assign')
+                    ->middleware('can:crm.communication.send');
+            });
+
+            // F4: Call log (read) + click-to-call
+            Route::prefix('voice')->name('voice.')->group(function (): void {
+                Route::get('/', [CallLogWebController::class, 'index'])
+                    ->name('index')
+                    ->middleware('can:crm.communication.send');
+                Route::post('calls/{callLog:uuid}/disposition', [CallLogWebController::class, 'updateDisposition'])
+                    ->name('calls.disposition')
+                    ->middleware('can:crm.communication.send');
+                Route::post('leads/{lead:uuid}/call', [CallLogWebController::class, 'initiateCall'])
+                    ->name('leads.call')
+                    ->middleware('can:crm.communication.send');
+            });
+        });
+
+        // F5: Unified Inbox
+        Route::prefix('inbox')->name('inbox.')->group(function (): void {
+            Route::get('/', [UnifiedInboxWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.communication.send');
+            Route::post('conversations/{conversation:uuid}/read', [UnifiedInboxWebController::class, 'markRead'])
+                ->name('mark-read')
+                ->middleware('can:crm.communication.send');
+            Route::post('conversations/{conversation:uuid}/assign', [UnifiedInboxWebController::class, 'assign'])
+                ->name('assign')
+                ->middleware('can:crm.communication.send');
+            Route::get('unread-counts', [UnifiedInboxWebController::class, 'unreadCounts'])
+                ->name('unread-counts')
+                ->middleware('can:crm.communication.send');
+        });
+
+        // F1 + F4 + IVR: Settings
+        Route::prefix('settings')->name('settings.')->group(function (): void {
+            // Sender domain management (F1)
+            Route::resource('sender-domains', SenderDomainWebController::class)
+                ->parameters(['sender-domains' => 'senderDomain:uuid'])
+                ->middleware('can:crm.settings.manage');
+            Route::post('sender-domains/{senderDomain:uuid}/check-dns', [SenderDomainWebController::class, 'checkDns'])
+                ->name('sender-domains.check-dns')
+                ->middleware('can:crm.settings.manage');
+
+            // IVR configuration (F4)
+            Route::resource('ivr', IvrConfigWebController::class)
+                ->parameters(['ivr' => 'ivrConfig:uuid'])
+                ->middleware('can:crm.settings.manage');
+            Route::post('ivr/{ivrConfig:uuid}/toggle', [IvrConfigWebController::class, 'toggleActive'])
+                ->name('ivr.toggle')
+                ->middleware('can:crm.settings.manage');
+        });
     });
 
     Route::post('/logout', function (Request $request) {

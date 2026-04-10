@@ -96,6 +96,13 @@ class Lead extends Model
         'lost_reason',
         // BRD: CRM-EC-014 — Timestamp of last status change (used for escalation)
         'status_changed_at',
+        // BRD: CRM-CC-005 — Email unsubscribe tracking (DPDP)
+        'email_unsubscribed_at',
+        'email_bounce_count',
+        // BRD: CRM-CC-006 — SMS DNC/opt-out tracking (DPDP)
+        'sms_unsubscribed_at',
+        'dnc_at',
+        'dnc_reason',
     ];
 
     /** @return array<string, mixed> */
@@ -132,6 +139,12 @@ class Lead extends Model
             'lost_reason' => LostReason::class,
             // BRD: CRM-EC-014 — Last status change timestamp
             'status_changed_at' => 'datetime',
+            // BRD: CRM-CC-005 — Email unsubscribe (DPDP)
+            'email_unsubscribed_at' => 'datetime',
+            'email_bounce_count' => 'integer',
+            // BRD: CRM-CC-006 — SMS DNC (DPDP)
+            'sms_unsubscribed_at' => 'datetime',
+            'dnc_at' => 'datetime',
         ];
     }
 

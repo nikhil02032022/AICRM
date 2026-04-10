@@ -110,6 +110,107 @@
                     </div>
                 </div>
 
+                {{-- BRD: CRM-CC-002 — Quick communication actions --}}
+                @can('crm.communication.send')
+                <div class="card p-4">
+                    <p class="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Quick Actions</p>
+                    <div class="flex flex-col gap-2">
+                        @if($lead->email)
+                            @if($lead->email_unsubscribed_at || $lead->dnc_at)
+                                <button
+                                    type="button"
+                                    disabled
+                                    title="{{ $lead->dnc_at ? 'Do Not Contact flag is set' : 'Lead has unsubscribed from emails' }}"
+                                    class="inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-400"
+                                    aria-label="Send Email — disabled: lead opted out"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                    Send Email
+                                    <span class="ml-auto rounded-full bg-gray-200 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-500">
+                                        {{ $lead->dnc_at ? 'DNC' : 'OPT-OUT' }}
+                                    </span>
+                                </button>
+                            @else
+                                <button
+                                    type="button"
+                                    @click="$dispatch('open-send-email-modal')"
+                                    aria-label="Send Email to {{ $lead->fullName() }}"
+                                    class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                    Send Email
+                                </button>
+                            @endif
+                        @else
+                            <button
+                                type="button"
+                                disabled
+                                title="No email address on file"
+                                class="inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-400"
+                                aria-label="Send Email — disabled: no email address"
+                            >
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                Send Email
+                                <span class="ml-auto rounded-full bg-gray-200 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-500">No Email</span>
+                            </button>
+                        @endif
+
+                        {{-- BRD: CRM-CC-006 — Send SMS --}}
+                        @if($lead->mobile)
+                            @if($lead->sms_unsubscribed_at || $lead->dnc_at)
+                                <button
+                                    type="button"
+                                    disabled
+                                    title="{{ $lead->dnc_at ? 'Do Not Contact flag is set' : 'Lead has opted out of SMS' }}"
+                                    class="inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-400"
+                                    aria-label="Send SMS — disabled: lead opted out"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/>
+                                    </svg>
+                                    Send SMS
+                                    <span class="ml-auto rounded-full bg-gray-200 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-500">
+                                        {{ $lead->dnc_at ? 'DNC' : 'OPT-OUT' }}
+                                    </span>
+                                </button>
+                            @else
+                                <button
+                                    type="button"
+                                    @click="$dispatch('open-send-sms-modal')"
+                                    aria-label="Send SMS to {{ $lead->fullName() }}"
+                                    class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/>
+                                    </svg>
+                                    Send SMS
+                                </button>
+                            @endif
+                        @else
+                            <button
+                                type="button"
+                                disabled
+                                title="No mobile number on file"
+                                class="inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-400"
+                                aria-label="Send SMS — disabled: no mobile number"
+                            >
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/>
+                                </svg>
+                                Send SMS
+                                <span class="ml-auto rounded-full bg-gray-200 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-500">No Mobile</span>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+                @endcan
+
                 {{-- AI Next Best Action --}}
                 <div class="card p-4">
                     <p class="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">AI Next Best Action</p>
