@@ -20,9 +20,9 @@ interface NormalizerContract
     /**
      * Normalise a raw platform payload into a CreateLeadDTO.
      *
-     * @param  array<string, mixed>  $raw        Raw webhook / CSV row payload from the platform
-     * @param  int                   $institutionId  Resolved from the IntegrationCredential
-     * @param  string                $consentIp  IP of the inbound webhook request
+     * @param  array<string, mixed>  $raw  Raw webhook / CSV row payload from the platform
+     * @param  int  $institutionId  Resolved from the IntegrationCredential
+     * @param  string  $consentIp  IP of the inbound webhook request
      */
     public function normalize(array $raw, int $institutionId, string $consentIp): CreateLeadDTO;
 }

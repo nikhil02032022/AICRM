@@ -74,6 +74,15 @@ class PermissionSeeder extends Seeder
             // Integrations (BRD: CRM-SA-010)
             'crm.integrations.view',
             'crm.integrations.manage',
+            // Counselling Sessions (BRD: CRM-EC-009)
+            'crm.sessions.view',
+            'crm.sessions.create',
+            'crm.sessions.edit',
+            'crm.sessions.cancel',
+            // Settings / Assignment Config (BRD: CRM-EC-007)
+            'crm.settings.manage',
+            // Settings / Scoring Config (BRD: CRM-LQ-005)
+            'crm.settings.scoring',
         ];
     }
 
@@ -85,6 +94,6 @@ class PermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        $this->command->info('✅ ' . count(self::permissions()) . ' CRM permissions seeded.');
+        $this->command->info('✅ '.count(self::permissions()).' CRM permissions seeded.');
     }
 }

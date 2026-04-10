@@ -15,7 +15,7 @@ final class LeadTemperatureChangedEvent
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public readonly Lead            $lead,
+        public readonly Lead $lead,
         public readonly LeadTemperature $oldTemperature,
         public readonly LeadTemperature $newTemperature,
     ) {}

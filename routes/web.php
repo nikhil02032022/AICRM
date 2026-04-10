@@ -3,10 +3,13 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Public\PublicFormController;
+use App\Http\Controllers\Web\CRM\CounsellingWebController;
 use App\Http\Controllers\Web\CRM\IntegrationWebController;
 use App\Http\Controllers\Web\CRM\LeadImportWebController;
 use App\Http\Controllers\Web\CRM\LeadScoringWebController;
 use App\Http\Controllers\Web\CRM\LeadWebController;
+use App\Http\Controllers\Web\CRM\PublicBookingController;
+use App\Http\Controllers\Web\CRM\SessionWebController;
 use App\Http\Controllers\Web\CRM\WebFormWebController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +23,11 @@ Route::middleware(['throttle:60,1'])->group(function (): void {
     Route::get('/f/{slug}', [PublicFormController::class, 'show'])->name('public.form.show');
     Route::get('/f/{slug}/embed', [PublicFormController::class, 'embed'])->name('public.form.embed');
     Route::post('/f/{slug}', [PublicFormController::class, 'submit'])->name('public.form.submit');
+
+    // BRD: CRM-EC-016 — Public appointment booking (lead UUID as slug, rate-limited)
+    Route::get('/book/{slug}', [PublicBookingController::class, 'show'])->name('public.booking.show');
+    Route::post('/book/{slug}', [PublicBookingController::class, 'submit'])->name('public.booking.submit');
+    Route::get('/book/{slug}/confirmation', [PublicBookingController::class, 'confirmation'])->name('public.booking.confirmation');
 });
 
 // -----------------------------------------------------------------------
@@ -32,7 +40,7 @@ Route::middleware('guest')->group(function (): void {
 
     Route::post('/login', function (Request $request) {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
@@ -149,6 +157,45 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/leads/{lead:uuid}/score-override', [LeadScoringWebController::class, 'override'])
             ->name('leads.score-override')
             ->middleware('can:crm.leads.edit');
+
+        // BRD: CRM-EC-016 — Public booking confirmation (auth not needed — already routed)
+        // BRD: CRM-EC-015 — Internal session booking per lead
+        Route::get('/leads/{lead:uuid}/sessions', [SessionWebController::class, 'index'])
+            ->name('leads.sessions.index')
+            ->middleware('can:crm.sessions.view');
+        Route::get('/leads/{lead:uuid}/sessions/create', [SessionWebController::class, 'create'])
+            ->name('leads.sessions.create')
+            ->middleware('can:crm.sessions.create');
+        Route::post('/leads/{lead:uuid}/sessions', [SessionWebController::class, 'store'])
+            ->name('leads.sessions.store')
+            ->middleware('can:crm.sessions.create');
+
+        // BRD: CRM-EC-015 — Session outcome update and cancellation (JSON; called from Alpine modal)
+        Route::put('/sessions/{session}', [SessionWebController::class, 'update'])
+            ->name('sessions.update')
+            ->middleware('can:crm.sessions.edit');
+        Route::delete('/sessions/{session}', [SessionWebController::class, 'destroy'])
+            ->name('sessions.destroy')
+            ->middleware('can:crm.sessions.cancel');
+
+        // BRD: CRM-EC-007 — Manual counsellor assignment (AJAX from lead show page)
+        Route::post('/leads/{lead:uuid}/assign', [CounsellingWebController::class, 'assignCounsellor'])
+            ->name('leads.assign');
+
+        // BRD: CRM-EC-006 — Assignment config + workload dashboard
+        Route::prefix('settings')->name('settings.')->group(function (): void {
+            Route::get('/assignment-config', [CounsellingWebController::class, 'assignmentConfig'])
+                ->name('assignment-config')
+                ->middleware('can:crm.settings.manage');
+            Route::post('/assignment-config', [CounsellingWebController::class, 'updateAssignmentConfig'])
+                ->name('assignment-config.update')
+                ->middleware('can:crm.settings.manage');
+        });
+
+        // BRD: CRM-EC-008 — Counsellor workload view
+        Route::get('/counsellors/workload', [CounsellingWebController::class, 'workloadDashboard'])
+            ->name('counsellors.workload')
+            ->middleware('can:crm.leads.view');
     });
 
     Route::post('/logout', function (Request $request) {

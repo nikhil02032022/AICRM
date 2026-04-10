@@ -35,7 +35,7 @@ class IntegrationCredential extends Model
     // BRD: NFR-MT-001 — InstitutionScope enforces multi-tenant isolation
     protected static function booted(): void
     {
-        static::addGlobalScope(new InstitutionScope());
+        static::addGlobalScope(new InstitutionScope);
     }
 
     /** @var list<string> */
@@ -59,9 +59,9 @@ class IntegrationCredential extends Model
     protected function casts(): array
     {
         return [
-            'channel'      => IntegrationChannel::class,
-            'credentials'  => 'encrypted:array',  // AES-256 + json_decode on read
-            'is_active'    => 'boolean',
+            'channel' => IntegrationChannel::class,
+            'credentials' => 'encrypted:array',  // AES-256 + json_decode on read
+            'is_active' => 'boolean',
             'last_used_at' => 'datetime',
         ];
     }

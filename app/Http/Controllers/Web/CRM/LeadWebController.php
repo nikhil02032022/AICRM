@@ -36,12 +36,12 @@ final class LeadWebController extends Controller
      */
     public function store(StoreLeadRequest $request): JsonResponse
     {
-        $dto  = CreateLeadDTO::fromRequest($request->validated(), $request->ip() ?? '');
+        $dto = CreateLeadDTO::fromRequest($request->validated(), $request->ip() ?? '');
         $lead = $this->leadService->create($dto, $request->user());
 
         return response()->json([
             'success' => true,
-            'data'    => ['uuid' => $lead->uuid, 'full_name' => trim($lead->first_name.' '.$lead->last_name)],
+            'data' => ['uuid' => $lead->uuid, 'full_name' => trim($lead->first_name.' '.$lead->last_name)],
             'message' => 'Lead created successfully.',
         ], 201);
     }
@@ -84,7 +84,7 @@ final class LeadWebController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => ['uuid' => $lead->uuid, 'full_name' => trim($lead->first_name.' '.$lead->last_name)],
+            'data' => ['uuid' => $lead->uuid, 'full_name' => trim($lead->first_name.' '.$lead->last_name)],
             'message' => 'Lead updated successfully.',
         ]);
     }

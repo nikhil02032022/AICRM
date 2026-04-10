@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Listeners\CRM;
 
-use App\Events\CRM\LeadTemperatureChangedEvent;
 use App\Enums\CRM\LeadTemperature;
+use App\Events\CRM\LeadTemperatureChangedEvent;
 use App\Jobs\CRM\QueueNurtureSequenceJob;
 use App\Jobs\CRM\SendHotLeadAlertJob;
 
@@ -14,9 +14,9 @@ final class TriggerScoringWorkflowListener
 {
     public function handle(LeadTemperatureChangedEvent $event): void
     {
-        match($event->newTemperature) {
+        match ($event->newTemperature) {
             // HOT: Immediate counsellor alert (DB notification + email)
-            LeadTemperature::HOT  => SendHotLeadAlertJob::dispatch($event->lead->uuid),
+            LeadTemperature::HOT => SendHotLeadAlertJob::dispatch($event->lead->uuid),
 
             // COLD downgrade: queue for nurture drip sequence (Group F Communication Engine)
             LeadTemperature::COLD => $this->maybeQueueNurture($event),

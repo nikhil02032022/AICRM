@@ -17,11 +17,12 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 // BRD: CRM-LQ-001, CRM-LQ-004 — Recalculate lead score on every qualifying activity
-final class RecalculateLeadScoreJob implements ShouldQueue, ShouldBeUnique
+final class RecalculateLeadScoreJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 30;
 
     public function __construct(
@@ -59,17 +60,17 @@ final class RecalculateLeadScoreJob implements ShouldQueue, ShouldBeUnique
             return;
         }
 
-        $previousScore       = $lead->lead_score;
+        $previousScore = $lead->lead_score;
         $previousTemperature = $lead->temperature;
 
-        $config   = $scoringService->getScoringConfig($lead->institution_id);
+        $config = $scoringService->getScoringConfig($lead->institution_id);
         $newScore = $scoringService->calculateScore($lead, $config);
 
         // BRD: CRM-LQ-005 — Temperature derived from institution-configured thresholds
         $newTemperature = $scoringService->deriveTemperature($newScore, $config);
 
         $lead->update([
-            'lead_score'  => $newScore,
+            'lead_score' => $newScore,
             'temperature' => $newTemperature->value,
         ]);
 

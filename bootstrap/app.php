@@ -58,27 +58,27 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 // Business rule violations (e.g. invalid status transition)
-                if ($e instanceof \DomainException) {
+                if ($e instanceof DomainException) {
                     return response()->json([
                         'success' => false,
-                        'error'   => ['code' => 'INVALID_OPERATION', 'message' => $e->getMessage()],
+                        'error' => ['code' => 'INVALID_OPERATION', 'message' => $e->getMessage()],
                     ], 422);
                 }
 
                 // HttpExceptions produced by abort() — e.g. FormRequest::authorize() returning false
                 if ($e instanceof HttpException) {
                     $httpCode = $e->getStatusCode();
-                    $httpLabel = match($httpCode) {
-                        401     => 'UNAUTHENTICATED',
-                        403     => 'FORBIDDEN',
-                        404     => 'NOT_FOUND',
-                        405     => 'METHOD_NOT_ALLOWED',
+                    $httpLabel = match ($httpCode) {
+                        401 => 'UNAUTHENTICATED',
+                        403 => 'FORBIDDEN',
+                        404 => 'NOT_FOUND',
+                        405 => 'METHOD_NOT_ALLOWED',
                         default => 'HTTP_ERROR',
                     };
 
                     return response()->json([
                         'success' => false,
-                        'error'   => ['code' => $httpLabel, 'message' => $e->getMessage() ?: 'HTTP error.'],
+                        'error' => ['code' => $httpLabel, 'message' => $e->getMessage() ?: 'HTTP error.'],
                     ], $httpCode);
                 }
 

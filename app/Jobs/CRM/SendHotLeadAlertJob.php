@@ -18,7 +18,8 @@ final class SendHotLeadAlertJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 30;
 
     public function __construct(
@@ -53,7 +54,7 @@ final class SendHotLeadAlertJob implements ShouldQueue
         $counsellor->notify(new HotLeadAlertNotification($lead));
 
         Log::info('HOT lead alert dispatched', [
-            'lead_uuid'    => $this->leadUuid,
+            'lead_uuid' => $this->leadUuid,
             'counsellor_id' => $counsellor->id,
         ]);
     }

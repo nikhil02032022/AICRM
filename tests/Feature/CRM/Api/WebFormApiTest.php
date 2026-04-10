@@ -8,13 +8,14 @@ use App\Enums\CRM\LeadSource;
 use App\Models\CRM\Institution;
 use App\Models\CRM\WebForm;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->seed(\Database\Seeders\PermissionSeeder::class);
+    $this->seed(PermissionSeeder::class);
 });
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -26,9 +27,9 @@ function makeInstitutionAndAdmin(): array
     ]);
 
     $admin = User::create([
-        'name'           => 'Form Admin',
-        'email'          => 'formadmin@tu.com',
-        'password'       => bcrypt('password'),
+        'name' => 'Form Admin',
+        'email' => 'formadmin@tu.com',
+        'password' => bcrypt('password'),
         'institution_id' => $institution->id,
     ]);
     $admin->givePermissionTo(['crm.forms.view', 'crm.forms.create', 'crm.forms.edit', 'crm.forms.delete']);
@@ -39,13 +40,13 @@ function makeInstitutionAndAdmin(): array
 function minimalFormPayload(): array
 {
     return [
-        'name'                 => 'MBA 2026 Walk-in',
-        'slug'                 => 'mba-2026-walk-in',
-        'fields'               => [
+        'name' => 'MBA 2026 Walk-in',
+        'slug' => 'mba-2026-walk-in',
+        'fields' => [
             ['id' => 'programme', 'type' => 'select', 'label' => 'Programme', 'required' => true, 'options' => ['MBA', 'MCA'], 'show_if' => null],
         ],
-        'source'               => LeadSource::EVENT->value,
-        'is_active'            => true,
+        'source' => LeadSource::EVENT->value,
+        'is_active' => true,
         'consent_form_version' => 'v1.0',
     ];
 }
@@ -66,7 +67,7 @@ it('can create a web form via API', function (): void {
 
     $this->assertDatabaseHas('web_forms', [
         'institution_id' => $institution->id,
-        'slug'           => 'mba-2026-walk-in',
+        'slug' => 'mba-2026-walk-in',
     ]);
 });
 
@@ -99,20 +100,20 @@ it('cannot read a form belonging to another institution', function (): void {
     $adminB->givePermissionTo(['crm.forms.view']);
 
     $form = WebForm::withoutGlobalScopes()->create([
-        'uuid'                 => (string) Str::uuid(),
-        'institution_id'       => $instA->id,
-        'name'                 => 'Secret Form',
-        'slug'                 => 'secret-form',
-        'fields'               => json_encode([]),
-        'embed_token'          => Str::random(64),
-        'source'               => 'website_organic',
+        'uuid' => (string) Str::uuid(),
+        'institution_id' => $instA->id,
+        'name' => 'Secret Form',
+        'slug' => 'secret-form',
+        'fields' => json_encode([]),
+        'embed_token' => Str::random(64),
+        'source' => 'website_organic',
         'consent_form_version' => 'v1.0',
-        'is_active'            => true,
+        'is_active' => true,
     ]);
 
     // adminB should get 404 (InstitutionScope filters it out)
     $this->actingAs($adminB, 'sanctum')
-        ->getJson('/api/v1/crm/forms/' . $form->uuid)
+        ->getJson('/api/v1/crm/forms/'.$form->uuid)
         ->assertNotFound();
 });
 
@@ -121,15 +122,15 @@ it('inactive form returns 404 on public URL', function (): void {
     $institution = Institution::create(['name' => 'Test U', 'code' => 'TU99', 'is_active' => true]);
 
     WebForm::withoutGlobalScopes()->create([
-        'uuid'                 => (string) Str::uuid(),
-        'institution_id'       => $institution->id,
-        'name'                 => 'Inactive Form',
-        'slug'                 => 'inactive-form',
-        'fields'               => json_encode([]),
-        'embed_token'          => Str::random(64),
-        'source'               => 'website_organic',
+        'uuid' => (string) Str::uuid(),
+        'institution_id' => $institution->id,
+        'name' => 'Inactive Form',
+        'slug' => 'inactive-form',
+        'fields' => json_encode([]),
+        'embed_token' => Str::random(64),
+        'source' => 'website_organic',
         'consent_form_version' => 'v1.0',
-        'is_active'            => false,   // explicitly inactive
+        'is_active' => false,   // explicitly inactive
     ]);
 
     $this->get('/f/inactive-form')->assertNotFound();
@@ -157,7 +158,7 @@ it('can update a web form', function (): void {
     $uuid = $createRes->json('data.uuid');
 
     $this->actingAs($admin, 'sanctum')
-        ->putJson('/api/v1/crm/forms/' . $uuid, ['name' => 'Updated Form Name'])
+        ->putJson('/api/v1/crm/forms/'.$uuid, ['name' => 'Updated Form Name'])
         ->assertOk()
         ->assertJsonPath('data.name', 'Updated Form Name');
 });
@@ -173,7 +174,7 @@ it('can soft delete a form', function (): void {
     $uuid = $createRes->json('data.uuid');
 
     $this->actingAs($admin, 'sanctum')
-        ->deleteJson('/api/v1/crm/forms/' . $uuid)
+        ->deleteJson('/api/v1/crm/forms/'.$uuid)
         ->assertOk();
 
     $this->assertSoftDeleted('web_forms', ['uuid' => $uuid]);

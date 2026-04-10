@@ -9,6 +9,8 @@ use App\Jobs\CRM\DetectLeadDuplicatesJob;
 use App\Models\CRM\Institution;
 use App\Models\CRM\Lead;
 use App\Models\User;
+use App\Services\CRM\Lead\LeadService;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
@@ -17,7 +19,7 @@ uses(RefreshDatabase::class);
 
 // Seed permissions before every test in this file
 beforeEach(function (): void {
-    $this->seed(\Database\Seeders\PermissionSeeder::class);
+    $this->seed(PermissionSeeder::class);
 });
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -29,9 +31,9 @@ function makeInstitutionAndCounsellorForDedup(): array
     ]);
 
     $counsellor = User::create([
-        'name'           => 'Dedup Counsellor',
-        'email'          => 'dedup@du.com',
-        'password'       => bcrypt('password'),
+        'name' => 'Dedup Counsellor',
+        'email' => 'dedup@du.com',
+        'password' => bcrypt('password'),
         'institution_id' => $institution->id,
     ]);
     $counsellor->givePermissionTo([
@@ -47,17 +49,17 @@ function makeInstitutionAndCounsellorForDedup(): array
 function makeLeadWithoutGlobalScope(int $institutionId, array $overrides = []): Lead
 {
     return Lead::withoutGlobalScopes()->create(array_merge([
-        'institution_id'       => $institutionId,
-        'first_name'           => 'Priya',
-        'last_name'            => 'Verma',
-        'mobile'               => '9876543210',
-        'email'                => 'priya@test.com',
-        'source'               => 'walk_in',
-        'lead_score'           => 0,
-        'temperature'          => 'cold',
-        'status'               => 'new_enquiry',
-        'consent_given'        => true,
-        'consent_timestamp'    => now(),
+        'institution_id' => $institutionId,
+        'first_name' => 'Priya',
+        'last_name' => 'Verma',
+        'mobile' => '9876543210',
+        'email' => 'priya@test.com',
+        'source' => 'walk_in',
+        'lead_score' => 0,
+        'temperature' => 'cold',
+        'status' => 'new_enquiry',
+        'consent_given' => true,
+        'consent_timestamp' => now(),
         'consent_form_version' => 'v1.0',
     ], $overrides));
 }
@@ -71,11 +73,11 @@ test('DetectLeadDuplicatesJob is dispatched after lead creation via API (CRM-LC-
 
     $this->actingAs($counsellor, 'sanctum')
         ->postJson('/api/v1/crm/leads', [
-            'first_name'           => 'Arjun',
-            'last_name'            => 'Sharma',
-            'mobile'               => '9123456780',
-            'source'               => 'walk_in',
-            'consent_given'        => true,
+            'first_name' => 'Arjun',
+            'last_name' => 'Sharma',
+            'mobile' => '9123456780',
+            'source' => 'walk_in',
+            'consent_given' => true,
             'consent_form_version' => 'v1.0',
         ])
         ->assertStatus(201);
@@ -97,10 +99,10 @@ test('DetectLeadDuplicatesJob flags lead when same mobile exists (CRM-LC-018)', 
 
     // New lead with same mobile
     $newLead = makeLeadWithoutGlobalScope($institution->id, [
-        'mobile'    => '9876543210',
-        'email'     => 'different@test.com',
+        'mobile' => '9876543210',
+        'email' => 'different@test.com',
         'first_name' => 'New',
-        'last_name'  => 'Person',
+        'last_name' => 'Person',
     ]);
 
     (new DetectLeadDuplicatesJob($newLead->uuid, $institution->id))->handle();
@@ -121,7 +123,7 @@ test('DetectLeadDuplicatesJob flags lead when same email exists (CRM-LC-018)', f
 
     $newLead = makeLeadWithoutGlobalScope($institution->id, [
         'mobile' => '9222222222',
-        'email'  => 'shared@test.com',
+        'email' => 'shared@test.com',
     ]);
 
     (new DetectLeadDuplicatesJob($newLead->uuid, $institution->id))->handle();
@@ -140,7 +142,7 @@ test('DuplicateLeadFlaggedEvent is dispatched with correct match type (CRM-LC-01
     makeLeadWithoutGlobalScope($institution->id, ['mobile' => '9876543210']);
 
     $newLead = makeLeadWithoutGlobalScope($institution->id, [
-        'mobile'     => '9876543210',
+        'mobile' => '9876543210',
         'first_name' => 'Different',
     ]);
 
@@ -181,7 +183,7 @@ test('DetectLeadDuplicatesJob does not flag unique lead (CRM-LC-018)', function 
 
     $lead = makeLeadWithoutGlobalScope($institution->id, [
         'mobile' => '9000000001',
-        'email'  => 'unique@test.com',
+        'email' => 'unique@test.com',
     ]);
 
     (new DetectLeadDuplicatesJob($lead->uuid, $institution->id))->handle();
@@ -201,12 +203,12 @@ test('LeadService dispatches DetectLeadDuplicatesJob when mobile is updated (CRM
 
     $lead = makeLeadWithoutGlobalScope($institution->id, [
         'mobile' => '9100000001',
-        'email'  => 'ravi@test.com',
+        'email' => 'ravi@test.com',
     ]);
 
     // Call the service directly — mobile is not updatable via the public API
     // (intentional: mobile is a primary identifier, but service allows it for counsellor-verified updates)
-    $service = app(\App\Services\CRM\Lead\LeadService::class);
+    $service = app(LeadService::class);
     $service->update($lead, ['mobile' => '9100000002']);
 
     Queue::assertPushed(DetectLeadDuplicatesJob::class, function (DetectLeadDuplicatesJob $job) use ($lead): bool {
@@ -221,10 +223,10 @@ test('LeadService dispatches DetectLeadDuplicatesJob when email is updated (CRM-
 
     $lead = makeLeadWithoutGlobalScope($institution->id, [
         'mobile' => '9100000003',
-        'email'  => 'original@test.com',
+        'email' => 'original@test.com',
     ]);
 
-    $service = app(\App\Services\CRM\Lead\LeadService::class);
+    $service = app(LeadService::class);
     $service->update($lead, ['email' => 'updated@test.com']);
 
     Queue::assertPushed(DetectLeadDuplicatesJob::class, function (DetectLeadDuplicatesJob $job) use ($lead): bool {
@@ -239,7 +241,7 @@ test('LeadService does NOT dispatch DetectLeadDuplicatesJob on non-contact updat
 
     $lead = makeLeadWithoutGlobalScope($institution->id);
 
-    $service = app(\App\Services\CRM\Lead\LeadService::class);
+    $service = app(LeadService::class);
     $service->update($lead, ['notes' => 'Updated notes only']);
 
     Queue::assertNotPushed(DetectLeadDuplicatesJob::class);

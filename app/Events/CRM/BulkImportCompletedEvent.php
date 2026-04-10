@@ -15,6 +15,6 @@ final class BulkImportCompletedEvent
 
     public function __construct(
         public readonly LeadImportBatch $batch,
-        public readonly bool            $partialFailure,
+        public readonly bool $partialFailure,
     ) {}
 }

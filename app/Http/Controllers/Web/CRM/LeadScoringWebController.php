@@ -8,8 +8,8 @@ use App\DTOs\CRM\ScoreOverrideDTO;
 use App\DTOs\CRM\UpdateScoringConfigDTO;
 use App\Http\Requests\CRM\StoreScoreOverrideRequest;
 use App\Http\Requests\CRM\UpdateScoringConfigRequest;
+use App\Models\CRM\InstitutionScoringConfig;
 use App\Models\CRM\Lead;
-use App\Models\CRM\ScoreOverride;
 use App\Services\CRM\Scoring\LeadScoringService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,10 +30,10 @@ final class LeadScoringWebController extends Controller
      */
     public function config(Request $request): View
     {
-        Gate::authorize('update', \App\Models\CRM\InstitutionScoringConfig::class);
+        Gate::authorize('update', InstitutionScoringConfig::class);
 
         $institutionId = $request->user()->institution_id;
-        $config        = $this->scoringService->getScoringConfig($institutionId);
+        $config = $this->scoringService->getScoringConfig($institutionId);
 
         return view('crm.scoring.config', compact('config'));
     }
@@ -61,10 +61,10 @@ final class LeadScoringWebController extends Controller
         Gate::authorize('override', $lead);
 
         $dto = new ScoreOverrideDTO(
-            leadUuid:        (string) $lead->uuid,
+            leadUuid: (string) $lead->uuid,
             overriddenScore: (int) $request->validated('override_score'),
-            reason:          (string) $request->validated('reason'),
-            actorId:         $request->user()->id,
+            reason: (string) $request->validated('reason'),
+            actorId: $request->user()->id,
         );
 
         $this->scoringService->applyManualOverride($lead, $dto);
@@ -80,7 +80,7 @@ final class LeadScoringWebController extends Controller
      */
     public function sourceQualityReport(Request $request): View
     {
-        Gate::authorize('viewReport', \App\Models\CRM\InstitutionScoringConfig::class);
+        Gate::authorize('viewReport', InstitutionScoringConfig::class);
 
         $report = $this->scoringService->getSourceQualityReport($request->user()->institution_id);
 

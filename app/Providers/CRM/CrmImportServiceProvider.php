@@ -21,7 +21,7 @@ final class CrmImportServiceProvider extends ServiceProvider
     /** @var array<class-string, class-string> */
     public array $bindings = [
         IntegrationCredentialRepositoryInterface::class => EloquentIntegrationCredentialRepository::class,
-        LeadImportBatchRepositoryInterface::class        => EloquentLeadImportBatchRepository::class,
+        LeadImportBatchRepositoryInterface::class => EloquentLeadImportBatchRepository::class,
     ];
 
     public function register(): void

@@ -7,13 +7,15 @@ use App\Enums\CRM\LeadSource;
 use App\Models\CRM\Institution;
 use App\Models\CRM\WebForm;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Endroid\QrCode\QrCode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->seed(\Database\Seeders\PermissionSeeder::class);
+    $this->seed(PermissionSeeder::class);
 });
 
 function makeFormAndAdmin(string $slug = 'test-form-qr'): array
@@ -21,23 +23,23 @@ function makeFormAndAdmin(string $slug = 'test-form-qr'): array
     $institution = Institution::create(['name' => 'QR Test Uni', 'code' => 'QRU1', 'is_active' => true]);
 
     $admin = User::create([
-        'name'           => 'QR Admin',
-        'email'          => 'qradmin@uni.com',
-        'password'       => bcrypt('password'),
+        'name' => 'QR Admin',
+        'email' => 'qradmin@uni.com',
+        'password' => bcrypt('password'),
         'institution_id' => $institution->id,
     ]);
     $admin->givePermissionTo(['crm.forms.view', 'crm.forms.create']);
 
     $form = WebForm::withoutGlobalScopes()->create([
-        'uuid'                 => (string) Str::uuid(),
-        'institution_id'       => $institution->id,
-        'name'                 => 'QR Event Form',
-        'slug'                 => $slug,
-        'fields'               => json_encode([]),
-        'embed_token'          => Str::random(64),
-        'source'               => LeadSource::QR_CODE->value,
+        'uuid' => (string) Str::uuid(),
+        'institution_id' => $institution->id,
+        'name' => 'QR Event Form',
+        'slug' => $slug,
+        'fields' => json_encode([]),
+        'embed_token' => Str::random(64),
+        'source' => LeadSource::QR_CODE->value,
         'consent_form_version' => 'v1.0',
-        'is_active'            => true,
+        'is_active' => true,
     ]);
 
     return [$institution, $admin, $form];
@@ -48,18 +50,18 @@ it('qr endpoint returns a PNG response', function (): void {
     [$institution, $admin, $form] = makeFormAndAdmin();
 
     $response = $this->actingAs($admin, 'sanctum')
-        ->get('/api/v1/crm/forms/' . $form->uuid . '/qr');
+        ->get('/api/v1/crm/forms/'.$form->uuid.'/qr');
 
     // If endroid/qr-code is installed this will be 200/png; otherwise it may be 500 until installed.
     // We assert the route is reachable and requires auth.
     $response->assertSuccessful();
-})->skip(fn () => ! class_exists(\Endroid\QrCode\QrCode::class), 'endroid/qr-code not yet installed');
+})->skip(fn () => !class_exists(QrCode::class), 'endroid/qr-code not yet installed');
 
 // BRD: CRM-LC-009 — QR endpoint requires authentication
 it('qr endpoint requires sanctum authentication', function (): void {
     [$institution, $admin, $form] = makeFormAndAdmin('test-form-qr-2');
 
-    $this->get('/api/v1/crm/forms/' . $form->uuid . '/qr')
+    $this->get('/api/v1/crm/forms/'.$form->uuid.'/qr')
         ->assertUnauthorized();
 });
 

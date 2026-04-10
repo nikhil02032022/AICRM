@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Domain\CRM\Models\Institution;
 use App\Domain\CRM\Models\Scopes\InstitutionScope;
-use App\Models\User;
 use App\Domain\CRM\Services\TenantManager;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 

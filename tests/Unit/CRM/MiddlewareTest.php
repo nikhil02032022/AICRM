@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Domain\CRM\Models\Campus;
+use App\Domain\CRM\Models\Institution;
 use App\Http\Middleware\EnsureInstitutionTenancy;
 use App\Http\Middleware\RequireMfa;
-use App\Domain\CRM\Models\Institution;
-use App\Domain\CRM\Models\Campus;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 uses(RefreshDatabase::class);
 
@@ -32,14 +32,14 @@ describe('EnsureInstitutionTenancy middleware', function (): void {
 
         $user = User::factory()->create([
             'institution_id' => $institution->id,
-            'campus_id'      => $campus->id,
+            'campus_id' => $campus->id,
         ]);
 
         $request = Request::create('/crm/dashboard', 'GET');
         $request->setUserResolver(fn () => $user);
 
-        $middleware = new EnsureInstitutionTenancy();
-        $response   = $middleware->handle($request, fn () => response('ok', 200));
+        $middleware = new EnsureInstitutionTenancy;
+        $response = $middleware->handle($request, fn () => response('ok', 200));
 
         expect($response->getStatusCode())->toBe(200);
     });
@@ -50,20 +50,20 @@ describe('EnsureInstitutionTenancy middleware', function (): void {
         $request = Request::create('/crm/dashboard', 'GET');
         $request->setUserResolver(fn () => $user);
 
-        $middleware = new EnsureInstitutionTenancy();
+        $middleware = new EnsureInstitutionTenancy;
 
         expect(fn () => $middleware->handle($request, fn () => response('ok', 200)))
-            ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+            ->toThrow(HttpException::class);
     });
 
     it('aborts 403 for an unauthenticated request', function (): void {
         $request = Request::create('/crm/dashboard', 'GET');
         $request->setUserResolver(fn () => null);
 
-        $middleware = new EnsureInstitutionTenancy();
+        $middleware = new EnsureInstitutionTenancy;
 
         expect(fn () => $middleware->handle($request, fn () => response('ok', 200)))
-            ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+            ->toThrow(HttpException::class);
     });
 });
 
@@ -80,8 +80,8 @@ describe('RequireMfa middleware', function (): void {
         $request = Request::create('/crm/dashboard', 'GET');
         $request->setUserResolver(fn () => null);
 
-        $middleware = new RequireMfa();
-        $response   = $middleware->handle($request, fn () => response('ok', 200));
+        $middleware = new RequireMfa;
+        $response = $middleware->handle($request, fn () => response('ok', 200));
 
         expect($response->getStatusCode())->toBe(200);
     });
@@ -97,8 +97,8 @@ describe('RequireMfa middleware', function (): void {
         $request->setUserResolver(fn () => $user);
         $request->setLaravelSession($session);
 
-        $middleware = new RequireMfa();
-        $response   = $middleware->handle($request, fn () => response('ok', 200));
+        $middleware = new RequireMfa;
+        $response = $middleware->handle($request, fn () => response('ok', 200));
 
         expect($response->getStatusCode())->toBe(200);
     });
@@ -113,8 +113,8 @@ describe('RequireMfa middleware', function (): void {
         $request->setUserResolver(fn () => $user);
         $request->setLaravelSession($session);
 
-        $middleware = new RequireMfa();
-        $response   = $middleware->handle($request, fn () => response('ok', 200));
+        $middleware = new RequireMfa;
+        $response = $middleware->handle($request, fn () => response('ok', 200));
 
         expect($response->getStatusCode())->toBe(200);
     });
@@ -130,8 +130,8 @@ describe('RequireMfa middleware', function (): void {
         $request->setUserResolver(fn () => $user);
         $request->setLaravelSession($session);
 
-        $middleware = new RequireMfa();
-        $response   = $middleware->handle($request, fn () => response('ok', 200));
+        $middleware = new RequireMfa;
+        $response = $middleware->handle($request, fn () => response('ok', 200));
 
         expect($response->getStatusCode())->toBe(200);
     });
@@ -147,9 +147,9 @@ describe('RequireMfa middleware', function (): void {
         $request->setUserResolver(fn () => $user);
         $request->setLaravelSession($session);
 
-        $middleware = new RequireMfa();
+        $middleware = new RequireMfa;
 
         expect(fn () => $middleware->handle($request, fn () => response('ok', 200)))
-            ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+            ->toThrow(HttpException::class);
     });
 });

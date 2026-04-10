@@ -15,18 +15,18 @@ final class EloquentWebFormRepository implements WebFormRepositoryInterface
     public function create(CreateWebFormDTO $dto, int $institutionId, string $embedToken): WebForm
     {
         return WebForm::create([
-            'institution_id'        => $institutionId,
-            'campus_id'             => $dto->campusId,
-            'name'                  => $dto->name,
-            'slug'                  => $dto->slug,
-            'fields'                => $dto->fields,
-            'is_active'             => $dto->isActive,
-            'embed_token'           => $embedToken,
-            'source'                => $dto->source->value,
-            'redirect_url'          => $dto->redirectUrl,
-            'consent_form_version'  => $dto->consentFormVersion,
-            'accent_color'          => $dto->accentColor,
-            'logo_url'              => $dto->logoUrl,
+            'institution_id' => $institutionId,
+            'campus_id' => $dto->campusId,
+            'name' => $dto->name,
+            'slug' => $dto->slug,
+            'fields' => $dto->fields,
+            'is_active' => $dto->isActive,
+            'embed_token' => $embedToken,
+            'source' => $dto->source->value,
+            'redirect_url' => $dto->redirectUrl,
+            'consent_form_version' => $dto->consentFormVersion,
+            'accent_color' => $dto->accentColor,
+            'logo_url' => $dto->logoUrl,
         ]);
     }
 
@@ -72,8 +72,8 @@ final class EloquentWebFormRepository implements WebFormRepositoryInterface
             $query->where('is_active', (bool) $filters['is_active']);
         }
 
-        if (! empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        if (!empty($filters['search'])) {
+            $query->where('name', 'like', '%'.$filters['search'].'%');
         }
 
         return $query->orderByDesc('created_at')->paginate($perPage);
@@ -92,7 +92,7 @@ final class EloquentWebFormRepository implements WebFormRepositoryInterface
                 ->whereNull('deleted_at')
                 ->exists()
         ) {
-            $slug = $base . '-' . $counter;
+            $slug = $base.'-'.$counter;
             $counter++;
         }
 

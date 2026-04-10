@@ -22,32 +22,43 @@ final class StoreLeadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name'           => ['required', 'string', 'max:80'],
-            'last_name'            => ['required', 'string', 'max:80'],
-            'mobile'               => ['required', 'string', 'regex:/^[6-9]\d{9}$/', 'max:15'],
-            'email'                => ['nullable', 'email:rfc', 'max:160'],
+            'first_name' => ['required', 'string', 'max:80'],
+            'last_name' => ['required', 'string', 'max:80'],
+            'mobile' => ['required', 'string', 'regex:/^[6-9]\d{9}$/', 'max:15'],
+            'email' => ['nullable', 'email:rfc', 'max:160'],
 
             // BRD: CRM-LC-014 — mandatory source
-            'source'               => ['required', Rule::enum(LeadSource::class)],
-            'source_utm_params'    => ['nullable', 'array'],
-            'source_utm_params.utm_source'   => ['nullable', 'string', 'max:100'],
-            'source_utm_params.utm_medium'   => ['nullable', 'string', 'max:100'],
+            'source' => ['required', Rule::enum(LeadSource::class)],
+            'source_utm_params' => ['nullable', 'array'],
+            'source_utm_params.utm_source' => ['nullable', 'string', 'max:100'],
+            'source_utm_params.utm_medium' => ['nullable', 'string', 'max:100'],
             'source_utm_params.utm_campaign' => ['nullable', 'string', 'max:200'],
-            'source_utm_params.utm_term'     => ['nullable', 'string', 'max:200'],
-            'source_utm_params.utm_content'  => ['nullable', 'string', 'max:200'],
+            'source_utm_params.utm_term' => ['nullable', 'string', 'max:200'],
+            'source_utm_params.utm_content' => ['nullable', 'string', 'max:200'],
 
             // Programme interest (optional at creation)
-            'programme_ids'        => ['nullable', 'array', 'max:5'],
-            'programme_ids.*'      => ['integer', 'min:1'],
+            'programme_ids' => ['nullable', 'array', 'max:5'],
+            'programme_ids.*' => ['integer', 'min:1'],
 
             // DPDP: CRM-CR-001 — consent capture mandatory
-            'consent_given'        => ['required', 'accepted'],
+            'consent_given' => ['required', 'accepted'],
             'consent_form_version' => ['required', 'string', 'max:30'],
 
-            'campus_id'            => ['nullable', 'integer'],
-            'city'                 => ['nullable', 'string', 'max:100'],
-            'state'                => ['nullable', 'string', 'max:100'],
-            'notes'                => ['nullable', 'string', 'max:1000'],
+            'campus_id' => ['nullable', 'integer'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+
+            // BRD: CRM-EC-001 — Academic background (optional at creation)
+            'qualification' => ['nullable', 'string', 'max:80'],
+            'marks_10th' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'board_10th' => ['nullable', 'string', 'max:100'],
+            'marks_12th' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'board_12th' => ['nullable', 'string', 'max:100'],
+            'graduation_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'graduation_university' => ['nullable', 'string', 'max:150'],
+            'preferred_intake' => ['nullable', 'string', 'max:10', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
+            'date_of_birth' => ['nullable', 'date', 'before:today'],
         ];
     }
 
@@ -55,8 +66,8 @@ final class StoreLeadRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'mobile.regex'           => 'Please enter a valid 10-digit Indian mobile number starting with 6–9.',
-            'source.required'        => 'The lead source is required.',
+            'mobile.regex' => 'Please enter a valid 10-digit Indian mobile number starting with 6–9.',
+            'source.required' => 'The lead source is required.',
             'consent_given.accepted' => 'Applicant consent must be obtained before creating the lead.',
         ];
     }

@@ -10,15 +10,16 @@ use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LeadTemperature;
 use App\Models\CRM\Institution;
 use App\Models\CRM\Lead;
+use App\Models\CRM\Scopes\InstitutionScope;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
 
 uses(RefreshDatabase::class);
 
 // Seed permissions before every test in this file
 beforeEach(function (): void {
-    $this->seed(\Database\Seeders\PermissionSeeder::class);
+    $this->seed(PermissionSeeder::class);
 });
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -30,9 +31,9 @@ function makeInstitutionAndCounsellor(): array
     ]);
 
     $counsellor = User::create([
-        'name'           => 'Test Counsellor',
-        'email'          => 'counsellor@tu.com',
-        'password'       => bcrypt('password'),
+        'name' => 'Test Counsellor',
+        'email' => 'counsellor@tu.com',
+        'password' => bcrypt('password'),
         'institution_id' => $institution->id,
     ]);
     $counsellor->givePermissionTo([
@@ -49,11 +50,11 @@ function makeInstitutionAndCounsellor(): array
 function minimalLeadPayload(): array
 {
     return [
-        'first_name'           => 'Arjun',
-        'last_name'            => 'Sharma',
-        'mobile'               => '9876543210',
-        'source'               => LeadSource::WALK_IN->value,
-        'consent_given'        => true,
+        'first_name' => 'Arjun',
+        'last_name' => 'Sharma',
+        'mobile' => '9876543210',
+        'source' => LeadSource::WALK_IN->value,
+        'consent_given' => true,
         'consent_form_version' => 'v1.0-test',
     ];
 }
@@ -109,7 +110,7 @@ test('lead creation fails without source (CRM-LC-014)', function (): void {
 test('lead creation fails with invalid source value (CRM-LC-014)', function (): void {
     [, $counsellor] = makeInstitutionAndCounsellor();
 
-    $payload          = minimalLeadPayload();
+    $payload = minimalLeadPayload();
     $payload['source'] = 'invalid_source_xyz';
 
     $response = $this->actingAs($counsellor, 'sanctum')
@@ -121,7 +122,7 @@ test('lead creation fails with invalid source value (CRM-LC-014)', function (): 
 test('all valid lead sources are accepted (CRM-LC-014)', function (LeadSource $source): void {
     [, $counsellor] = makeInstitutionAndCounsellor();
 
-    $payload           = minimalLeadPayload();
+    $payload = minimalLeadPayload();
     $payload['source'] = $source->value;
 
     $response = $this->actingAs($counsellor, 'sanctum')
@@ -136,7 +137,7 @@ test('all valid lead sources are accepted (CRM-LC-014)', function (LeadSource $s
 test('lead creation fails when consent_given is false (CRM-CR-001)', function (): void {
     [, $counsellor] = makeInstitutionAndCounsellor();
 
-    $payload                  = minimalLeadPayload();
+    $payload = minimalLeadPayload();
     $payload['consent_given'] = false;
 
     $response = $this->actingAs($counsellor, 'sanctum')
@@ -167,7 +168,7 @@ test('consent fields are stored at creation time (CRM-CR-001)', function (): voi
 test('lead creation fails with invalid mobile number', function (string $mobile): void {
     [, $counsellor] = makeInstitutionAndCounsellor();
 
-    $payload           = minimalLeadPayload();
+    $payload = minimalLeadPayload();
     $payload['mobile'] = $mobile;
 
     $response = $this->actingAs($counsellor, 'sanctum')
@@ -179,7 +180,7 @@ test('lead creation fails with invalid mobile number', function (string $mobile)
 test('lead creation accepts valid 10-digit mobile starting with 6-9', function (): void {
     [, $counsellor] = makeInstitutionAndCounsellor();
 
-    $payload           = minimalLeadPayload();
+    $payload = minimalLeadPayload();
     $payload['mobile'] = '8876543210';
 
     $this->actingAs($counsellor, 'sanctum')
@@ -191,7 +192,7 @@ test('lead creation accepts valid 10-digit mobile starting with 6-9', function (
 
 test('user without crm.leads.create permission gets 403', function (): void {
     $institution = Institution::create(['name' => 'X', 'code' => 'X01', 'is_active' => true]);
-    $user        = User::create([
+    $user = User::create([
         'name' => 'No Perm', 'email' => 'noperm@x.com',
         'password' => bcrypt('p'), 'institution_id' => $institution->id,
     ]);
@@ -246,7 +247,7 @@ test('counsellor can retrieve a lead by uuid', function (): void {
 
 test('mobile is hidden without view_pii permission', function (): void {
     $institution = Institution::create(['name' => 'Z', 'code' => 'Z01', 'is_active' => true]);
-    $viewer      = User::create([
+    $viewer = User::create([
         'name' => 'Viewer', 'email' => 'v@z.com',
         'password' => bcrypt('p'), 'institution_id' => $institution->id,
     ]);
@@ -282,7 +283,7 @@ test('deleting a lead soft-deletes — record remains in DB (CRM-LC-011)', funct
     // Lead still exists in DB with deleted_at set
     expect(Lead::withTrashed()->whereUuid($uuid)->exists())->toBeTrue();
     // But normal query hides it (soft-delete scope active)
-    expect(Lead::whereUuid($uuid)->withoutGlobalScope(\App\Models\CRM\Scopes\InstitutionScope::class)->exists())->toBeFalse();
+    expect(Lead::whereUuid($uuid)->withoutGlobalScope(InstitutionScope::class)->exists())->toBeFalse();
 });
 
 // ─── LeadStatus enum ───────────────────────────────────────────────────────
@@ -301,8 +302,8 @@ test('counsellor can update lead fields via API (CRM-LC-011)', function (): void
     $response = $this->actingAs($counsellor, 'sanctum')
         ->putJson("/api/v1/crm/leads/{$lead}", [
             'first_name' => 'Rahul',
-            'last_name'  => 'Verma',
-            'notes'      => 'Updated via integration test.',
+            'last_name' => 'Verma',
+            'notes' => 'Updated via integration test.',
         ]);
 
     $response->assertStatus(200)

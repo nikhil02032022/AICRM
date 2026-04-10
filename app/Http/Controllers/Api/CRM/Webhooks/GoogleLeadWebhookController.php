@@ -43,14 +43,14 @@ final class GoogleLeadWebhookController extends Controller
         // BRD: CRM-CR-002 — No PII in logs
         Log::info('GoogleLeadWebhook: received', [
             'integration_uuid' => $credential->uuid,
-            'institution_id'   => $credential->institution_id,
+            'institution_id' => $credential->institution_id,
         ]);
 
         // Dispatch async — must ACK Google within 5 seconds
         ProcessGoogleLeadJob::dispatch(
-            payload:       $payload,
+            payload: $payload,
             institutionId: $credential->institution_id,
-            platformIp:    $request->ip() ?? '0.0.0.0',
+            platformIp: $request->ip() ?? '0.0.0.0',
         );
 
         // Google expects a 200 response to acknowledge receipt

@@ -9,6 +9,7 @@ use App\Jobs\CRM\ProcessMetaLeadJob;
 use App\Models\CRM\IntegrationCredential;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -33,10 +34,10 @@ final class MetaLeadWebhookController extends Controller
      * Meta sends a challenge verification when the webhook URL is first registered.
      * Must respond with hub.challenge if verify_token matches stored token.
      */
-    public function verify(Request $request, string $integration): JsonResponse|\Illuminate\Http\Response
+    public function verify(Request $request, string $integration): JsonResponse|Response
     {
-        $mode      = $request->query('hub_mode');
-        $token     = $request->query('hub_verify_token');
+        $mode = $request->query('hub_mode');
+        $token = $request->query('hub_verify_token');
         $challenge = $request->query('hub_challenge', '');
 
         if ($mode !== 'subscribe' || empty($token)) {
@@ -57,7 +58,7 @@ final class MetaLeadWebhookController extends Controller
         $storedToken = $credential->getCredential('verify_token');
 
         // BRD: OWASP A07 — timing-safe comparison
-        if (! hash_equals((string) $storedToken, (string) $token)) {
+        if (!hash_equals((string) $storedToken, (string) $token)) {
             Log::warning('MetaLeadWebhook: verify_token mismatch', [
                 'integration_uuid' => $integration,
             ]);
@@ -88,8 +89,8 @@ final class MetaLeadWebhookController extends Controller
 
         Log::info('MetaLeadWebhook: received', [
             'integration_uuid' => $credential->uuid,
-            'institution_id'   => $credential->institution_id,
-            'object'           => $payload['object'] ?? 'unknown',
+            'institution_id' => $credential->institution_id,
+            'object' => $payload['object'] ?? 'unknown',
         ]);
 
         // Extract leadgen_id(s) from the nested Meta webhook structure
@@ -98,12 +99,12 @@ final class MetaLeadWebhookController extends Controller
             foreach ($entry['changes'] ?? [] as $change) {
                 $leadgenId = $change['value']['leadgen_id'] ?? null;
 
-                if (! empty($leadgenId)) {
+                if (!empty($leadgenId)) {
                     ProcessMetaLeadJob::dispatch(
-                        leadgenId:        (string) $leadgenId,
-                        integrationUuid:  $credential->uuid,
-                        institutionId:    $credential->institution_id,
-                        platformIp:       $request->ip() ?? '0.0.0.0',
+                        leadgenId: (string) $leadgenId,
+                        integrationUuid: $credential->uuid,
+                        institutionId: $credential->institution_id,
+                        platformIp: $request->ip() ?? '0.0.0.0',
                     );
                 }
             }

@@ -8,6 +8,8 @@ use App\Enums\CRM\LeadSource;
 use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LeadTemperature;
 use App\Models\CRM\Lead;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
@@ -31,7 +33,8 @@ final class LeadTable extends Component
     #[Url(except: '')]
     public string $filterSource = '';
 
-    public string $sortField     = 'created_at';
+    public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     public int $perPage = 10;
@@ -43,35 +46,50 @@ final class LeadTable extends Component
     #[On('lead-created')]
     public function onLeadCreated(): void
     {
-        $this->search             = '';
-        $this->filterStatus       = '';
-        $this->filterTemperature  = '';
-        $this->filterSource       = '';
-        $this->sortField          = 'created_at';
-        $this->sortDirection      = 'desc';
+        $this->search = '';
+        $this->filterStatus = '';
+        $this->filterTemperature = '';
+        $this->filterSource = '';
+        $this->sortField = 'created_at';
+        $this->sortDirection = 'desc';
         $this->resetPage();
         unset($this->leads);
     }
 
     /** Reset pagination when filters change */
-    public function updatedSearch(): void      { $this->resetPage(); }
-    public function updatedFilterStatus(): void { $this->resetPage(); }
-    public function updatedFilterTemperature(): void { $this->resetPage(); }
-    public function updatedFilterSource(): void { $this->resetPage(); }
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterTemperature(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterSource(): void
+    {
+        $this->resetPage();
+    }
 
     public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
-            $this->sortField     = $field;
+            $this->sortField = $field;
             $this->sortDirection = 'asc';
         }
         $this->resetPage();
     }
 
     #[Computed]
-    public function leads(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function leads(): LengthAwarePaginator
     {
         $query = Lead::select([
             'id', 'uuid', 'first_name', 'last_name', 'email',
@@ -84,10 +102,10 @@ final class LeadTable extends Component
         ]);
 
         if ($this->search !== '') {
-            $term = '%' . $this->search . '%';
+            $term = '%'.$this->search.'%';
             $query->where(function ($q) use ($term): void {
                 $q->where('first_name', 'like', $term)
-                  ->orWhere('last_name', 'like', $term);
+                    ->orWhere('last_name', 'like', $term);
             });
         }
 
@@ -104,8 +122,8 @@ final class LeadTable extends Component
         }
 
         $allowed = ['created_at', 'lead_score', 'status'];
-        $field   = in_array($this->sortField, $allowed, true) ? $this->sortField : 'created_at';
-        $dir     = $this->sortDirection === 'asc' ? 'asc' : 'desc';
+        $field = in_array($this->sortField, $allowed, true) ? $this->sortField : 'created_at';
+        $dir = $this->sortDirection === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($field, $dir)->paginate($this->perPage);
     }
@@ -114,9 +132,11 @@ final class LeadTable extends Component
     public function statusOptions(): array
     {
         $options = ['' => 'All Statuses'];
+
         foreach (LeadStatus::cases() as $case) {
             $options[$case->value] = $case->label();
         }
+
         return $options;
     }
 
@@ -124,9 +144,11 @@ final class LeadTable extends Component
     public function temperatureOptions(): array
     {
         $options = ['' => 'All Temperatures'];
+
         foreach (LeadTemperature::cases() as $case) {
             $options[$case->value] = $case->label();
         }
+
         return $options;
     }
 
@@ -136,7 +158,7 @@ final class LeadTable extends Component
         return ['' => 'All Sources'] + LeadSource::optionsForSelect();
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.crm.lead.lead-table');
     }

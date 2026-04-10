@@ -18,6 +18,6 @@ final class WebFormSubmittedEvent
 
     public function __construct(
         public readonly WebForm $form,
-        public readonly Lead    $lead,
+        public readonly Lead $lead,
     ) {}
 }

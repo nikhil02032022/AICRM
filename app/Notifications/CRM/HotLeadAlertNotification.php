@@ -32,14 +32,14 @@ final class HotLeadAlertNotification extends Notification
     public function toDatabase(object $notifiable): array
     {
         return [
-            'type'         => 'hot_lead_alert',
-            'lead_uuid'    => $this->lead->uuid,
-            'lead_name'    => $this->lead->fullName(),  // Counsellors need name for context
-            'lead_score'   => $this->lead->lead_score,
-            'temperature'  => $this->lead->temperature?->value,
-            'source'       => $this->lead->source?->value,
-            'lead_url'     => route('crm.leads.show', $this->lead->uuid),
-            'message'      => "Lead {$this->lead->fullName()} has reached HOT status (score: {$this->lead->lead_score}/100).",
+            'type' => 'hot_lead_alert',
+            'lead_uuid' => $this->lead->uuid,
+            'lead_name' => $this->lead->fullName(),  // Counsellors need name for context
+            'lead_score' => $this->lead->lead_score,
+            'temperature' => $this->lead->temperature?->value,
+            'source' => $this->lead->source?->value,
+            'lead_url' => route('crm.leads.show', $this->lead->uuid),
+            'message' => "Lead {$this->lead->fullName()} has reached HOT status (score: {$this->lead->lead_score}/100).",
         ];
     }
 

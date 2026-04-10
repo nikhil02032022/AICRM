@@ -17,7 +17,8 @@ final class QueueNurtureSequenceJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 30;
 
     public function __construct(

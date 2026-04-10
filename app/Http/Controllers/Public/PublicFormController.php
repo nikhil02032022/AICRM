@@ -21,7 +21,7 @@ use Illuminate\View\View;
 final class PublicFormController extends Controller
 {
     public function __construct(
-        private readonly WebFormService             $service,
+        private readonly WebFormService $service,
         private readonly WebFormRepositoryInterface $repository,
     ) {}
 
@@ -72,7 +72,7 @@ final class PublicFormController extends Controller
         $lead = $this->service->handlePublicSubmission(
             form: $form,
             data: $request->validated(),
-            ip:   $request->ip() ?? '0.0.0.0',
+            ip: $request->ip() ?? '0.0.0.0',
         );
 
         // XHR / fetch request — return JSON
@@ -80,12 +80,12 @@ final class PublicFormController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Thank you! Your enquiry has been received. We will contact you shortly.',
-                'data'    => ['lead_uuid' => $lead->uuid],
+                'data' => ['lead_uuid' => $lead->uuid],
             ]);
         }
 
         // Plain HTML form submission — redirect or show success
-        if (! empty($form->redirect_url)) {
+        if (!empty($form->redirect_url)) {
             return redirect()->away($form->redirect_url);
         }
 

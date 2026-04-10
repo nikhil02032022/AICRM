@@ -18,7 +18,7 @@ final class ScoringConfigPolicy
      * Institution admins and super admins can configure scoring weights/thresholds.
      * BRD: CRM-LQ-001, CRM-LQ-005
      */
-    public function update(User $user, InstitutionScoringConfig $config = null): bool
+    public function update(User $user, ?InstitutionScoringConfig $config = null): bool
     {
         return $user->hasAnyRole(['institution-admin', 'super-admin']);
     }
@@ -27,7 +27,7 @@ final class ScoringConfigPolicy
      * Counsellors, institution admins, and super admins can view the source quality report.
      * BRD: CRM-LQ-008
      */
-    public function viewReport(User $user, InstitutionScoringConfig $config = null): bool
+    public function viewReport(User $user, ?InstitutionScoringConfig $config = null): bool
     {
         return $user->hasAnyRole(['senior-counsellor', 'junior-counsellor', 'institution-admin', 'super-admin']);
     }

@@ -35,6 +35,7 @@ final class GoogleLeadNormalizer implements NormalizerContract
     {
         // Flatten user_column_data array into a keyed map for easy access
         $fields = [];
+
         foreach ($raw['user_column_data'] ?? [] as $col) {
             if (isset($col['column_name'], $col['string_value'])) {
                 $fields[strtoupper((string) $col['column_name'])] = (string) $col['string_value'];
@@ -43,9 +44,9 @@ final class GoogleLeadNormalizer implements NormalizerContract
 
         // Name — Google provides FULL_NAME or separate FIRST_NAME / LAST_NAME
         [$firstName, $lastName] = $this->parseName(
-            $fields['FULL_NAME']   ?? '',
-            $fields['FIRST_NAME']  ?? '',
-            $fields['LAST_NAME']   ?? '',
+            $fields['FULL_NAME'] ?? '',
+            $fields['FIRST_NAME'] ?? '',
+            $fields['LAST_NAME'] ?? '',
         );
 
         // Mobile — strip country code prefix if present
@@ -53,41 +54,41 @@ final class GoogleLeadNormalizer implements NormalizerContract
 
         // UTM — populate from campaign metadata
         $utmParams = array_filter([
-            'utm_source'   => 'google',
-            'utm_medium'   => 'cpc',
+            'utm_source' => 'google',
+            'utm_medium' => 'cpc',
             'utm_campaign' => $raw['campaign_name'] ?? null,
         ]);
 
         return new CreateLeadDTO(
-            firstName:          $firstName,
-            lastName:           $lastName,
-            mobile:             $mobile,
-            email:              $fields['EMAIL'] ?? null,
-            source:             LeadSource::GOOGLE_ADS->value,
+            firstName: $firstName,
+            lastName: $lastName,
+            mobile: $mobile,
+            email: $fields['EMAIL'] ?? null,
+            source: LeadSource::GOOGLE_ADS->value,
             // BRD: CRM-CR-001 — Google requires advertiser consent disclosure before form submission
-            consentGiven:       true,
-            consentIp:          $consentIp,  // Platform IP (not student IP — documented)
+            consentGiven: true,
+            consentIp: $consentIp,  // Platform IP (not student IP — documented)
             consentFormVersion: 'channel:google_ads:v1',
-            campusId:           null,
-            city:               $fields['CITY'] ?? null,
-            state:              $fields['STATE'] ?? null,
-            notes:              null,
-            sourceUtmParams:    ! empty($utmParams) ? $utmParams : null,
-            programmeIds:       null,
+            campusId: null,
+            city: $fields['CITY'] ?? null,
+            state: $fields['STATE'] ?? null,
+            notes: null,
+            sourceUtmParams: !empty($utmParams) ? $utmParams : null,
+            programmeIds: null,
         );
     }
 
     /** @return array{string, string} */
     private function parseName(string $fullName, string $firstName, string $lastName): array
     {
-        if (! empty($firstName)) {
+        if (!empty($firstName)) {
             return [
                 trim($firstName),
-                ! empty($lastName) ? trim($lastName) : 'Unknown',
+                !empty($lastName) ? trim($lastName) : 'Unknown',
             ];
         }
 
-        if (! empty($fullName)) {
+        if (!empty($fullName)) {
             $parts = explode(' ', trim($fullName), 2);
 
             return [

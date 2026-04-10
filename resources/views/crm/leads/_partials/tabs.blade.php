@@ -6,6 +6,7 @@
                     <div class="flex overflow-x-auto border-b border-gray-100" role="tablist">
                         @foreach([
                             'timeline' => 'Timeline',
+                            'sessions' => 'Sessions',
                             'scoring'  => 'Scoring',
                             'info'     => 'Contact Info',
                             'dpdp'     => 'DPDP',
@@ -26,6 +27,7 @@
 
 
                     @include('crm.leads._partials.tab-timeline')
+                    @include('crm.leads._partials.tab-sessions')
                     @include('crm.leads._partials.tab-scoring')
                     @include('crm.leads._partials.tab-info')
                     @include('crm.leads._partials.tab-dpdp')

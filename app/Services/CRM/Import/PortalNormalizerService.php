@@ -20,9 +20,9 @@ use App\Services\CRM\Import\Normalizers\ShikshaLeadNormalizer;
 final class PortalNormalizerService
 {
     public function __construct(
-        private readonly ShikshaLeadNormalizer     $shiksha,
+        private readonly ShikshaLeadNormalizer $shiksha,
         private readonly CollegeDekhoLeadNormalizer $collegeDekho,
-        private readonly Careers360LeadNormalizer   $careers360,
+        private readonly Careers360LeadNormalizer $careers360,
         private readonly CollegeDuniaLeadNormalizer $collegedunia,
     ) {}
 
@@ -34,11 +34,11 @@ final class PortalNormalizerService
     public function resolve(IntegrationChannel $channel): NormalizerContract
     {
         return match ($channel) {
-            IntegrationChannel::SHIKSHA       => $this->shiksha,
+            IntegrationChannel::SHIKSHA => $this->shiksha,
             IntegrationChannel::COLLEGE_DEKHO => $this->collegeDekho,
-            IntegrationChannel::CAREERS360    => $this->careers360,
-            IntegrationChannel::COLLEGEDUNIA  => $this->collegedunia,
-            default                           => throw new \InvalidArgumentException(
+            IntegrationChannel::CAREERS360 => $this->careers360,
+            IntegrationChannel::COLLEGEDUNIA => $this->collegedunia,
+            default => throw new \InvalidArgumentException(
                 "No normalizer registered for channel: {$channel->value}"
             ),
         };

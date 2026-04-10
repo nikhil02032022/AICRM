@@ -69,5 +69,59 @@
                         </div>
                         @endif
 
+                        {{-- Academic Background — BRD: CRM-EC-001 --}}
+                        @if($lead->qualification || $lead->marks_10th || $lead->marks_12th || $lead->graduation_percentage || $lead->preferred_intake)
+                        <div>
+                            <h3 class="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Academic Background</h3>
+                            <dl class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                                @if($lead->qualification)
+                                <div class="sm:col-span-2">
+                                    <dt class="text-xs font-medium text-gray-500">Highest Qualification</dt>
+                                    <dd class="mt-0.5 text-sm text-gray-900">{{ $lead->qualification }}</dd>
+                                </div>
+                                @endif
+                                @if($lead->marks_10th)
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500">10th Marks</dt>
+                                    <dd class="mt-0.5 text-sm text-gray-900">
+                                        {{ $lead->marks_10th }}%
+                                        @if($lead->board_10th) <span class="text-gray-400">({{ $lead->board_10th }})</span>@endif
+                                    </dd>
+                                </div>
+                                @endif
+                                @if($lead->marks_12th)
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500">12th Marks</dt>
+                                    <dd class="mt-0.5 text-sm text-gray-900">
+                                        {{ $lead->marks_12th }}%
+                                        @if($lead->board_12th) <span class="text-gray-400">({{ $lead->board_12th }})</span>@endif
+                                    </dd>
+                                </div>
+                                @endif
+                                @if($lead->graduation_percentage)
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500">Graduation %</dt>
+                                    <dd class="mt-0.5 text-sm text-gray-900">
+                                        {{ $lead->graduation_percentage }}%
+                                        @if($lead->graduation_university) <span class="text-gray-400">({{ $lead->graduation_university }})</span>@endif
+                                    </dd>
+                                </div>
+                                @endif
+                                @if($lead->preferred_intake)
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500">Preferred Intake</dt>
+                                    <dd class="mt-0.5 text-sm text-gray-900">{{ $lead->preferred_intake }}</dd>
+                                </div>
+                                @endif
+                                @if($lead->date_of_birth)
+                                <div>
+                                    <dt class="text-xs font-medium text-gray-500">Date of Birth</dt>
+                                    <dd class="mt-0.5 text-sm text-gray-900">{{ $lead->date_of_birth->format('d M Y') }}</dd>
+                                </div>
+                                @endif
+                            </dl>
+                        </div>
+                        @endif
+
                     </div>
 

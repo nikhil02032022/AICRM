@@ -29,20 +29,20 @@ final class CollegeDekhoLeadNormalizer implements NormalizerContract
     public function normalize(array $raw, int $institutionId, string $consentIp): CreateLeadDTO
     {
         return new CreateLeadDTO(
-            firstName:          ! empty($raw['first_name']) ? $raw['first_name'] : 'Unknown',
-            lastName:           ! empty($raw['last_name']) ? $raw['last_name'] : 'Unknown',
-            mobile:             $this->normaliseMobile($raw['phone'] ?? $raw['mobile'] ?? ''),
-            email:              $raw['email'] ?? null,
-            source:             LeadSource::EDUCATION_PORTAL->value,
-            consentGiven:       true,
-            consentIp:          $consentIp,
+            firstName: !empty($raw['first_name']) ? $raw['first_name'] : 'Unknown',
+            lastName: !empty($raw['last_name']) ? $raw['last_name'] : 'Unknown',
+            mobile: $this->normaliseMobile($raw['phone'] ?? $raw['mobile'] ?? ''),
+            email: $raw['email'] ?? null,
+            source: LeadSource::EDUCATION_PORTAL->value,
+            consentGiven: true,
+            consentIp: $consentIp,
             consentFormVersion: 'channel:college_dekho:v1',
-            campusId:           null,
-            city:               $raw['city'] ?? null,
-            state:              $raw['state'] ?? null,
-            notes:              isset($raw['course']) ? 'Course interest: ' . $raw['course'] : null,
-            sourceUtmParams:    ['utm_source' => 'college_dekho'],
-            programmeIds:       null,
+            campusId: null,
+            city: $raw['city'] ?? null,
+            state: $raw['state'] ?? null,
+            notes: isset($raw['course']) ? 'Course interest: '.$raw['course'] : null,
+            sourceUtmParams: ['utm_source' => 'college_dekho'],
+            programmeIds: null,
         );
     }
 

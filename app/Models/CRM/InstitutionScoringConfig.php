@@ -24,7 +24,7 @@ class InstitutionScoringConfig extends Model
     // BRD: NFR-MT-001 — InstitutionScope enforces multi-tenant isolation
     protected static function booted(): void
     {
-        static::addGlobalScope(new InstitutionScope());
+        static::addGlobalScope(new InstitutionScope);
     }
 
     protected $fillable = [
@@ -40,10 +40,10 @@ class InstitutionScoringConfig extends Model
     protected function casts(): array
     {
         return [
-            'weights'       => 'array',
+            'weights' => 'array',
             'hot_threshold' => 'integer',
             'warm_threshold' => 'integer',
-            'is_active'     => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -62,12 +62,12 @@ class InstitutionScoringConfig extends Model
     {
         return [
             'profile_completeness' => 25, // email, city, state, first+last name, nationality
-            'programme_interest'   => 20, // has at least one linked programme of interest
-            'source_quality'       => 20, // signal weight based on lead source channel
-            'engagement'           => 20, // status advancement, counsellor assigned, activity signals
-            'consent'              => 5,  // DPDP consent_given = true
-            'geographic'           => 5,  // state/location completeness + proximity (stub)
-            'response_time'        => 5,  // stub until assigned_at column added in Group E
+            'programme_interest' => 20, // has at least one linked programme of interest
+            'source_quality' => 20, // signal weight based on lead source channel
+            'engagement' => 20, // status advancement, counsellor assigned, activity signals
+            'consent' => 5,  // DPDP consent_given = true
+            'geographic' => 5,  // state/location completeness + proximity (stub)
+            'response_time' => 5,  // stub until assigned_at column added in Group E
         ];
     }
 }

@@ -15,7 +15,7 @@ final class ScoreChangedEvent
 
     public function __construct(
         public readonly Lead $lead,
-        public readonly int  $oldScore,
-        public readonly int  $newScore,
+        public readonly int $oldScore,
+        public readonly int $newScore,
     ) {}
 }

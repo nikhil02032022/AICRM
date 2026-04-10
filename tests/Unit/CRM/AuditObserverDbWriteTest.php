@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 use App\Domain\CRM\Models\AuditLog;
 use App\Domain\CRM\Models\Institution;
-use App\Domain\CRM\Models\Campus;
-use App\Models\User;
 use App\Domain\CRM\Observers\AuditObserver;
-use Database\Seeders\PermissionSeeder;
-use Database\Seeders\RoleSeeder;
-use Database\Seeders\UserSeeder;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -31,9 +27,9 @@ uses(RefreshDatabase::class);
 function seedBaseData(): array
 {
     $institution = Institution::create([
-        'name'      => 'Test University',
-        'code'      => 'TEST',
-        'domain'    => 'test.edu',
+        'name' => 'Test University',
+        'code' => 'TEST',
+        'domain' => 'test.edu',
         'is_active' => true,
     ]);
 
@@ -43,31 +39,31 @@ function seedBaseData(): array
 describe('AuditObserver DB write', function (): void {
 
     it('writes a created row to audit_logs when a model is created', function (): void {
-        $observer = new AuditObserver();
+        $observer = new AuditObserver;
         $institution = Institution::create([
-            'name'      => 'Audit Test Uni',
-            'code'      => 'AUDITUNI',
-            'domain'    => 'audit.edu',
+            'name' => 'Audit Test Uni',
+            'code' => 'AUDITUNI',
+            'domain' => 'audit.edu',
             'is_active' => true,
         ]);
 
         // Manually fire the observer (Institution does not auto-observe in tests)
         $observer->created($institution);
 
-        expect(\Illuminate\Support\Facades\DB::table('audit_logs')->count())->toBe(1);
+        expect(DB::table('audit_logs')->count())->toBe(1);
 
-        $log = \Illuminate\Support\Facades\DB::table('audit_logs')->first();
+        $log = DB::table('audit_logs')->first();
         expect($log->entity_type)->toBe(Institution::class)
             ->and($log->entity_id)->toBe($institution->id)
             ->and($log->action)->toBe('created');
     });
 
     it('writes an updated row to audit_logs when a model is updated', function (): void {
-        $observer = new AuditObserver();
+        $observer = new AuditObserver;
         $institution = Institution::create([
-            'name'      => 'Before Update',
-            'code'      => 'UPD001',
-            'domain'    => 'update.edu',
+            'name' => 'Before Update',
+            'code' => 'UPD001',
+            'domain' => 'update.edu',
             'is_active' => true,
         ]);
 
@@ -77,7 +73,7 @@ describe('AuditObserver DB write', function (): void {
         // Simulate the observer update call
         $observer->updated($institution);
 
-        $log = \Illuminate\Support\Facades\DB::table('audit_logs')
+        $log = DB::table('audit_logs')
             ->where('action', 'updated')
             ->first();
 
@@ -86,17 +82,17 @@ describe('AuditObserver DB write', function (): void {
     });
 
     it('writes a deleted row to audit_logs when a model is deleted', function (): void {
-        $observer = new AuditObserver();
+        $observer = new AuditObserver;
         $institution = Institution::create([
-            'name'      => 'To Be Deleted',
-            'code'      => 'DEL001',
-            'domain'    => 'deleted.edu',
+            'name' => 'To Be Deleted',
+            'code' => 'DEL001',
+            'domain' => 'deleted.edu',
             'is_active' => true,
         ]);
 
         $observer->deleted($institution);
 
-        $log = \Illuminate\Support\Facades\DB::table('audit_logs')
+        $log = DB::table('audit_logs')
             ->where('action', 'deleted')
             ->first();
 
@@ -105,45 +101,46 @@ describe('AuditObserver DB write', function (): void {
     });
 
     it('redacts PII fields in new_values', function (): void {
-        $observer = new AuditObserver();
+        $observer = new AuditObserver;
         $institution = Institution::create([
-            'name'      => 'PII Test Uni',
-            'code'      => 'PIITEST',
-            'domain'    => 'pii.edu',
+            'name' => 'PII Test Uni',
+            'code' => 'PIITEST',
+            'domain' => 'pii.edu',
             'is_active' => true,
         ]);
 
         // Simulate a model with PII fields in attributes
         $institution->forceFill([
-            'mobile'    => '9999999999',
-            'email'     => 'lead@test.edu',
+            'mobile' => '9999999999',
+            'email' => 'lead@test.edu',
         ]);
 
         $observer->created($institution);
 
-        $log = \Illuminate\Support\Facades\DB::table('audit_logs')->latest('id')->first();
+        $log = DB::table('audit_logs')->latest('id')->first();
         $newValues = json_decode($log->new_values, true);
 
         if (isset($newValues['mobile'])) {
             expect($newValues['mobile'])->toBe('[REDACTED]');
         }
+
         if (isset($newValues['email'])) {
             expect($newValues['email'])->toBe('[REDACTED]');
         }
     });
 
     it('records old_values as empty array on create', function (): void {
-        $observer = new AuditObserver();
+        $observer = new AuditObserver;
         $institution = Institution::create([
-            'name'      => 'Old Values Test',
-            'code'      => 'OLDVAL',
-            'domain'    => 'oldval.edu',
+            'name' => 'Old Values Test',
+            'code' => 'OLDVAL',
+            'domain' => 'oldval.edu',
             'is_active' => true,
         ]);
 
         $observer->created($institution);
 
-        $log = \Illuminate\Support\Facades\DB::table('audit_logs')->latest('id')->first();
+        $log = DB::table('audit_logs')->latest('id')->first();
         $oldValues = json_decode($log->old_values, true);
 
         expect($oldValues)->toBe([]);
@@ -154,11 +151,11 @@ describe('AuditLog model', function (): void {
     uses(RefreshDatabase::class);
 
     it('can query audit_logs via the AuditLog model', function (): void {
-        $observer = new AuditObserver();
+        $observer = new AuditObserver;
         $institution = Institution::create([
-            'name'      => 'Model Query Test',
-            'code'      => 'MDLQ01',
-            'domain'    => 'mdlq.edu',
+            'name' => 'Model Query Test',
+            'code' => 'MDLQ01',
+            'domain' => 'mdlq.edu',
             'is_active' => true,
         ]);
 
@@ -172,7 +169,7 @@ describe('AuditLog model', function (): void {
     });
 
     it('scopeForEntity filters correctly', function (): void {
-        $observer = new AuditObserver();
+        $observer = new AuditObserver;
         $inst1 = Institution::create(['name' => 'Inst A', 'code' => 'SCPA', 'domain' => 'scpa.edu', 'is_active' => true]);
         $inst2 = Institution::create(['name' => 'Inst B', 'code' => 'SCPB', 'domain' => 'scpb.edu', 'is_active' => true]);
 
@@ -186,7 +183,7 @@ describe('AuditLog model', function (): void {
     });
 
     it('scopeAction filters by action', function (): void {
-        $observer = new AuditObserver();
+        $observer = new AuditObserver;
         $inst = Institution::create(['name' => 'Action Scope', 'code' => 'ACSC', 'domain' => 'acsc.edu', 'is_active' => true]);
 
         $observer->created($inst);

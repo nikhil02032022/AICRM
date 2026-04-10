@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\CRM\Import;
 
-use App\DTOs\CRM\CreateLeadDTO;
-use App\Enums\CRM\IntegrationChannel;
 use App\Events\CRM\DigitalLeadImportedEvent;
-use App\Jobs\CRM\DetectLeadDuplicatesJob;
 use App\Models\CRM\Lead;
 use App\Services\CRM\Import\Normalizers\NormalizerContract;
 use App\Services\CRM\Lead\LeadService;
@@ -32,10 +29,10 @@ final class ChannelLeadImportService
     /**
      * Import a single lead from a digital channel using the provided normalizer.
      *
-     * @param  array<string, mixed>  $raw         Raw platform payload
-     * @param  NormalizerContract    $normalizer   Channel-specific field mapper
-     * @param  int                   $institutionId  Institution owning the credential
-     * @param  string                $platformIp   IP of the inbound webhook (not student IP)
+     * @param  array<string, mixed>  $raw  Raw platform payload
+     * @param  NormalizerContract  $normalizer  Channel-specific field mapper
+     * @param  int  $institutionId  Institution owning the credential
+     * @param  string  $platformIp  IP of the inbound webhook (not student IP)
      */
     public function importFromChannel(
         array $raw,
@@ -54,7 +51,7 @@ final class ChannelLeadImportService
 
         // BRD: CRM-CR-002 — No PII in logs
         Log::info('Digital channel lead imported', [
-            'lead_uuid'      => $lead->uuid,
+            'lead_uuid' => $lead->uuid,
             'institution_id' => $institutionId,
         ]);
 

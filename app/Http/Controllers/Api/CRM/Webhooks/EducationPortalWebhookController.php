@@ -33,7 +33,7 @@ final class EducationPortalWebhookController extends Controller
         // Validate channel is a known portal
         $integrationChannel = IntegrationChannel::tryFrom($channel);
 
-        if ($integrationChannel === null || ! in_array($integrationChannel, IntegrationChannel::portalCases(), true)) {
+        if ($integrationChannel === null || !in_array($integrationChannel, IntegrationChannel::portalCases(), true)) {
             return response()->json(['status' => 'ignored', 'reason' => 'unknown_channel'], 200);
         }
 
@@ -47,17 +47,17 @@ final class EducationPortalWebhookController extends Controller
         }
 
         Log::info('EducationPortalWebhook: received', [
-            'channel'          => $channel,
+            'channel' => $channel,
             'integration_uuid' => $credential->uuid,
-            'institution_id'   => $credential->institution_id,
+            'institution_id' => $credential->institution_id,
         ]);
 
         ProcessPortalLeadJob::dispatch(
-            payload:         $payload,
-            channel:         $channel,
+            payload: $payload,
+            channel: $channel,
             integrationUuid: $credential->uuid,
-            institutionId:   $credential->institution_id,
-            platformIp:      $request->ip() ?? '0.0.0.0',
+            institutionId: $credential->institution_id,
+            platformIp: $request->ip() ?? '0.0.0.0',
         );
 
         // Most portals expect a 200 to stop retrying

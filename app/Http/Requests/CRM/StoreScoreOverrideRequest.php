@@ -22,7 +22,7 @@ final class StoreScoreOverrideRequest extends FormRequest
     {
         return [
             'override_score' => ['required', 'integer', 'min:0', 'max:100'],
-            'reason'         => ['required', 'string', 'min:10', 'max:500'],
+            'reason' => ['required', 'string', 'min:10', 'max:500'],
         ];
     }
 

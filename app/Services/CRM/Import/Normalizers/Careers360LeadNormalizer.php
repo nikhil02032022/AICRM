@@ -30,20 +30,20 @@ final class Careers360LeadNormalizer implements NormalizerContract
         [$firstName, $lastName] = $this->parseName($raw['student_name'] ?? '');
 
         return new CreateLeadDTO(
-            firstName:          $firstName,
-            lastName:           $lastName,
-            mobile:             $this->normaliseMobile($raw['mobile_no'] ?? ''),
-            email:              $raw['email_id'] ?? null,
-            source:             LeadSource::EDUCATION_PORTAL->value,
-            consentGiven:       true,
-            consentIp:          $consentIp,
+            firstName: $firstName,
+            lastName: $lastName,
+            mobile: $this->normaliseMobile($raw['mobile_no'] ?? ''),
+            email: $raw['email_id'] ?? null,
+            source: LeadSource::EDUCATION_PORTAL->value,
+            consentGiven: true,
+            consentIp: $consentIp,
             consentFormVersion: 'channel:careers360:v1',
-            campusId:           null,
-            city:               $raw['city_name'] ?? null,
-            state:              $raw['state_name'] ?? null,
-            notes:              isset($raw['programme']) ? 'Course interest: ' . $raw['programme'] : null,
-            sourceUtmParams:    ['utm_source' => 'careers360'],
-            programmeIds:       null,
+            campusId: null,
+            city: $raw['city_name'] ?? null,
+            state: $raw['state_name'] ?? null,
+            notes: isset($raw['programme']) ? 'Course interest: '.$raw['programme'] : null,
+            sourceUtmParams: ['utm_source' => 'careers360'],
+            programmeIds: null,
         );
     }
 
@@ -52,7 +52,7 @@ final class Careers360LeadNormalizer implements NormalizerContract
     {
         $parts = explode(' ', trim($full), 2);
 
-        return [! empty($parts[0]) ? $parts[0] : 'Unknown', $parts[1] ?? 'Unknown'];
+        return [!empty($parts[0]) ? $parts[0] : 'Unknown', $parts[1] ?? 'Unknown'];
     }
 
     private function normaliseMobile(string $raw): string

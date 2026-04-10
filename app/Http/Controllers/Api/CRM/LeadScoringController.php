@@ -8,8 +8,9 @@ use App\DTOs\CRM\ScoreOverrideDTO;
 use App\DTOs\CRM\UpdateScoringConfigDTO;
 use App\Http\Requests\CRM\StoreScoreOverrideRequest;
 use App\Http\Requests\CRM\UpdateScoringConfigRequest;
-use App\Http\Resources\CRM\ScoringConfigResource;
 use App\Http\Resources\CRM\ScoreOverrideResource;
+use App\Http\Resources\CRM\ScoringConfigResource;
+use App\Models\CRM\InstitutionScoringConfig;
 use App\Models\CRM\Lead;
 use App\Services\CRM\Scoring\LeadScoringService;
 use Illuminate\Http\JsonResponse;
@@ -29,7 +30,7 @@ final class LeadScoringController extends Controller
      */
     public function config(Request $request): ScoringConfigResource
     {
-        $this->authorize('update', \App\Models\CRM\InstitutionScoringConfig::class);
+        $this->authorize('update', InstitutionScoringConfig::class);
 
         $config = $this->scoringService->getScoringConfig($request->user()->institution_id);
 
@@ -42,7 +43,7 @@ final class LeadScoringController extends Controller
      */
     public function updateConfig(UpdateScoringConfigRequest $request): ScoringConfigResource
     {
-        $dto    = UpdateScoringConfigDTO::fromArray($request->validated());
+        $dto = UpdateScoringConfigDTO::fromArray($request->validated());
         $config = $this->scoringService->updateConfig($request->user()->institution_id, $dto);
 
         return new ScoringConfigResource($config);
@@ -57,10 +58,10 @@ final class LeadScoringController extends Controller
         $this->authorize('override', $lead);
 
         $dto = new ScoreOverrideDTO(
-            leadUuid:        $lead->uuid,
+            leadUuid: $lead->uuid,
             overriddenScore: (int) $request->validated('override_score'),
-            reason:          (string) $request->validated('reason'),
-            actorId:         $request->user()->id,
+            reason: (string) $request->validated('reason'),
+            actorId: $request->user()->id,
         );
 
         $override = $this->scoringService->applyManualOverride($lead, $dto);

@@ -18,20 +18,22 @@ use Illuminate\Support\Facades\Log;
 
 // BRD: CRM-LC-008 — Process a single education portal webhook lead payload
 // Unique key on portal lead ID prevents double-processing on retries
-final class ProcessPortalLeadJob implements ShouldQueue, ShouldBeUnique
+final class ProcessPortalLeadJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 60;
+
     public int $backoff = 30;
 
     public function __construct(
         /** @var array<string, mixed> */
-        public readonly array  $payload,
+        public readonly array $payload,
         public readonly string $channel,
         public readonly string $integrationUuid,
-        public readonly int    $institutionId,
+        public readonly int $institutionId,
         public readonly string $platformIp,
     ) {
         $this->onQueue('crm-imports');
@@ -46,8 +48,8 @@ final class ProcessPortalLeadJob implements ShouldQueue, ShouldBeUnique
     }
 
     public function handle(
-        ChannelLeadImportService                 $importService,
-        PortalNormalizerService                  $normalizerService,
+        ChannelLeadImportService $importService,
+        PortalNormalizerService $normalizerService,
         IntegrationCredentialRepositoryInterface $credentialRepo,
     ): void {
         $credential = $credentialRepo->findActiveByUuidWithoutScope($this->integrationUuid);
@@ -55,30 +57,30 @@ final class ProcessPortalLeadJob implements ShouldQueue, ShouldBeUnique
         if ($credential === null) {
             Log::warning('ProcessPortalLeadJob: credential not found or inactive', [
                 'integration_uuid' => $this->integrationUuid,
-                'channel'          => $this->channel,
+                'channel' => $this->channel,
             ]);
             $this->delete();
 
             return;
         }
 
-        $channel    = IntegrationChannel::from($this->channel);
+        $channel = IntegrationChannel::from($this->channel);
         $normalizer = $normalizerService->resolve($channel);
 
         $importService->importFromChannel(
-            raw:           $this->payload,
-            normalizer:    $normalizer,
+            raw: $this->payload,
+            normalizer: $normalizer,
             institutionId: $this->institutionId,
-            platformIp:    $this->platformIp,
+            platformIp: $this->platformIp,
         );
     }
 
     public function failed(\Throwable $e): void
     {
         Log::error('ProcessPortalLeadJob: permanently failed', [
-            'channel'        => $this->channel,
+            'channel' => $this->channel,
             'institution_id' => $this->institutionId,
-            'error'          => $e->getMessage(),
+            'error' => $e->getMessage(),
         ]);
     }
 }

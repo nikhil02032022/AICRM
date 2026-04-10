@@ -35,12 +35,12 @@ class UserSeeder extends Seeder
         $institution = Institution::firstOrCreate(
             ['code' => 'DEMO'],
             [
-                'name'      => 'Demo University',
-                'domain'    => 'demo.edu',
+                'name' => 'Demo University',
+                'domain' => 'demo.edu',
                 'is_active' => true,
-                'settings'  => [
-                    'primary_color'     => '#2563eb',
-                    'admissions_email'  => 'admissions@demo.edu',
+                'settings' => [
+                    'primary_color' => '#2563eb',
+                    'admissions_email' => 'admissions@demo.edu',
                 ],
             ]
         );
@@ -48,9 +48,9 @@ class UserSeeder extends Seeder
         $campus = Campus::firstOrCreate(
             ['institution_id' => $institution->id, 'code' => 'MAIN'],
             [
-                'name'      => 'Main Campus',
-                'city'      => 'Bengaluru',
-                'state'     => 'Karnataka',
+                'name' => 'Main Campus',
+                'city' => 'Bengaluru',
+                'state' => 'Karnataka',
                 'is_active' => true,
             ]
         );
@@ -60,81 +60,81 @@ class UserSeeder extends Seeder
         // ----------------------------------------------------------------
         $users = [
             [
-                'name'  => 'Super Admin',
+                'name' => 'Super Admin',
                 'email' => 'superadmin@a2acrm.test',
-                'role'  => 'super-admin',
+                'role' => 'super-admin',
                 'institution_id' => null,  // MEETCS-level, no institution
-                'campus_id'      => null,
+                'campus_id' => null,
             ],
             [
-                'name'  => 'Institution Admin',
+                'name' => 'Institution Admin',
                 'email' => 'admin@demo.edu',
-                'role'  => 'institution-admin',
+                'role' => 'institution-admin',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Admissions Director',
+                'name' => 'Admissions Director',
                 'email' => 'director@demo.edu',
-                'role'  => 'admissions-director',
+                'role' => 'admissions-director',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Admissions Manager',
+                'name' => 'Admissions Manager',
                 'email' => 'manager@demo.edu',
-                'role'  => 'admissions-manager',
+                'role' => 'admissions-manager',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Senior Counsellor',
+                'name' => 'Senior Counsellor',
                 'email' => 'sr.counsellor@demo.edu',
-                'role'  => 'senior-counsellor',
+                'role' => 'senior-counsellor',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Junior Counsellor',
+                'name' => 'Junior Counsellor',
                 'email' => 'jr.counsellor@demo.edu',
-                'role'  => 'junior-counsellor',
+                'role' => 'junior-counsellor',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Marketing Manager',
+                'name' => 'Marketing Manager',
                 'email' => 'marketing@demo.edu',
-                'role'  => 'marketing-manager',
+                'role' => 'marketing-manager',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Finance Officer',
+                'name' => 'Finance Officer',
                 'email' => 'finance@demo.edu',
-                'role'  => 'finance-officer',
+                'role' => 'finance-officer',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Document Verifier',
+                'name' => 'Document Verifier',
                 'email' => 'docverifier@demo.edu',
-                'role'  => 'document-verifier',
+                'role' => 'document-verifier',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Channel Agent',
+                'name' => 'Channel Agent',
                 'email' => 'agent@demo.edu',
-                'role'  => 'agent',
+                'role' => 'agent',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
             [
-                'name'  => 'Test Applicant',
+                'name' => 'Test Applicant',
                 'email' => 'applicant@demo.edu',
-                'role'  => 'applicant',
+                'role' => 'applicant',
                 'institution_id' => $institution->id,
-                'campus_id'      => $campus->id,
+                'campus_id' => $campus->id,
             ],
         ];
 
@@ -142,11 +142,11 @@ class UserSeeder extends Seeder
             $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 [
-                    'name'           => $data['name'],
-                    'password'       => bcrypt('password'),
+                    'name' => $data['name'],
+                    'password' => bcrypt('password'),
                     'institution_id' => $data['institution_id'],
-                    'campus_id'      => $data['campus_id'],
-                    'is_active'      => true,
+                    'campus_id' => $data['campus_id'],
+                    'is_active' => true,
                     'email_verified_at' => now(),
                 ]
             );

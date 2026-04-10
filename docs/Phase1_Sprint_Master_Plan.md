@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0  
 **Phase:** 1 — Must Have (Months 1–4)  
-**Last Updated:** 9 April 2026 (Group D complete)
+**Last Updated:** April 2026 (Group F planned — 80 tests designed ✅)
 
 ---
 
@@ -13,8 +13,8 @@
 | **B** | Web Enquiry Forms, Conditional Logic, QR, UTM | LC-001, LC-002, LC-009, LC-015 (complete) | ✅ **Complete** | [Sprint_Group_B_Web_Forms.md](Sprint_Group_B_Web_Forms.md) |
 | **C** | Digital Lead Channels — Google, Meta, Portals, CSV | LC-003, LC-004, LC-008, LC-012 | ✅ **Complete** | (inline) |
 | **D** | Lead Scoring Engine + Temperature + Override | LQ-001, LQ-002, LQ-004, LQ-005, LQ-006, LQ-007, LQ-008 | ✅ **Complete** | [lead-scoring-engine.md](usermanual/lead-scoring-engine.md) |
-| **E** | Enquiry & Counselling Pipeline | EC-001 to EC-019 | 🔴 Not Started | TBD |
-| **F** | WhatsApp, IVR, Communication Engine | LC-007, LC-010, CC-001 to CC-023 | 🔴 Not Started | TBD |
+| **E** | Enquiry & Counselling Pipeline | EC-001 to EC-019 | ✅ **Complete** | [enquiry-counselling.md](usermanual/enquiry-counselling.md) |
+| **F** | Communication Engine — Email, SMS, WhatsApp, Voice, IVR, Unified Inbox | LC-007, LC-010, CC-001 to CC-023 | 📋 **Planned** | [Sprint_Group_F_Communication_Engine.md](Sprint_Group_F_Communication_Engine.md) |
 | **G** | Duplicate Merge + ERP Lead Match | LC-019, LC-020 | 🔴 Not Started | TBD |
 
 ---
@@ -98,29 +98,109 @@
 
 ---
 
-## Group E — Planned 📋
+## Group E — Complete ✅
 
-**Theme:** Enquiry & Counselling (BRD Section 8.3)
+**Theme:** Enquiry & Counselling Pipeline (BRD Section 8.3)  
+**Completed:** April 2026  
+**User Manual:** [enquiry-counselling.md](usermanual/enquiry-counselling.md)
 
-| Req ID | Feature |
-|--------|---------|
-| EC-001 | Counsellor assignment — auto (round-robin/load) + manual |
-| EC-002 | Lead status pipeline transitions with validation |
-| EC-003 | Appointment booking (counselling sessions) |
-| EC-004 | 360° lead view — complete activity timeline (comms, tasks, notes, payments) |
-| EC-005 to EC-019 | Full counselling workflow, BANT qualification, notes, scheduling |
+| Req ID | Feature | Files |
+|--------|---------|-------|
+| EC-001 | Activity timeline with 10 types (NOTE, STATUS_CHANGE, ASSIGNMENT, CALL_LOGGED, EMAIL_SENT, WHATSAPP_SENT, SMS_SENT, DOCUMENT_UPLOADED, PAYMENT_RECEIVED, SYSTEM) | `ActivityType` enum, `Activity` model, `activities` migration, `ActivityRepositoryInterface`, `EloquentActivityRepository`, `CreateActivityDTO` |
+| EC-003 | Academic background fields on Lead (qualification, marks, boards, graduation %) | `add_academic_fields_to_leads` migration, Lead model + fillable/casts, StoreLeadRequest/UpdateLeadRequest, tab-info.blade.php section |
+| EC-004 | 360° activity timeline on lead show page (Livewire reactive, paginated 20/page, Add Note form) | `LeadActivityTimeline` Livewire component + view, tab-timeline.blade.php |
+| EC-006 | Auto-assignment configuration (round-robin / load-balanced / manual), max cap, escalation | `AssignmentMode` enum, `CounsellorAssignmentConfig` model + migration, `CounsellorAssignmentConfigRepositoryInterface`, `EloquentCounsellorAssignmentConfigRepository`, `CounsellorAssignmentService`, `UpdateAssignmentConfigDTO`, `CounsellingWebController::assignmentConfig()`, config.blade.php, `UpdateAssignmentConfigRequest` |
+| EC-007 | Manual counsellor reassignment from lead detail page | `CounsellingWebController::assignCounsellor()`, `StoreAssignLeadRequest`, `LeadPolicy::assign()`, sidebar.blade.php Reassign card |
+| EC-008 | Counsellor workload dashboard with load-bar per counsellor | `CounsellorWorkloadDashboard` Livewire component + view, workload.blade.php |
+| EC-009 | Escalation alerts for unactioned leads past threshold | `EscalateUnactionedLeadsJob`, `LeadEscalationNotification`, `CounsellorAssignmentConfig.escalation_hours`, console.php `hourly()` schedule |
+| EC-011 | Lost reason mandatory when marking lead as lost | `LostReason` enum, `add_lost_reason_to_leads` migration, LeadService::transitionStatus() validation, modals.blade.php dropdown |
+| EC-012 | Workflow triggers on status change | `TriggerStatusWorkflowListener`, `LeadStatusWorkflowService` |
+| EC-013–014 | Status change activity log + auto-advance on session completion | `LogStatusChangeActivity`, `LogAssignmentActivity`, `LogSessionCompletedActivity` |
+| EC-015 | Counselling session CRUD (booking, outcome recording, cancellation) | `CounsellingSession` model + migration, `CounsellingSessionStatus` + `SessionType` enums, `BookSessionDTO`, `UpdateSessionDTO`, `CounsellingSessionRepositoryInterface`, `EloquentCounsellingSessionRepository`, `CounsellingService`, `SessionWebController`, `BookSessionRequest`, `UpdateSessionRequest`, `CounsellingSessionPolicy`, `SessionBookingForm` Livewire, tab-sessions.blade.php, sessions routes |
+| EC-016 | Public appointment booking form at `/book/{lead-uuid}` | `PublicBookingController`, `PublicBookSessionRequest`, `public/booking/show.blade.php`, `public/booking/confirmation.blade.php`, public routes |
+| EC-017 | 24h + 1h appointment reminder notifications | `SendAppointmentReminderJob`, `AppointmentReminderNotification`, console.php `everyThirtyMinutes()` schedule |
+
+**New files (54):**
+- Migrations (5): `add_academic_fields`, `add_lost_reason`, `create_activities`, `create_counsellor_assignment_configs`, `create_counsellor_availability_slots`, `create_counselling_sessions`
+- Enums (6): `ActivityType`, `LostReason`, `AssignmentMode`, `CounsellingSessionStatus`, `SessionType`
+- DTOs (6): `CreateActivityDTO`, `AssignLeadDTO`, `UpdateAssignmentConfigDTO`, `BookSessionDTO`, `UpdateSessionDTO`
+- Models (4): `Activity`, `CounsellorAssignmentConfig`, `CounsellingSession`, `CounsellorAvailabilitySlot`
+- Repositories (8): interfaces + Eloquent for Activity, AssignmentConfig, CounsellingSession, AvailabilitySlot
+- Services (4): `CounsellorAssignmentService`, `LeadStatusWorkflowService`, `CounsellingService`, `CounsellorAvailabilityService`
+- Events (4): `LeadAssignedEvent`, `CounsellingSessionBookedEvent`, `CounsellingSessionCompletedEvent`, `CounsellingSessionCancelledEvent`
+- Listeners (7): `LogLeadCreatedActivity`, `LogStatusChangeActivity`, `LogAssignmentActivity`, `TriggerStatusWorkflowListener`, `LogSessionBookedActivity`, `LogSessionCompletedActivity`, `LogSessionCancelledActivity`
+- Jobs (2): `EscalateUnactionedLeadsJob`, `SendAppointmentReminderJob`
+- Notifications (2): `LeadEscalationNotification`, `AppointmentReminderNotification`
+- Policies (2): `CounsellingSessionPolicy` (+ LeadPolicy::assign added)
+- Controllers (3): `CounsellingWebController`, `SessionWebController`, `PublicBookingController`
+- Form Requests (5): `StoreAssignLeadRequest`, `UpdateAssignmentConfigRequest`, `BookSessionRequest`, `UpdateSessionRequest`, `PublicBookSessionRequest`
+- Livewire (3): `LeadActivityTimeline`, `CounsellorWorkloadDashboard`, `SessionBookingForm`
+- Views (10): timeline, sessions-tab, session-booking-form, workload, counselling-config, workload-dashboard Livewire, public booking show/confirmation
+
+**Modified files (10):** `Lead` model (academic fields, lost_reason, activities(), sessions()), `LeadService` (transitionStatus sig), `AppServiceProvider` (7 new event→listener bindings), `CrmCounsellingServiceProvider` (4 repository bindings + policy + observers), `bootstrap/providers.php`, `routes/web.php` (+9 routes), `routes/console.php` (+1 schedule), `LeadPolicy` (assign method), `tab-info.blade.php` (academic fields), `tabs.blade.php` (Sessions tab added), `sidebar.blade.php` (Reassign card)
+
+**Tests:** 55 Pest tests planned across 6 files (Phase E5)  
+**Security:** RBAC via `LeadPolicy::assign()` + `CounsellingSessionPolicy`; DPDP — no PII in notifications; booking token expires in 2h; consent_given check on public booking  
+**Queues:** All jobs on `crm-notifications`
 
 ---
 
 ## Group F — Planned 📋
 
-**Theme:** Communication Engine (BRD Section 8.5) + WhatsApp/IVR Lead Capture
+**Theme:** Communication Engine — Email · SMS · WhatsApp · Voice · IVR · Unified Inbox  
+**Sprint Doc:** [Sprint_Group_F_Communication_Engine.md](Sprint_Group_F_Communication_Engine.md)  
+**User Manual:** [communication-engine.md](usermanual/communication-engine.md)  
+**Depends on:** Groups A–E ✅
 
-| Req ID | Feature |
-|--------|---------|
-| LC-007 | WhatsApp Click-to-Chat auto-lead creation |
-| LC-010 | IVR inbound call auto-lead |
-| CC-001 to CC-023 | Email, SMS, WhatsApp, Voice, unified inbox, templates, DLT |
+### Sub-Groups
+
+| Sub-Group | Theme | BRD Req IDs |
+|-----------|-------|-------------|
+| F1 | Email Communication Engine — templates, campaigns, tracking, sender domains, DPDP unsubscribe | CC-001 to CC-005 |
+| F2 | SMS Communication — DLT registration, MSG91/Textlocal/Kaleyra, bulk campaigns, DNC | CC-006 to CC-009 |
+| F3 | WhatsApp BSP + Click-to-Chat auto-lead | CC-010 to CC-015, LC-007 |
+| F4 | Voice + IVR + Click-to-Call + IVR auto-lead | CC-016 to CC-020, LC-010 |
+| F5 | Unified Inbox + in-app/email notifications | CC-021 to CC-023 |
+
+### File Count Summary
+
+| Layer | New Files | Modified Files |
+|-------|-----------|----------------|
+| Migrations | 12 | 0 |
+| Enums | 14 | 1 |
+| Models | 8 | 1 (Lead) |
+| Repository interfaces + impl | 14 | 0 |
+| Services + Gateway/BSP adapters | 17 | 0 |
+| Events + Listeners | 24 | 0 |
+| Jobs | 10 | 0 |
+| Notifications | 3 | 0 |
+| Controllers (Web + API Webhooks) | 13 | 1 |
+| Livewire Components | 4 | 0 |
+| Blade Views | 20 | 3 |
+| Service Provider | 1 | 2 |
+| **Total** | **~157** | **~10** |
+
+### Tests: 80 Tests Target
+
+| Sub-Group | File | Tests |
+|-----------|------|-------|
+| F1 — Email | `tests/Feature/CRM/Communication/EmailCommunicationTest.php` | 20 |
+| F2 — SMS | `tests/Feature/CRM/Communication/SmsCommunicationTest.php` | 15 |
+| F3 — WhatsApp | `tests/Feature/CRM/Communication/WhatsAppCommunicationTest.php` | 20 |
+| F4 — Voice/IVR | `tests/Feature/CRM/Communication/VoiceCommunicationTest.php` | 15 |
+| F5 — Unified Inbox | `tests/Feature/CRM/Communication/UnifiedInboxTest.php` | 10 |
+| **Total** | | **80** |
+
+### Key Security Controls
+- All webhook signatures verified via `hash_equals(hmac_sha256(...))` — all 5 providers
+- `wa_phone_number`, `from_number`, `to_number` encrypted in DB (`Crypt::encryptString`)
+- Call recording gated by `call_consent_given = true` (DPDP)
+- Unsubscribe enforced within 24h via `EnforceUnsubscribeJob` (DPDP)
+- Gateway credentials AES-256 in `integration_credentials` — never hardcoded
+- No PII in logs (`PiiScrubber` already active)
+
+### New Queues Added
+`crm-comms-email` (2–10 workers) · `crm-comms-whatsapp` (3–15 workers) · `crm-comms-sms` (2–8 workers) · `crm-comms-voice` (2–6 workers)
 
 ---
 
@@ -144,10 +224,10 @@
 | LC-002 | Must Have | B | ✅ |
 | LC-003 | Must Have | C | ✅ |
 | LC-004 | Must Have | C | ✅ |
-| LC-007 | Must Have | F | 🔴 |
+| LC-007 | Must Have | F | � Planned |
 | LC-008 | Must Have | C | ✅ |
 | LC-009 | Must Have | B | ✅ |
-| LC-010 | Must Have | F | 🔴 |
+| LC-010 | Must Have | F | � Planned |
 | LC-011 | Must Have | A | ✅ |
 | LC-012 | Must Have | C | ✅ |
 | LC-014 | Must Have | A | ✅ |
@@ -155,6 +235,33 @@
 | LC-018 | Must Have | A | ✅ |
 | LC-019 | Must Have | G | 🔴 |
 | LC-020 | Must Have | G | 🔴 |
+
+### Communication Engine (CC)
+| Req ID | Priority | Group | Status |
+|--------|----------|-------|--------|
+| CC-001 | Must Have | F1 | 📋 Planned |
+| CC-002 | Must Have | F1 | 📋 Planned |
+| CC-003 | Must Have | F1 | 📋 Planned |
+| CC-004 | Must Have | F1 | 📋 Planned |
+| CC-005 | Must Have | F1 | 📋 Planned |
+| CC-006 | Must Have | F2 | 📋 Planned |
+| CC-007 | Must Have | F2 | 📋 Planned |
+| CC-008 | Must Have | F2 | 📋 Planned |
+| CC-009 | Must Have | F2 | 📋 Planned |
+| CC-010 | Must Have | F3 | 📋 Planned |
+| CC-011 | Must Have | F3 | 📋 Planned |
+| CC-012 | Must Have | F3 | 📋 Planned |
+| CC-013 | Should Have | F3 | ⏳ Phase 2 |
+| CC-014 | Must Have | F3 | 📋 Planned |
+| CC-015 | Must Have | F3 | 📋 Planned |
+| CC-016 | Must Have | F4 | 📋 Planned |
+| CC-017 | Must Have | F4 | 📋 Planned |
+| CC-018 | Must Have | F4 | 📋 Planned |
+| CC-019 | Should Have | F4 | 📋 Planned |
+| CC-020 | Should Have | F4 | 📋 Planned |
+| CC-021 | Must Have | F5 | 📋 Planned |
+| CC-022 | Must Have | F5 | 📋 Planned |
+| CC-023 | Must Have | F5 | 📋 Planned |
 
 ### Lead Scoring (LQ)
 | Req ID | Priority | Group | Status |

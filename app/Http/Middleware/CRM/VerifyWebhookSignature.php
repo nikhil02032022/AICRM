@@ -7,7 +7,6 @@ namespace App\Http\Middleware\CRM;
 use App\Repositories\CRM\Import\IntegrationCredentialRepositoryInterface;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
@@ -49,26 +48,27 @@ class VerifyWebhookSignature
 
         if ($credential === null) {
             Log::warning('Webhook: credential not found or inactive', [
-                'uuid'    => $integrationUuid,
+                'uuid' => $integrationUuid,
                 'channel' => $channel,
             ]);
+
             // Return 200 to prevent platform retry loops; just silently discard
             return response()->json(['status' => 'ignored'], 200);
         }
 
         $rawBody = $request->getContent();
-        $valid   = match ($channel) {
-            'google'  => $this->verifyGoogle($request, $rawBody, $credential->getCredential('webhook_secret') ?? ''),
-            'meta'    => $this->verifyMeta($request, $rawBody, $credential->getCredential('app_secret') ?? ''),
-            'portal'  => $this->verifyPortal($request, $rawBody, $credential->getCredential('webhook_secret') ?? ''),
-            default   => false,
+        $valid = match ($channel) {
+            'google' => $this->verifyGoogle($request, $rawBody, $credential->getCredential('webhook_secret') ?? ''),
+            'meta' => $this->verifyMeta($request, $rawBody, $credential->getCredential('app_secret') ?? ''),
+            'portal' => $this->verifyPortal($request, $rawBody, $credential->getCredential('webhook_secret') ?? ''),
+            default => false,
         };
 
-        if (! $valid) {
+        if (!$valid) {
             Log::warning('Webhook: signature mismatch', [
-                'uuid'    => $integrationUuid,
+                'uuid' => $integrationUuid,
                 'channel' => $channel,
-                'ip'      => $request->ip(),
+                'ip' => $request->ip(),
             ]);
 
             // 403 for signature mismatch — tells the platform to check their config
@@ -119,7 +119,7 @@ class VerifyWebhookSignature
 
         $header = $request->header('X-Hub-Signature-256', '');
 
-        if (empty($header) || ! str_starts_with($header, 'sha256=')) {
+        if (empty($header) || !str_starts_with($header, 'sha256=')) {
             return false;
         }
 

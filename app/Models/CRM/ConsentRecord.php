@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\CRM;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,17 +19,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * It is never deleted — only the Lead may be anonymised; consent records are
  * retained for the statutory period.
  *
- * @property int         $id
- * @property int|null    $lead_id             Null until lead is persisted
- * @property int         $institution_id
- * @property bool        $consent_given
- * @property \Carbon\Carbon $consent_timestamp
- * @property string      $consent_ip
- * @property string      $consent_form_version
- * @property string      $consent_channel      web_form|api|import|telephony
+ * @property int $id
+ * @property int|null $lead_id Null until lead is persisted
+ * @property int $institution_id
+ * @property bool $consent_given
+ * @property Carbon $consent_timestamp
+ * @property string $consent_ip
+ * @property string $consent_form_version
+ * @property string $consent_channel web_form|api|import|telephony
  * @property string|null $consent_text_snapshot
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class ConsentRecord extends Model
 {
@@ -46,7 +47,7 @@ class ConsentRecord extends Model
     ];
 
     protected $casts = [
-        'consent_given'     => 'boolean',
+        'consent_given' => 'boolean',
         'consent_timestamp' => 'datetime',
     ];
 
@@ -96,12 +97,12 @@ class ConsentRecord extends Model
         array $overrides = [],
     ): array {
         return array_merge([
-            'institution_id'        => $institutionId,
-            'consent_given'         => true,
-            'consent_timestamp'     => now(),
-            'consent_ip'            => $ip,
-            'consent_form_version'  => $formVersion,
-            'consent_channel'       => $channel,
+            'institution_id' => $institutionId,
+            'consent_given' => true,
+            'consent_timestamp' => now(),
+            'consent_ip' => $ip,
+            'consent_form_version' => $formVersion,
+            'consent_channel' => $channel,
         ], $overrides);
     }
 }

@@ -7,7 +7,9 @@ namespace App\Models\CRM;
 use App\Enums\CRM\LeadSource;
 use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LeadTemperature;
+use App\Enums\CRM\LostReason;
 use App\Models\CRM\Scopes\InstitutionScope;
+use App\Models\User;
 use App\Observers\CRM\AuditObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -16,14 +18,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 
 // BRD: CRM-LC-011 — Lead entity is the central CRM record for an enquiring prospective student
 // BRD: CRM-LC-014 — source is mandatory on every lead record
 #[ObservedBy(AuditObserver::class)]
 class Lead extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, Notifiable, SoftDeletes;
 
     protected $table = 'leads';
 
@@ -41,7 +45,7 @@ class Lead extends Model
     // BRD: NFR-MT-001 — InstitutionScope enforces multi-tenant isolation
     protected static function booted(): void
     {
-        static::addGlobalScope(new InstitutionScope());
+        static::addGlobalScope(new InstitutionScope);
     }
 
     /** @var list<string> */
@@ -78,6 +82,20 @@ class Lead extends Model
         'state',
         'nationality',
         'notes',
+        // BRD: CRM-EC-001 — Academic background fields
+        'qualification',
+        'marks_10th',
+        'board_10th',
+        'marks_12th',
+        'board_12th',
+        'graduation_percentage',
+        'graduation_university',
+        'preferred_intake',
+        'date_of_birth',
+        // BRD: CRM-EC-013 — Loss reason (required when status = LOST)
+        'lost_reason',
+        // BRD: CRM-EC-014 — Timestamp of last status change (used for escalation)
+        'status_changed_at',
     ];
 
     /** @return array<string, mixed> */
@@ -85,26 +103,35 @@ class Lead extends Model
     {
         return [
             // BRD: NFR-SE-002 — PII encrypted at rest using AES-256 (app key)
-            'mobile'           => 'encrypted',
-            'email'            => 'encrypted',
+            'mobile' => 'encrypted',
+            'email' => 'encrypted',
             // Enum casts
-            'status'           => LeadStatus::class,
-            'temperature'      => LeadTemperature::class,
-            'source'           => LeadSource::class,
+            'status' => LeadStatus::class,
+            'temperature' => LeadTemperature::class,
+            'source' => LeadSource::class,
             // JSON
             'source_utm_params' => 'array',
             // Booleans
-            'consent_given'    => 'boolean',
-            'opt_out'          => 'boolean',
+            'consent_given' => 'boolean',
+            'opt_out' => 'boolean',
             'call_consent_given' => 'boolean',
             // Dates
-            'consent_timestamp'  => 'datetime',
-            'opt_out_at'         => 'datetime',
-            'pii_anonymised_at'  => 'datetime',
+            'consent_timestamp' => 'datetime',
+            'opt_out_at' => 'datetime',
+            'pii_anonymised_at' => 'datetime',
             // BRD: CRM-LC-018 — duplicate flag
             'is_duplicate_suspected' => 'boolean',
             // BRD: CRM-LQ-007 — manual override lock flag
             'score_manually_overridden' => 'boolean',
+            // BRD: CRM-EC-001 — Academic marks as decimals
+            'marks_10th' => 'decimal:2',
+            'marks_12th' => 'decimal:2',
+            'graduation_percentage' => 'decimal:2',
+            'date_of_birth' => 'date',
+            // BRD: CRM-EC-013 — Lost reason enum
+            'lost_reason' => LostReason::class,
+            // BRD: CRM-EC-014 — Last status change timestamp
+            'status_changed_at' => 'datetime',
         ];
     }
 
@@ -124,13 +151,13 @@ class Lead extends Model
 
     public function assignedCounsellor(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'assigned_counsellor_id');
+        return $this->belongsTo(User::class, 'assigned_counsellor_id');
     }
 
     public function programmeInterests(): BelongsToMany
     {
         return $this->belongsToMany(
-            \App\Models\CRM\CrmProgramme::class,
+            CrmProgramme::class,
             'lead_programme_interests',
             'lead_id',
             'crm_programme_id',
@@ -141,7 +168,19 @@ class Lead extends Model
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class, 'entity_id')
-                    ->where('entity_type', static::class);
+            ->where('entity_type', static::class);
+    }
+
+    // BRD: CRM-EC-004 — CRM activity timeline (notes, calls, status changes, comms, etc.)
+    public function activities(): MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject')->latest('created_at');
+    }
+
+    // BRD: CRM-EC-015 — Counselling sessions for this lead
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(CounsellingSession::class, 'lead_id');
     }
 
     // -------------------------------------------------------------------------
@@ -167,15 +206,15 @@ class Lead extends Model
     public function anonymisePII(): void
     {
         $this->update([
-            'first_name'         => 'ANON',
-            'last_name'          => 'ANON',
-            'mobile'             => 'ANON_' . $this->id,
-            'email'              => null,
-            'city'               => null,
-            'state'              => null,
-            'notes'              => null,
-            'consent_ip'         => null,
-            'pii_anonymised_at'  => now(),
+            'first_name' => 'ANON',
+            'last_name' => 'ANON',
+            'mobile' => 'ANON_'.$this->id,
+            'email' => null,
+            'city' => null,
+            'state' => null,
+            'notes' => null,
+            'consent_ip' => null,
+            'pii_anonymised_at' => now(),
         ]);
     }
 }

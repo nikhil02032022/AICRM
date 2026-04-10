@@ -134,6 +134,7 @@ class RoleSeeder extends Seeder
         // BRD: CRM-LC-001 — Web Form permissions assigned to relevant roles
         // ---------------------------------------------------------------
         $formManageRoles = ['super-admin', 'institution-admin', 'admissions-manager'];
+
         foreach ($formManageRoles as $roleName) {
             Role::findByName($roleName)
                 ->givePermissionTo(['crm.forms.view', 'crm.forms.create', 'crm.forms.edit', 'crm.forms.delete']);
@@ -142,6 +143,35 @@ class RoleSeeder extends Seeder
         // Counsellors can view forms (to access public URL/QR) but not manage them
         foreach (['senior-counsellor', 'junior-counsellor', 'admissions-director'] as $roleName) {
             Role::findByName($roleName)->givePermissionTo('crm.forms.view');
+        }
+
+        // ---------------------------------------------------------------
+        // BRD: CRM-EC-009 — Counselling Session permissions
+        // ---------------------------------------------------------------
+        // Full session access: admin + director + manager
+        foreach (['institution-admin', 'admissions-director', 'admissions-manager'] as $roleName) {
+            Role::findByName($roleName)
+                ->givePermissionTo(['crm.sessions.view', 'crm.sessions.create', 'crm.sessions.edit', 'crm.sessions.cancel']);
+        }
+        // Senior counsellor: can view, create, edit but not cancel
+        Role::findByName('senior-counsellor')
+            ->givePermissionTo(['crm.sessions.view', 'crm.sessions.create', 'crm.sessions.edit']);
+        // Junior counsellor: view and create only
+        Role::findByName('junior-counsellor')
+            ->givePermissionTo(['crm.sessions.view', 'crm.sessions.create']);
+
+        // ---------------------------------------------------------------
+        // BRD: CRM-EC-007 — Assignment Config (settings) permissions
+        // ---------------------------------------------------------------
+        foreach (['institution-admin', 'admissions-director'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo('crm.settings.manage');
+        }
+
+        // ---------------------------------------------------------------
+        // BRD: CRM-LQ-005 — Scoring Config settings permission
+        // ---------------------------------------------------------------
+        foreach (['institution-admin', 'admissions-director', 'admissions-manager'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo('crm.settings.scoring');
         }
 
         $this->command->info('✅ 11 BRD roles and permissions seeded successfully.');

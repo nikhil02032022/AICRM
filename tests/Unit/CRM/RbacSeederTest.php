@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
-use App\Domain\CRM\Models\Institution;
 use App\Domain\CRM\Models\Campus;
+use App\Domain\CRM\Models\Institution;
+use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\UserSeeder;

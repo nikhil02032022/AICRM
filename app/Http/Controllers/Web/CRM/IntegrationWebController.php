@@ -33,7 +33,7 @@ final class IntegrationWebController extends Controller
         );
 
         return view('crm.settings.integrations.index', [
-            'credentials'    => $credentials,
+            'credentials' => $credentials,
             'channelOptions' => IntegrationChannel::optionsForSelect(),
         ]);
     }
@@ -60,10 +60,10 @@ final class IntegrationWebController extends Controller
         $validated = $request->validated();
 
         $this->repository->create([
-            'channel'     => $validated['channel'],
-            'label'       => $validated['label'],
+            'channel' => $validated['channel'],
+            'label' => $validated['label'],
             'credentials' => $validated['credentials'] ?? [],
-            'is_active'   => (bool) ($validated['is_active'] ?? true),
+            'is_active' => (bool) ($validated['is_active'] ?? true),
         ], $request->user()->institution_id);
 
         return redirect()
@@ -79,7 +79,7 @@ final class IntegrationWebController extends Controller
         Gate::authorize('crm.integrations.manage');
 
         return view('crm.settings.integrations.edit', [
-            'integration'    => $integration,
+            'integration' => $integration,
             'channelOptions' => IntegrationChannel::optionsForSelect(),
         ]);
     }
@@ -100,9 +100,9 @@ final class IntegrationWebController extends Controller
         );
 
         $this->repository->update($integration, [
-            'label'       => $validated['label'],
+            'label' => $validated['label'],
             'credentials' => array_merge($integration->credentials ?? [], $incomingCredentials),
-            'is_active'   => (bool) ($validated['is_active'] ?? $integration->is_active),
+            'is_active' => (bool) ($validated['is_active'] ?? $integration->is_active),
         ]);
 
         return redirect()

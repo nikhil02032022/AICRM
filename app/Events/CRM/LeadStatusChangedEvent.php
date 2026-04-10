@@ -16,7 +16,7 @@ final class LeadStatusChangedEvent
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public readonly Lead       $lead,
+        public readonly Lead $lead,
         public readonly LeadStatus $previousStatus,
         public readonly LeadStatus $newStatus,
     ) {}

@@ -29,12 +29,14 @@ use Illuminate\Support\Facades\Log;
  * BRD: CRM-LC-004 — Meta Lead Ads API auto-import
  * OWASP A05 — access token retrieved from encrypted integration_credentials, never hardcoded
  */
-final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
+final class ProcessMetaLeadJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 90;
+
     public int $backoff = 60;
 
     private const META_GRAPH_VERSION = 'v19.0';
@@ -42,7 +44,7 @@ final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
     public function __construct(
         public readonly string $leadgenId,
         public readonly string $integrationUuid,
-        public readonly int    $institutionId,
+        public readonly int $institutionId,
         public readonly string $platformIp,
     ) {
         $this->onQueue('crm-imports');
@@ -55,9 +57,9 @@ final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
     }
 
     public function handle(
-        ChannelLeadImportService                  $importService,
-        MetaLeadNormalizer                        $normalizer,
-        IntegrationCredentialRepositoryInterface  $credentialRepo,
+        ChannelLeadImportService $importService,
+        MetaLeadNormalizer $normalizer,
+        IntegrationCredentialRepositoryInterface $credentialRepo,
     ): void {
         // Fetch credential (without scope — no auth in job context)
         $credential = $credentialRepo->findActiveByUuidWithoutScope($this->integrationUuid);
@@ -65,7 +67,7 @@ final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
         if ($credential === null) {
             Log::warning('ProcessMetaLeadJob: credential not found or inactive', [
                 'integration_uuid' => $this->integrationUuid,
-                'institution_id'   => $this->institutionId,
+                'institution_id' => $this->institutionId,
             ]);
             // Discard — no retry, credential was deactivated
             $this->delete();
@@ -79,8 +81,9 @@ final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
             Log::error('ProcessMetaLeadJob: page_access_token missing in credential', [
                 'integration_uuid' => $this->integrationUuid,
             ]);
+
             // Fail so it shows in Horizon — admin needs to reconfigure
-            throw new \RuntimeException('Meta page_access_token not configured for integration ' . $this->integrationUuid);
+            throw new \RuntimeException('Meta page_access_token not configured for integration '.$this->integrationUuid);
         }
 
         // Fetch full lead form data from Meta Graph API
@@ -91,10 +94,10 @@ final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
         }
 
         $importService->importFromChannel(
-            raw:           $leadData,
-            normalizer:    $normalizer,
+            raw: $leadData,
+            normalizer: $normalizer,
             institutionId: $this->institutionId,
-            platformIp:    $this->platformIp,
+            platformIp: $this->platformIp,
         );
     }
 
@@ -109,10 +112,10 @@ final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
 
         try {
             $response = $client->get(
-                "https://graph.facebook.com/" . self::META_GRAPH_VERSION . "/{$leadgenId}",
+                'https://graph.facebook.com/'.self::META_GRAPH_VERSION."/{$leadgenId}",
                 [
                     'query' => [
-                        'fields'       => 'id,created_time,ad_id,ad_name,adset_name,campaign_name,platform,field_data',
+                        'fields' => 'id,created_time,ad_id,ad_name,adset_name,campaign_name,platform,field_data',
                         'access_token' => $accessToken,
                     ],
                 ]
@@ -122,7 +125,7 @@ final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
         } catch (GuzzleException $e) {
             Log::error('ProcessMetaLeadJob: Graph API request failed', [
                 'leadgen_id' => $leadgenId,
-                'error'      => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
 
             return null;
@@ -132,9 +135,9 @@ final class ProcessMetaLeadJob implements ShouldQueue, ShouldBeUnique
     public function failed(\Throwable $e): void
     {
         Log::error('ProcessMetaLeadJob: permanently failed', [
-            'leadgen_id'     => $this->leadgenId,
+            'leadgen_id' => $this->leadgenId,
             'institution_id' => $this->institutionId,
-            'error'          => $e->getMessage(),
+            'error' => $e->getMessage(),
         ]);
     }
 }

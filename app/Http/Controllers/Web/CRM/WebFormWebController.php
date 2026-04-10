@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CRM\StoreWebFormRequest;
 use App\Http\Requests\Api\CRM\UpdateWebFormRequest;
 use App\Models\CRM\WebForm;
+use App\Models\User;
 use App\Repositories\CRM\WebForm\WebFormRepositoryInterface;
 use App\Services\CRM\WebForm\WebFormService;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ use Illuminate\View\View;
 final class WebFormWebController extends Controller
 {
     public function __construct(
-        private readonly WebFormService             $service,
+        private readonly WebFormService $service,
         private readonly WebFormRepositoryInterface $repository,
     ) {}
 
@@ -55,7 +56,7 @@ final class WebFormWebController extends Controller
      */
     public function store(StoreWebFormRequest $request): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         if ($user->institution_id === null) {
@@ -75,7 +76,7 @@ final class WebFormWebController extends Controller
 
         return redirect()
             ->route('crm.forms.embed-code', $form->uuid)
-            ->with('success', 'Web form "' . $form->name . '" created. Copy your embed code or QR below.');
+            ->with('success', 'Web form "'.$form->name.'" created. Copy your embed code or QR below.');
     }
 
     /**
@@ -121,7 +122,7 @@ final class WebFormWebController extends Controller
         Gate::authorize('crm.forms.view');
 
         return view('public.form.show', [
-            'form'        => $form,
+            'form' => $form,
             'previewMode' => true,
         ]);
     }

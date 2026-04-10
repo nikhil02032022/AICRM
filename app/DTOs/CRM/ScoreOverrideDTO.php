@@ -9,8 +9,8 @@ final readonly class ScoreOverrideDTO
 {
     public function __construct(
         public string $leadUuid,
-        public int    $overriddenScore,
+        public int $overriddenScore,
         public string $reason,
-        public int    $actorId,
+        public int $actorId,
     ) {}
 }

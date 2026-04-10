@@ -114,7 +114,7 @@
                 <div class="card p-4">
                     <p class="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">AI Next Best Action</p>
                     <div class="rounded-lg border border-violet-100 bg-violet-50/60 p-3">
-                        <p class="mb-1.5 text-[10px] font-bold text-violet-600">âš¡ Recommended</p>
+                        <p class="mb-1.5 text-[10px] font-bold text-violet-600">⚡ Recommended</p>
                         <p class="text-xs leading-relaxed text-gray-600">
                             AI scoring is active. Next best action will appear here once the engine analyses this lead's activity.
                         </p>
@@ -123,5 +123,47 @@
                         </button>
                     </div>
                 </div>
+
+                {{-- BRD: CRM-EC-007 — Reassign counsellor action --}}
+                @can('assign', $lead)
+                <div class="card p-4"
+                     x-data="{ open: false, counsellorId: '', submitting: false, error: '' }">
+                    <p class="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Assign Counsellor</p>
+                    <button type="button"
+                            @click="open = !open"
+                            class="btn-secondary-sm w-full justify-center">
+                        {{ $lead->assignedCounsellor ? 'Reassign' : 'Assign' }} Counsellor
+                    </button>
+                    <div x-show="open" x-collapse class="mt-3 space-y-2">
+                        <input type="number"
+                               x-model="counsellorId"
+                               placeholder="Counsellor User ID"
+                               class="input-field w-full text-sm"
+                               min="1">
+                        <p x-text="error" x-show="error" class="text-xs text-red-600"></p>
+                        <button type="button"
+                                :disabled="submitting || !counsellorId"
+                                @click="
+                                    submitting = true; error = '';
+                                    fetch('{{ route('crm.leads.assign', $lead) }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('[name=csrf-token]').content,
+                                            'Accept': 'application/json'
+                                        },
+                                        body: JSON.stringify({ counsellor_id: counsellorId })
+                                    })
+                                    .then(r => r.json())
+                                    .then(d => { if(d.success) { window.location.reload(); } else { error = d.message || 'Error occurred'; submitting = false; } })
+                                    .catch(() => { error = 'Network error. Please try again.'; submitting = false; })
+                                "
+                                class="btn-primary-sm w-full justify-center">
+                            <span x-show="!submitting">Confirm Assignment</span>
+                            <span x-show="submitting">Assigning...</span>
+                        </button>
+                    </div>
+                </div>
+                @endcan
 
             </div>{{-- end LEFT --}}

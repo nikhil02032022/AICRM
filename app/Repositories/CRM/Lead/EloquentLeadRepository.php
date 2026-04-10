@@ -16,24 +16,24 @@ final class EloquentLeadRepository implements LeadRepositoryInterface
     public function create(CreateLeadDTO $dto, int $institutionId): Lead
     {
         return Lead::create([
-            'institution_id'       => $institutionId,
-            'campus_id'            => $dto->campusId,
-            'first_name'           => $dto->firstName,
-            'last_name'            => $dto->lastName,
-            'mobile'               => $dto->mobile,
-            'email'                => $dto->email,
-            'source'               => $dto->source,
-            'source_utm_params'    => $dto->sourceUtmParams,
-            'lead_score'           => 0,
-            'temperature'          => LeadTemperature::COLD->value,
-            'status'               => LeadStatus::NEW_ENQUIRY->value,
-            'consent_given'        => $dto->consentGiven,
-            'consent_timestamp'    => $dto->consentGiven ? now() : null,
-            'consent_ip'           => $dto->consentIp,
+            'institution_id' => $institutionId,
+            'campus_id' => $dto->campusId,
+            'first_name' => $dto->firstName,
+            'last_name' => $dto->lastName,
+            'mobile' => $dto->mobile,
+            'email' => $dto->email,
+            'source' => $dto->source,
+            'source_utm_params' => $dto->sourceUtmParams,
+            'lead_score' => 0,
+            'temperature' => LeadTemperature::COLD->value,
+            'status' => LeadStatus::NEW_ENQUIRY->value,
+            'consent_given' => $dto->consentGiven,
+            'consent_timestamp' => $dto->consentGiven ? now() : null,
+            'consent_ip' => $dto->consentIp,
             'consent_form_version' => $dto->consentFormVersion,
-            'city'                 => $dto->city,
-            'state'                => $dto->state,
-            'notes'                => $dto->notes,
+            'city' => $dto->city,
+            'state' => $dto->state,
+            'notes' => $dto->notes,
         ]);
     }
 
@@ -72,12 +72,12 @@ final class EloquentLeadRepository implements LeadRepositoryInterface
             $query->where('assigned_counsellor_id', $filters['assigned_counsellor_id']);
         }
 
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             // BRD: CRM-CR-002 — Do not log PII; search by name only (not mobile/email) in list queries
-            $term = '%' . $filters['search'] . '%';
+            $term = '%'.$filters['search'].'%';
             $query->where(function ($q) use ($term): void {
                 $q->where('first_name', 'like', $term)
-                  ->orWhere('last_name', 'like', $term);
+                    ->orWhere('last_name', 'like', $term);
             });
         }
 
@@ -118,7 +118,7 @@ final class EloquentLeadRepository implements LeadRepositoryInterface
             ->where('institution_id', $institutionId)
             ->whereNull('deleted_at')
             ->get(['id', 'uuid', 'mobile', 'email', 'first_name', 'last_name', 'status'])
-            ->filter(fn(Lead $l) => $l->mobile === $mobile || ($email && $l->email === $email))
+            ->filter(fn (Lead $l) => $l->mobile === $mobile || ($email && $l->email === $email))
             ->values();
     }
 
@@ -130,6 +130,7 @@ final class EloquentLeadRepository implements LeadRepositoryInterface
         }
 
         $syncData = [];
+
         foreach ($programmeIds as $index => $programmeId) {
             $syncData[$programmeId] = ['is_primary' => $index === 0];
         }

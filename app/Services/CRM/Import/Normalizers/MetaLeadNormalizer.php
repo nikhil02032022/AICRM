@@ -39,6 +39,7 @@ final class MetaLeadNormalizer implements NormalizerContract
     {
         // Flatten field_data array into keyed map
         $fields = [];
+
         foreach ($raw['field_data'] ?? [] as $field) {
             if (isset($field['name'], $field['values'][0])) {
                 $fields[strtolower((string) $field['name'])] = (string) $field['values'][0];
@@ -47,9 +48,9 @@ final class MetaLeadNormalizer implements NormalizerContract
 
         // Name
         [$firstName, $lastName] = $this->parseName(
-            $fields['full_name']  ?? '',
+            $fields['full_name'] ?? '',
             $fields['first_name'] ?? '',
-            $fields['last_name']  ?? '',
+            $fields['last_name'] ?? '',
         );
 
         // Mobile
@@ -57,46 +58,46 @@ final class MetaLeadNormalizer implements NormalizerContract
 
         // Source — distinguish FB vs Instagram
         $platform = strtolower($raw['platform'] ?? 'fb');
-        $source   = $platform === 'ig' ? LeadSource::INSTAGRAM : LeadSource::FACEBOOK;
+        $source = $platform === 'ig' ? LeadSource::INSTAGRAM : LeadSource::FACEBOOK;
 
         // UTM params from campaign/ad naming
         $utmParams = array_filter([
-            'utm_source'   => 'meta',
-            'utm_medium'   => 'paid_social',
+            'utm_source' => 'meta',
+            'utm_medium' => 'paid_social',
             'utm_campaign' => $raw['campaign_name'] ?? null,
-            'utm_content'  => $raw['ad_name'] ?? null,
+            'utm_content' => $raw['ad_name'] ?? null,
         ]);
 
         return new CreateLeadDTO(
-            firstName:          $firstName,
-            lastName:           $lastName,
-            mobile:             $mobile,
-            email:              $fields['email'] ?? null,
-            source:             $source->value,
+            firstName: $firstName,
+            lastName: $lastName,
+            mobile: $mobile,
+            email: $fields['email'] ?? null,
+            source: $source->value,
             // BRD: CRM-CR-001 — Meta Lead Ads require consent disclosure on the form
-            consentGiven:       true,
-            consentIp:          $consentIp,
+            consentGiven: true,
+            consentIp: $consentIp,
             consentFormVersion: 'channel:meta:v1',
-            campusId:           null,
-            city:               $fields['city'] ?? null,
-            state:              $fields['state'] ?? null,
-            notes:              null,
-            sourceUtmParams:    ! empty($utmParams) ? $utmParams : null,
-            programmeIds:       null,
+            campusId: null,
+            city: $fields['city'] ?? null,
+            state: $fields['state'] ?? null,
+            notes: null,
+            sourceUtmParams: !empty($utmParams) ? $utmParams : null,
+            programmeIds: null,
         );
     }
 
     /** @return array{string, string} */
     private function parseName(string $fullName, string $firstName, string $lastName): array
     {
-        if (! empty($firstName)) {
+        if (!empty($firstName)) {
             return [
                 trim($firstName),
-                ! empty($lastName) ? trim($lastName) : 'Unknown',
+                !empty($lastName) ? trim($lastName) : 'Unknown',
             ];
         }
 
-        if (! empty($fullName)) {
+        if (!empty($fullName)) {
             $parts = explode(' ', trim($fullName), 2);
 
             return [$parts[0], $parts[1] ?? 'Unknown'];

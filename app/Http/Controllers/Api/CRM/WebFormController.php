@@ -10,6 +10,7 @@ use App\Http\Requests\Api\CRM\StoreWebFormRequest;
 use App\Http\Requests\Api\CRM\UpdateWebFormRequest;
 use App\Http\Resources\CRM\WebFormResource;
 use App\Models\CRM\WebForm;
+use App\Models\User;
 use App\Repositories\CRM\WebForm\WebFormRepositoryInterface;
 use App\Services\CRM\WebForm\WebFormService;
 use App\Traits\ApiResponse;
@@ -17,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
+use Symfony\Component\HttpFoundation\Response;
 
 // BRD: CRM-LC-001 — API controller for WebForm management (Sanctum auth — external consumers only)
 // Consumers: React Native app, A2A ERP integrations — NOT the CRM web application
@@ -25,7 +27,7 @@ final class WebFormController extends Controller
     use ApiResponse;
 
     public function __construct(
-        private readonly WebFormService            $service,
+        private readonly WebFormService $service,
         private readonly WebFormRepositoryInterface $repository,
     ) {}
 
@@ -49,7 +51,7 @@ final class WebFormController extends Controller
      */
     public function store(StoreWebFormRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $dto = CreateWebFormDTO::fromRequest($request->validated());
@@ -57,16 +59,16 @@ final class WebFormController extends Controller
         // Auto-generate slug if not provided
         if (empty($dto->slug)) {
             $dto = new CreateWebFormDTO(
-                name:               $dto->name,
-                slug:               $this->service->generateUniqueSlug($dto->name, $user->institution_id),
-                fields:             $dto->fields,
-                source:             $dto->source,
-                isActive:           $dto->isActive,
-                redirectUrl:        $dto->redirectUrl,
+                name: $dto->name,
+                slug: $this->service->generateUniqueSlug($dto->name, $user->institution_id),
+                fields: $dto->fields,
+                source: $dto->source,
+                isActive: $dto->isActive,
+                redirectUrl: $dto->redirectUrl,
                 consentFormVersion: $dto->consentFormVersion,
-                accentColor:        $dto->accentColor,
-                logoUrl:            $dto->logoUrl,
-                campusId:           $dto->campusId,
+                accentColor: $dto->accentColor,
+                logoUrl: $dto->logoUrl,
+                campusId: $dto->campusId,
             );
         }
 
@@ -117,15 +119,15 @@ final class WebFormController extends Controller
     /**
      * BRD: CRM-LC-009 — Download QR code PNG for a web form's public UTM URL.
      */
-    public function qr(WebForm $form): \Symfony\Component\HttpFoundation\Response
+    public function qr(WebForm $form): Response
     {
         Gate::authorize('crm.forms.view');
 
         $png = $this->service->generateQrCode($form);
 
         return response($png, 200, [
-            'Content-Type'        => 'image/png',
-            'Content-Disposition' => 'attachment; filename="qr-' . $form->slug . '.png"',
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'attachment; filename="qr-'.$form->slug.'.png"',
         ]);
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Jobs\CRM;
 
-use App\Models\CRM\IntegrationCredential;
 use App\Services\CRM\Import\ChannelLeadImportService;
 use App\Services\CRM\Import\Normalizers\GoogleLeadNormalizer;
 use Illuminate\Bus\Queueable;
@@ -17,18 +16,20 @@ use Illuminate\Support\Facades\Log;
 
 // BRD: CRM-LC-003 — Process a single Google Lead Form Extensions webhook payload
 // Job is idempotent — unique key on lead_id prevents double-processing on platform retry
-final class ProcessGoogleLeadJob implements ShouldQueue, ShouldBeUnique
+final class ProcessGoogleLeadJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 60;
+
     public int $backoff = 30;
 
     public function __construct(
         /** @var array<string, mixed> */
-        public readonly array  $payload,
-        public readonly int    $institutionId,
+        public readonly array $payload,
+        public readonly int $institutionId,
         public readonly string $platformIp,
     ) {
         $this->onQueue('crm-imports');
@@ -44,19 +45,19 @@ final class ProcessGoogleLeadJob implements ShouldQueue, ShouldBeUnique
 
     public function handle(
         ChannelLeadImportService $importService,
-        GoogleLeadNormalizer     $normalizer,
+        GoogleLeadNormalizer $normalizer,
     ): void {
         // BRD: CRM-CR-002 — No PII in logs
         Log::info('ProcessGoogleLeadJob: processing', [
             'institution_id' => $this->institutionId,
-            'lead_id'        => $this->payload['lead_id'] ?? 'unknown',
+            'lead_id' => $this->payload['lead_id'] ?? 'unknown',
         ]);
 
         $importService->importFromChannel(
-            raw:           $this->payload,
-            normalizer:    $normalizer,
+            raw: $this->payload,
+            normalizer: $normalizer,
             institutionId: $this->institutionId,
-            platformIp:    $this->platformIp,
+            platformIp: $this->platformIp,
         );
     }
 
@@ -64,8 +65,8 @@ final class ProcessGoogleLeadJob implements ShouldQueue, ShouldBeUnique
     {
         Log::error('ProcessGoogleLeadJob: failed', [
             'institution_id' => $this->institutionId,
-            'lead_id'        => $this->payload['lead_id'] ?? 'unknown',
-            'error'          => $e->getMessage(),
+            'lead_id' => $this->payload['lead_id'] ?? 'unknown',
+            'error' => $e->getMessage(),
         ]);
     }
 }

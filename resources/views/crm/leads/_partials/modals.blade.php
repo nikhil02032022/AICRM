@@ -96,6 +96,23 @@
                     </div>
                 </div>
 
+                {{-- BRD: CRM-EC-013 — Lost reason required when status is LOST --}}
+                <div x-show="editForm.status === 'lost'" x-transition>
+                    <label class="label" for="el_lost_reason">
+                        Reason for Loss <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <select id="el_lost_reason" x-model="editForm.lost_reason"
+                            :required="editForm.status === 'lost'"
+                            :class="{'border-red-500': editErrors.lost_reason}"
+                            class="input-field">
+                        <option value="">— Select a reason —</option>
+                        @foreach(\App\Enums\CRM\LostReason::optionsForSelect() as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <p x-show="editErrors.lost_reason" x-text="editErrors.lost_reason" role="alert" class="mt-1 text-xs text-red-600"></p>
+                </div>
+
                 {{-- City + State --}}
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Listeners\CRM;
 
 use App\Events\CRM\BulkImportCompletedEvent;
+use App\Mail\CRM\ImportCompletedMail;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
@@ -30,24 +31,24 @@ final class NotifyImportCompleted implements ShouldQueue
         }
 
         $successful = $batch->processed_rows - $batch->failed_rows;
-        $subject    = $event->partialFailure
+        $subject = $event->partialFailure
             ? "Import completed with {$batch->failed_rows} errors — {$batch->file_name}"
             : "Import completed successfully — {$batch->file_name}";
 
         // BRD: CRM-CR-002 — No PII in log messages
         Log::info('NotifyImportCompleted: sending email notification', [
             'batch_uuid' => $batch->uuid,
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
         ]);
 
         // Send a plain notification email (uses default mail driver from config/mail.php)
         Mail::to($user->email)->send(
-            new \App\Mail\CRM\ImportCompletedMail(
-                batch:          $batch,
-                successful:     $successful,
-                failed:         $batch->failed_rows,
+            new ImportCompletedMail(
+                batch: $batch,
+                successful: $successful,
+                failed: $batch->failed_rows,
                 hasErrorReport: $batch->error_report_path !== null,
-                subject:        $subject,
+                subject: $subject,
             )
         );
     }

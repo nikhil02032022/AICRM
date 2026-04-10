@@ -17,7 +17,7 @@ final class HotLeadAlertMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly Lead   $lead,
+        public readonly Lead $lead,
         public readonly object $counsellor,
     ) {}
 
@@ -33,13 +33,13 @@ final class HotLeadAlertMail extends Mailable
         return new Content(
             view: 'emails.crm.hot-lead-alert',
             with: [
-                'lead'       => $this->lead,
+                'lead' => $this->lead,
                 'counsellor' => $this->counsellor,
-                'leadUrl'    => route('crm.leads.show', $this->lead->uuid),
-                'score'      => $this->lead->lead_score,
+                'leadUrl' => route('crm.leads.show', $this->lead->uuid),
+                'score' => $this->lead->lead_score,
                 'temperature' => $this->lead->temperature?->label() ?? 'Hot',
-                'source'     => $this->lead->source?->label() ?? '—',
-                'programme'  => $this->lead->programmeInterests->first()?->name ?? 'Not specified',
+                'source' => $this->lead->source?->label() ?? '—',
+                'programme' => $this->lead->programmeInterests->first()?->name ?? 'Not specified',
             ],
         );
     }

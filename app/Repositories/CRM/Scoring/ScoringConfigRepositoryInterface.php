@@ -18,7 +18,7 @@ interface ScoringConfigRepositoryInterface
     /**
      * Create or update the scoring config for an institution.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function upsert(int $institutionId, array $data): InstitutionScoringConfig;
 }

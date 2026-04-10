@@ -83,8 +83,8 @@ final class LeadScoringService
 
         // Auto-create with defaults so new institutions work out of the box
         return $this->configRepository->upsert($institutionId, [
-            'weights'        => InstitutionScoringConfig::defaultWeights(),
-            'hot_threshold'  => 75,
+            'weights' => InstitutionScoringConfig::defaultWeights(),
+            'hot_threshold' => 75,
             'warm_threshold' => 50,
         ]);
     }
@@ -95,27 +95,27 @@ final class LeadScoringService
      */
     public function applyManualOverride(Lead $lead, ScoreOverrideDTO $dto): ScoreOverride
     {
-        $previousScore       = $lead->lead_score;
+        $previousScore = $lead->lead_score;
         $previousTemperature = $lead->temperature;
 
         // Persist the override audit record
         $override = ScoreOverride::create([
-            'uuid'              => Str::uuid()->toString(),
-            'lead_id'           => $lead->id,
-            'overridden_by'     => $dto->actorId,
-            'previous_score'    => $previousScore,
-            'overridden_score'  => $dto->overriddenScore,
-            'reason'            => $dto->reason,
+            'uuid' => Str::uuid()->toString(),
+            'lead_id' => $lead->id,
+            'overridden_by' => $dto->actorId,
+            'previous_score' => $previousScore,
+            'overridden_score' => $dto->overriddenScore,
+            'reason' => $dto->reason,
         ]);
 
         // Derive new temperature from overridden score using the institution's configured thresholds
-        $config          = $this->getScoringConfig($lead->institution_id);
-        $newTemperature  = $this->deriveTemperature($dto->overriddenScore, $config);
+        $config = $this->getScoringConfig($lead->institution_id);
+        $newTemperature = $this->deriveTemperature($dto->overriddenScore, $config);
 
         // Update the lead record
         $lead->update([
-            'lead_score'               => $dto->overriddenScore,
-            'temperature'              => $newTemperature->value,
+            'lead_score' => $dto->overriddenScore,
+            'temperature' => $newTemperature->value,
             'score_manually_overridden' => true,
         ]);
 
@@ -123,10 +123,10 @@ final class LeadScoringService
 
         // BRD: CRM-CR-002 — No PII in logs
         Log::info('Lead score manually overridden', [
-            'lead_uuid'      => $lead->uuid,
+            'lead_uuid' => $lead->uuid,
             'previous_score' => $previousScore,
-            'new_score'      => $dto->overriddenScore,
-            'actor_id'       => $dto->actorId,
+            'new_score' => $dto->overriddenScore,
+            'actor_id' => $dto->actorId,
         ]);
 
         // Fire ScoreChangedEvent so downstream listeners react
@@ -147,8 +147,8 @@ final class LeadScoringService
     public function updateConfig(int $institutionId, UpdateScoringConfigDTO $dto): InstitutionScoringConfig
     {
         return $this->configRepository->upsert($institutionId, [
-            'weights'        => $dto->weights,
-            'hot_threshold'  => $dto->hotThreshold,
+            'weights' => $dto->weights,
+            'hot_threshold' => $dto->hotThreshold,
             'warm_threshold' => $dto->warmThreshold,
         ]);
     }
@@ -167,7 +167,7 @@ final class LeadScoringService
             ->toBase()
             ->selectRaw('source, AVG(lead_score) as avg_score, COUNT(*) as total,
                          SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as converted',
-                         [LeadStatus::ENROLLED->value])
+                [LeadStatus::ENROLLED->value])
             ->groupBy('source')
             ->orderByDesc('avg_score')
             ->get()
@@ -191,10 +191,10 @@ final class LeadScoringService
      */
     public function deriveTemperature(int $score, InstitutionScoringConfig $config): LeadTemperature
     {
-        return match(true) {
-            $score >= $config->hot_threshold  => LeadTemperature::HOT,
+        return match (true) {
+            $score >= $config->hot_threshold => LeadTemperature::HOT,
             $score >= $config->warm_threshold => LeadTemperature::WARM,
-            default                            => LeadTemperature::COLD,
+            default => LeadTemperature::COLD,
         };
     }
 
@@ -206,15 +206,15 @@ final class LeadScoringService
     private function scoreProfileCompleteness(Lead $lead, int $maxWeight): int
     {
         $fields = [
-            $lead->email      !== null,
-            $lead->city       !== null,
-            $lead->state      !== null,
+            $lead->email !== null,
+            $lead->city !== null,
+            $lead->state !== null,
             ($lead->first_name !== null && $lead->last_name !== null),
             $lead->nationality !== null,
         ];
 
         $completed = count(array_filter($fields));
-        $total     = count($fields);
+        $total = count($fields);
 
         return (int) round(($completed / $total) * $maxWeight);
     }
@@ -232,16 +232,16 @@ final class LeadScoringService
     private function scoreSourceQuality(Lead $lead, int $maxWeight): int
     {
         // Tier ratios: TIER_1=1.0, TIER_2=0.75, TIER_3=0.6, TIER_4=0.5, DEFAULT=0.25
-        $ratio = match($lead->source) {
+        $ratio = match ($lead->source) {
             LeadSource::REFERRAL,
-            LeadSource::WALK_IN           => 1.0,
+            LeadSource::WALK_IN => 1.0,
             LeadSource::GOOGLE_ADS,
-            LeadSource::FACEBOOK          => 0.75,
+            LeadSource::FACEBOOK => 0.75,
             LeadSource::IVR,
-            LeadSource::WHATSAPP          => 0.60,
+            LeadSource::WHATSAPP => 0.60,
             LeadSource::WEBSITE_ORGANIC,
-            LeadSource::QR_CODE           => 0.50,
-            default                       => 0.25,
+            LeadSource::QR_CODE => 0.50,
+            default => 0.25,
         };
 
         return (int) round($ratio * $maxWeight);

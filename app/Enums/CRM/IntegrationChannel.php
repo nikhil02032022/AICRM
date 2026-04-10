@@ -11,24 +11,24 @@ namespace App\Enums\CRM;
 // BRD: CRM-SA-010 — Integration credential channel identifier
 enum IntegrationChannel: string
 {
-    case GOOGLE_ADS    = 'google_ads';
-    case META          = 'meta';
-    case SHIKSHA       = 'shiksha';
+    case GOOGLE_ADS = 'google_ads';
+    case META = 'meta';
+    case SHIKSHA = 'shiksha';
     case COLLEGE_DEKHO = 'college_dekho';
-    case CAREERS360    = 'careers360';
-    case COLLEGEDUNIA  = 'collegedunia';
-    case BULK_CSV      = 'bulk_csv';
+    case CAREERS360 = 'careers360';
+    case COLLEGEDUNIA = 'collegedunia';
+    case BULK_CSV = 'bulk_csv';
 
     public function label(): string
     {
         return match ($this) {
-            self::GOOGLE_ADS    => 'Google Ads Lead Form Extensions',
-            self::META          => 'Meta Lead Ads (Facebook / Instagram)',
-            self::SHIKSHA       => 'Shiksha',
+            self::GOOGLE_ADS => 'Google Ads Lead Form Extensions',
+            self::META => 'Meta Lead Ads (Facebook / Instagram)',
+            self::SHIKSHA => 'Shiksha',
             self::COLLEGE_DEKHO => 'CollegeDekho',
-            self::CAREERS360    => 'Careers360',
-            self::COLLEGEDUNIA  => 'Collegedunia',
-            self::BULK_CSV      => 'Bulk CSV / Excel Upload',
+            self::CAREERS360 => 'Careers360',
+            self::COLLEGEDUNIA => 'Collegedunia',
+            self::BULK_CSV => 'Bulk CSV / Excel Upload',
         };
     }
 
@@ -36,11 +36,11 @@ enum IntegrationChannel: string
     public function toLeadSource(): LeadSource
     {
         return match ($this) {
-            self::GOOGLE_ADS                                       => LeadSource::GOOGLE_ADS,
-            self::META                                             => LeadSource::FACEBOOK,
+            self::GOOGLE_ADS => LeadSource::GOOGLE_ADS,
+            self::META => LeadSource::FACEBOOK,
             self::SHIKSHA, self::COLLEGE_DEKHO,
-            self::CAREERS360, self::COLLEGEDUNIA                   => LeadSource::EDUCATION_PORTAL,
-            self::BULK_CSV                                         => LeadSource::CSV_IMPORT,
+            self::CAREERS360, self::COLLEGEDUNIA => LeadSource::EDUCATION_PORTAL,
+            self::BULK_CSV => LeadSource::CSV_IMPORT,
         };
     }
 

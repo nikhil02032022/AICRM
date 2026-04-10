@@ -6,6 +6,7 @@ namespace App\Services\CRM\Import;
 
 use App\Enums\CRM\ImportBatchStatus;
 use App\Enums\CRM\IntegrationChannel;
+use App\Events\CRM\BulkImportCompletedEvent;
 use App\Jobs\CRM\BulkLeadImportJob;
 use App\Models\CRM\LeadImportBatch;
 use App\Repositories\CRM\Import\LeadImportBatchRepositoryInterface;
@@ -48,19 +49,19 @@ final class BulkCsvImportService
         // Count rows for progress tracking
         // Pass the original extension explicitly — getRealPath() returns a .tmp file which
         // SimpleExcelReader cannot recognise by extension.
-        $rows      = $this->parseRows($file->getRealPath(), $file->getClientOriginalExtension());
+        $rows = $this->parseRows($file->getRealPath(), $file->getClientOriginalExtension());
         $totalRows = count($rows);
 
         // Create the batch record BEFORE dispatching — Horizon can see it immediately
         $batch = $this->batchRepository->create([
-            'channel'               => $channel->value,
-            'file_name'             => $file->getClientOriginalName(),
-            'file_path'             => $storedPath,
-            'status'                => ImportBatchStatus::PENDING->value,
-            'total_rows'            => $totalRows,
-            'processed_rows'        => 0,
-            'failed_rows'           => 0,
-            'initiated_by_user_id'  => $initiatedByUserId,
+            'channel' => $channel->value,
+            'file_name' => $file->getClientOriginalName(),
+            'file_path' => $storedPath,
+            'status' => ImportBatchStatus::PENDING->value,
+            'total_rows' => $totalRows,
+            'processed_rows' => 0,
+            'failed_rows' => 0,
+            'initiated_by_user_id' => $initiatedByUserId,
         ], $institutionId);
 
         if ($totalRows === 0) {
@@ -73,13 +74,13 @@ final class BulkCsvImportService
 
         // Chunk rows and dispatch a Bus::batch()
         $chunks = array_chunk($rows, self::CHUNK_SIZE);
-        $jobs   = array_map(
+        $jobs = array_map(
             fn (array $chunk) => new BulkLeadImportJob(
-                rows:          $chunk,
-                batchUuid:     $batch->uuid,
-                channel:       $channel->value,
+                rows: $chunk,
+                batchUuid: $batch->uuid,
+                channel: $channel->value,
                 institutionId: $institutionId,
-                campusId:      $campusId,
+                campusId: $campusId,
             ),
             $chunks,
         );
@@ -98,15 +99,15 @@ final class BulkCsvImportService
 
         // Record the Laravel job_batch ID for Horizon progress tracking
         $this->batchRepository->update($batch, [
-            'status'       => ImportBatchStatus::PROCESSING->value,
+            'status' => ImportBatchStatus::PROCESSING->value,
             'job_batch_id' => $jobBatch->id,
         ]);
 
         Log::info('BulkCsvImportService: batch dispatched', [
-            'batch_uuid'   => $batch->uuid,
-            'total_rows'   => $totalRows,
-            'chunks'       => count($chunks),
-            'institution'  => $institutionId,
+            'batch_uuid' => $batch->uuid,
+            'total_rows' => $totalRows,
+            'chunks' => count($chunks),
+            'institution' => $institutionId,
         ]);
 
         return $batch->refresh();
@@ -124,7 +125,7 @@ final class BulkCsvImportService
             return;
         }
 
-        $hasFailed     = $batch->failed_rows > 0;
+        $hasFailed = $batch->failed_rows > 0;
         $errorReportPath = null;
 
         // If there are failed rows, the jobs will have written the error report to S3
@@ -133,11 +134,11 @@ final class BulkCsvImportService
         }
 
         $this->batchRepository->update($batch, [
-            'status'            => ImportBatchStatus::COMPLETED->value,
+            'status' => ImportBatchStatus::COMPLETED->value,
             'error_report_path' => $errorReportPath,
         ]);
 
-        \App\Events\CRM\BulkImportCompletedEvent::dispatch($batch->fresh(), $hasFailed);
+        BulkImportCompletedEvent::dispatch($batch->fresh(), $hasFailed);
     }
 
     /**
@@ -153,14 +154,14 @@ final class BulkCsvImportService
 
         Log::error('BulkCsvImportService: batch failed', [
             'batch_uuid' => $batch->uuid,
-            'error'      => $e->getMessage(),
+            'error' => $e->getMessage(),
         ]);
 
         $this->batchRepository->update($batch, [
             'status' => ImportBatchStatus::FAILED->value,
         ]);
 
-        \App\Events\CRM\BulkImportCompletedEvent::dispatch($batch, true);
+        BulkImportCompletedEvent::dispatch($batch, true);
     }
 
     /**
@@ -184,11 +185,11 @@ final class BulkCsvImportService
     /**
      * Skip completely empty rows.
      *
-     * @param array<string, mixed> $row
+     * @param  array<string, mixed>  $row
      */
     private function rowHasRequiredFields(array $row): bool
     {
-        return ! empty($row['first_name'] ?? $row['name'] ?? null)
-            || ! empty($row['mobile'] ?? null);
+        return !empty($row['first_name'] ?? $row['name'] ?? null)
+            || !empty($row['mobile'] ?? null);
     }
 }

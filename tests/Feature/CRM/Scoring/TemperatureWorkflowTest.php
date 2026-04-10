@@ -13,14 +13,17 @@ use App\Listeners\CRM\TriggerScoringWorkflowListener;
 use App\Models\CRM\Institution;
 use App\Models\CRM\Lead;
 use App\Models\User;
+use App\Notifications\CRM\HotLeadAlertNotification;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->seed(\Database\Seeders\PermissionSeeder::class);
+    $this->seed(PermissionSeeder::class);
     $this->institution = Institution::create(['name' => 'Workflow Uni', 'code' => 'WFU', 'is_active' => true]);
 
     $this->counsellor = User::create([
@@ -29,17 +32,17 @@ beforeEach(function (): void {
     ]);
 
     $this->lead = Lead::withoutGlobalScopes()->create([
-        'uuid'                     => \Illuminate\Support\Str::uuid(),
-        'institution_id'           => $this->institution->id,
-        'first_name'               => 'Workflow',
-        'last_name'                => 'Lead',
-        'mobile'                   => '8888888888',
-        'source'                   => LeadSource::REFERRAL->value,
-        'status'                   => LeadStatus::NEW_ENQUIRY->value,
-        'consent_given'            => true,
-        'lead_score'               => 40,
-        'temperature'              => LeadTemperature::WARM->value,
-        'assigned_counsellor_id'   => $this->counsellor->id,
+        'uuid' => Str::uuid(),
+        'institution_id' => $this->institution->id,
+        'first_name' => 'Workflow',
+        'last_name' => 'Lead',
+        'mobile' => '8888888888',
+        'source' => LeadSource::REFERRAL->value,
+        'status' => LeadStatus::NEW_ENQUIRY->value,
+        'consent_given' => true,
+        'lead_score' => 40,
+        'temperature' => LeadTemperature::WARM->value,
+        'assigned_counsellor_id' => $this->counsellor->id,
         'score_manually_overridden' => false,
     ]);
 });
@@ -47,8 +50,8 @@ beforeEach(function (): void {
 it('dispatches SendHotLeadAlertJob when lead becomes HOT', function (): void {
     Bus::fake();
 
-    $event    = new LeadTemperatureChangedEvent($this->lead, LeadTemperature::WARM, LeadTemperature::HOT);
-    $listener = new TriggerScoringWorkflowListener();
+    $event = new LeadTemperatureChangedEvent($this->lead, LeadTemperature::WARM, LeadTemperature::HOT);
+    $listener = new TriggerScoringWorkflowListener;
 
     $listener->handle($event);
 
@@ -58,8 +61,8 @@ it('dispatches SendHotLeadAlertJob when lead becomes HOT', function (): void {
 it('dispatches QueueNurtureSequenceJob when lead downgrades to COLD from WARM', function (): void {
     Bus::fake();
 
-    $event    = new LeadTemperatureChangedEvent($this->lead, LeadTemperature::WARM, LeadTemperature::COLD);
-    $listener = new TriggerScoringWorkflowListener();
+    $event = new LeadTemperatureChangedEvent($this->lead, LeadTemperature::WARM, LeadTemperature::COLD);
+    $listener = new TriggerScoringWorkflowListener;
 
     $listener->handle($event);
 
@@ -69,8 +72,8 @@ it('dispatches QueueNurtureSequenceJob when lead downgrades to COLD from WARM', 
 it('does not dispatch any job when temperature changes to WARM', function (): void {
     Bus::fake();
 
-    $event    = new LeadTemperatureChangedEvent($this->lead, LeadTemperature::COLD, LeadTemperature::WARM);
-    $listener = new TriggerScoringWorkflowListener();
+    $event = new LeadTemperatureChangedEvent($this->lead, LeadTemperature::COLD, LeadTemperature::WARM);
+    $listener = new TriggerScoringWorkflowListener;
 
     $listener->handle($event);
 
@@ -81,8 +84,8 @@ it('does not dispatch nurture job when initial state is already COLD (not a down
     Bus::fake();
 
     // COLD → COLD transition (should never happen, but guard test)
-    $event    = new LeadTemperatureChangedEvent($this->lead, LeadTemperature::COLD, LeadTemperature::COLD);
-    $listener = new TriggerScoringWorkflowListener();
+    $event = new LeadTemperatureChangedEvent($this->lead, LeadTemperature::COLD, LeadTemperature::COLD);
+    $listener = new TriggerScoringWorkflowListener;
 
     $listener->handle($event);
 
@@ -96,7 +99,7 @@ it('sends notification to assigned counsellor via database and mail channels whe
 
     Notification::assertSentTo(
         $this->counsellor,
-        \App\Notifications\CRM\HotLeadAlertNotification::class,
+        HotLeadAlertNotification::class,
         fn ($notification) => (string) $notification->lead->uuid === (string) $this->lead->uuid,
     );
 });

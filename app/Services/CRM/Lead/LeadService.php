@@ -6,11 +6,13 @@ namespace App\Services\CRM\Lead;
 
 use App\DTOs\CRM\CreateLeadDTO;
 use App\Enums\CRM\LeadStatus;
+use App\Enums\CRM\LostReason;
 use App\Events\CRM\LeadCreatedEvent;
 use App\Events\CRM\LeadStatusChangedEvent;
 use App\Jobs\CRM\DetectLeadDuplicatesJob;
 use App\Jobs\CRM\RecalculateLeadScoreJob;
 use App\Models\CRM\Lead;
+use App\Models\User;
 use App\Repositories\CRM\Lead\LeadRepositoryInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
@@ -32,11 +34,11 @@ final class LeadService
      */
     public function create(CreateLeadDTO $dto, Authenticatable $actor): Lead
     {
-        /** @var \App\Models\User $actor */
+        /** @var User $actor */
         $lead = $this->repository->create($dto, $actor->institution_id);
 
         // Programme interests (optional at creation)
-        if (! empty($dto->programmeIds)) {
+        if (!empty($dto->programmeIds)) {
             $this->repository->syncProgrammeInterests($lead, $dto->programmeIds);
         }
 
@@ -47,9 +49,9 @@ final class LeadService
 
         // BRD: CRM-CR-002 — No PII in log messages
         Log::info('Lead created', [
-            'lead_uuid'      => $lead->uuid,
+            'lead_uuid' => $lead->uuid,
             'institution_id' => $lead->institution_id,
-            'actor_id'       => $actor->id,
+            'actor_id' => $actor->id,
         ]);
 
         LeadCreatedEvent::dispatch($lead);
@@ -64,19 +66,35 @@ final class LeadService
     /**
      * Transition a lead to a new status with validation.
      *
-     * BRD: CRM-LC-001 — Status transitions must follow allowed pipeline flow
+     * BRD: CRM-EC-011 — Status transitions must follow allowed pipeline flow
+     * BRD: CRM-EC-013 — Loss reason is required when transitioning to LOST
+     * BRD: CRM-EC-014 — status_changed_at is updated on every transition
      */
-    public function transitionStatus(Lead $lead, LeadStatus $newStatus): Lead
+    public function transitionStatus(Lead $lead, LeadStatus $newStatus, ?LostReason $lostReason = null): Lead
     {
         $previousStatus = $lead->status;
 
-        if (! $previousStatus->canTransitionTo($newStatus)) {
+        if (!$previousStatus->canTransitionTo($newStatus)) {
             throw new \DomainException(
                 "Cannot transition lead from [{$previousStatus->label()}] to [{$newStatus->label()}]."
             );
         }
 
-        $updated = $this->repository->update($lead, ['status' => $newStatus->value]);
+        // BRD: CRM-EC-013 — lost_reason is mandatory when marking a lead as LOST
+        if ($newStatus === LeadStatus::LOST && $lostReason === null) {
+            throw new \InvalidArgumentException('A loss reason is required when marking a lead as Lost.');
+        }
+
+        $fields = [
+            'status' => $newStatus->value,
+            'status_changed_at' => now(),
+        ];
+
+        if ($newStatus === LeadStatus::LOST) {
+            $fields['lost_reason'] = $lostReason->value;
+        }
+
+        $updated = $this->repository->update($lead, $fields);
 
         LeadStatusChangedEvent::dispatch($updated, $previousStatus, $newStatus);
 
@@ -91,7 +109,7 @@ final class LeadService
      *
      * BRD: CRM-LC-018 — Re-run duplicate detection when mobile or email changes.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function update(Lead $lead, array $data): Lead
     {

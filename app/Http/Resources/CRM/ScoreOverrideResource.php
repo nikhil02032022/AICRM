@@ -16,16 +16,16 @@ final class ScoreOverrideResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'uuid'              => $this->uuid,
-            'lead_uuid'         => $this->lead?->uuid,
-            'previous_score'    => $this->previous_score,
-            'overridden_score'  => $this->overridden_score,
-            'reason'            => $this->reason,
-            'overridden_by'     => [
-                'id'   => $this->overriddenBy?->id,
+            'uuid' => $this->uuid,
+            'lead_uuid' => $this->lead?->uuid,
+            'previous_score' => $this->previous_score,
+            'overridden_score' => $this->overridden_score,
+            'reason' => $this->reason,
+            'overridden_by' => [
+                'id' => $this->overriddenBy?->id,
                 'name' => $this->overriddenBy?->name,
             ],
-            'created_at'        => $this->created_at?->toIso8601String(),
+            'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
 }

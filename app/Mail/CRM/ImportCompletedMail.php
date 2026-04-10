@@ -18,10 +18,10 @@ final class ImportCompletedMail extends Mailable
 
     public function __construct(
         public readonly LeadImportBatch $batch,
-        public readonly int             $successful,
-        public readonly int             $failed,
-        public readonly bool            $hasErrorReport,
-        public readonly string          $subject,
+        public readonly int $successful,
+        public readonly int $failed,
+        public readonly bool $hasErrorReport,
+        public readonly string $subject,
     ) {}
 
     public function envelope(): Envelope
@@ -38,9 +38,9 @@ final class ImportCompletedMail extends Mailable
         return new Content(
             view: 'emails.crm.import-completed',
             with: [
-                'batch'          => $this->batch,
-                'successful'     => $this->successful,
-                'failed'         => $this->failed,
+                'batch' => $this->batch,
+                'successful' => $this->successful,
+                'failed' => $this->failed,
                 'errorReportUrl' => $errorReportUrl,
             ],
         );

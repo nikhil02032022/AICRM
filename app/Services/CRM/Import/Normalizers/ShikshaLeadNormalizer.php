@@ -30,20 +30,20 @@ final class ShikshaLeadNormalizer implements NormalizerContract
         [$firstName, $lastName] = $this->parseName($raw['name'] ?? '');
 
         return new CreateLeadDTO(
-            firstName:          $firstName,
-            lastName:           $lastName,
-            mobile:             $this->normaliseMobile($raw['mobile'] ?? ''),
-            email:              $raw['email'] ?? null,
-            source:             LeadSource::EDUCATION_PORTAL->value,
-            consentGiven:       true,
-            consentIp:          $consentIp,
+            firstName: $firstName,
+            lastName: $lastName,
+            mobile: $this->normaliseMobile($raw['mobile'] ?? ''),
+            email: $raw['email'] ?? null,
+            source: LeadSource::EDUCATION_PORTAL->value,
+            consentGiven: true,
+            consentIp: $consentIp,
             consentFormVersion: 'channel:shiksha:v1',
-            campusId:           null,
-            city:               $raw['city'] ?? null,
-            state:              $raw['state'] ?? null,
-            notes:              isset($raw['course_interest']) ? 'Course interest: ' . $raw['course_interest'] : null,
-            sourceUtmParams:    array_filter(['utm_source' => 'shiksha', 'utm_campaign' => $raw['campaign'] ?? null]),
-            programmeIds:       null,
+            campusId: null,
+            city: $raw['city'] ?? null,
+            state: $raw['state'] ?? null,
+            notes: isset($raw['course_interest']) ? 'Course interest: '.$raw['course_interest'] : null,
+            sourceUtmParams: array_filter(['utm_source' => 'shiksha', 'utm_campaign' => $raw['campaign'] ?? null]),
+            programmeIds: null,
         );
     }
 
@@ -52,7 +52,7 @@ final class ShikshaLeadNormalizer implements NormalizerContract
     {
         $parts = explode(' ', trim($full), 2);
 
-        return [! empty($parts[0]) ? $parts[0] : 'Unknown', $parts[1] ?? 'Unknown'];
+        return [!empty($parts[0]) ? $parts[0] : 'Unknown', $parts[1] ?? 'Unknown'];
     }
 
     private function normaliseMobile(string $raw): string

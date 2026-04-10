@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models\CRM;
 
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 /**
  * AuditLog — Read-only model for querying the audit_logs table.
@@ -15,30 +16,31 @@ use App\Models\User;
  * A09 OWASP — All CRM data mutations are captured here.
  * DPDP: PII fields are redacted before write (AuditObserver).
  *
- * @property int         $id
- * @property string      $entity_type
- * @property int         $entity_id
- * @property string      $action         created|updated|deleted|restored
- * @property array|null  $old_values
- * @property array|null  $new_values
- * @property int|null    $user_id
- * @property int         $institution_id
+ * @property int $id
+ * @property string $entity_type
+ * @property int $entity_id
+ * @property string $action created|updated|deleted|restored
+ * @property array|null $old_values
+ * @property array|null $new_values
+ * @property int|null $user_id
+ * @property int $institution_id
  * @property string|null $ip_address
  * @property string|null $user_agent
- * @property \Carbon\Carbon $created_at
+ * @property Carbon $created_at
  */
 class AuditLog extends Model
 {
     // Audit logs are append-only — never update or delete via Eloquent.
     public $timestamps = false;
+
     public $incrementing = true;
 
     protected $table = 'audit_logs';
 
     protected $casts = [
-        'old_values'  => 'array',
-        'new_values'  => 'array',
-        'created_at'  => 'datetime',
+        'old_values' => 'array',
+        'new_values' => 'array',
+        'created_at' => 'datetime',
     ];
 
     // Audit logs must never be mutated through the model.

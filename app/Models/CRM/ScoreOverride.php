@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\CRM;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,9 +36,9 @@ class ScoreOverride extends Model
     protected function casts(): array
     {
         return [
-            'previous_score'   => 'integer',
+            'previous_score' => 'integer',
             'overridden_score' => 'integer',
-            'created_at'       => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 
@@ -48,6 +49,6 @@ class ScoreOverride extends Model
 
     public function overriddenBy(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'overridden_by');
+        return $this->belongsTo(User::class, 'overridden_by');
     }
 }

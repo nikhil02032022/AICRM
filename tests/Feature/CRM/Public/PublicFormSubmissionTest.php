@@ -11,13 +11,14 @@ use App\Enums\CRM\LeadSource;
 use App\Models\CRM\Institution;
 use App\Models\CRM\Lead;
 use App\Models\CRM\WebForm;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->seed(\Database\Seeders\PermissionSeeder::class);
+    $this->seed(PermissionSeeder::class);
 });
 
 // ─── Factory helper ─────────────────────────────────────────────────────────
@@ -27,46 +28,46 @@ function makePublicForm(array $overrides = []): WebForm
     $institution = Institution::create(['name' => 'Public Test Uni', 'code' => 'PTU01', 'is_active' => true]);
 
     return WebForm::withoutGlobalScopes()->create(array_merge([
-        'uuid'                 => (string) Str::uuid(),
-        'institution_id'       => $institution->id,
-        'name'                 => 'Open Day 2026',
-        'slug'                 => 'open-day-2026',
-        'fields'               => json_encode([
+        'uuid' => (string) Str::uuid(),
+        'institution_id' => $institution->id,
+        'name' => 'Open Day 2026',
+        'slug' => 'open-day-2026',
+        'fields' => json_encode([
             [
-                'id'       => 'programme_interest',
-                'type'     => 'select',
-                'label'    => 'Programme',
+                'id' => 'programme_interest',
+                'type' => 'select',
+                'label' => 'Programme',
                 'required' => true,
-                'options'  => ['MBA', 'MCA', 'BBA'],
-                'show_if'  => null,
+                'options' => ['MBA', 'MCA', 'BBA'],
+                'show_if' => null,
             ],
             [
-                'id'       => 'specialisation',
-                'type'     => 'select',
-                'label'    => 'Specialisation',
+                'id' => 'specialisation',
+                'type' => 'select',
+                'label' => 'Specialisation',
                 'required' => true,
-                'options'  => ['Finance', 'Marketing'],
+                'options' => ['Finance', 'Marketing'],
                 // Only shown if programme_interest = MBA (LC-002)
-                'show_if'  => ['field' => 'programme_interest', 'operator' => 'equals', 'value' => 'MBA'],
+                'show_if' => ['field' => 'programme_interest', 'operator' => 'equals', 'value' => 'MBA'],
             ],
         ]),
-        'embed_token'          => Str::random(64),
-        'source'               => LeadSource::EVENT->value,
+        'embed_token' => Str::random(64),
+        'source' => LeadSource::EVENT->value,
         'consent_form_version' => 'v1.0',
-        'is_active'            => true,
+        'is_active' => true,
     ], $overrides));
 }
 
 function baseSubmission(): array
 {
     return [
-        'first_name'           => 'Arjun',
-        'last_name'            => 'Sharma',
-        'mobile'               => '9876543210',
-        'email'                => 'arjun@example.com',
-        'consent_given'        => true,
+        'first_name' => 'Arjun',
+        'last_name' => 'Sharma',
+        'mobile' => '9876543210',
+        'email' => 'arjun@example.com',
+        'consent_given' => true,
         'consent_form_version' => 'v1.0',
-        'programme_interest'   => 'MBA',
+        'programme_interest' => 'MBA',
     ];
 }
 
@@ -110,8 +111,8 @@ it('captures UTM params from the submission and stores them on lead', function (
 
     $payload = array_merge(baseSubmission(), [
         'source_utm_params' => [
-            'utm_source'   => 'qr',
-            'utm_medium'   => 'event',
+            'utm_source' => 'qr',
+            'utm_medium' => 'event',
             'utm_campaign' => 'open-day-2026',
         ],
     ]);
@@ -121,8 +122,8 @@ it('captures UTM params from the submission and stores them on lead', function (
     $lead = Lead::withoutGlobalScopes()->where('mobile', '9876543210')->first();
 
     expect($lead->source_utm_params)->toMatchArray([
-        'utm_source'   => 'qr',
-        'utm_medium'   => 'event',
+        'utm_source' => 'qr',
+        'utm_medium' => 'event',
         'utm_campaign' => 'open-day-2026',
     ]);
 });

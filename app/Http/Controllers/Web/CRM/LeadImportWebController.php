@@ -23,8 +23,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 final class LeadImportWebController extends Controller
 {
     public function __construct(
-        private readonly BulkCsvImportService               $importService,
-        private readonly LeadImportBatchRepositoryInterface  $batchRepository,
+        private readonly BulkCsvImportService $importService,
+        private readonly LeadImportBatchRepositoryInterface $batchRepository,
     ) {}
 
     /**
@@ -35,15 +35,15 @@ final class LeadImportWebController extends Controller
         Gate::authorize('crm.leads.import');
 
         $batches = $this->batchRepository->paginate(
-            filters:       $request->only(['channel', 'status']),
+            filters: $request->only(['channel', 'status']),
             institutionId: $request->user()->institution_id,
-            perPage:       20,
+            perPage: 20,
         );
 
         return view('crm.imports.index', [
-            'batches'          => $batches,
-            'channelOptions'   => IntegrationChannel::optionsForSelect(),
-            'statusOptions'    => collect(ImportBatchStatus::cases())
+            'batches' => $batches,
+            'channelOptions' => IntegrationChannel::optionsForSelect(),
+            'statusOptions' => collect(ImportBatchStatus::cases())
                 ->mapWithKeys(fn ($c) => [$c->value => $c->label()])
                 ->all(),
         ]);
@@ -68,9 +68,9 @@ final class LeadImportWebController extends Controller
     public function store(BulkLeadImportRequest $request): RedirectResponse
     {
         $batch = $this->importService->dispatch(
-            file:              $request->file('file'),
-            channel:           IntegrationChannel::from($request->validated('channel')),
-            institutionId:     $request->user()->institution_id,
+            file: $request->file('file'),
+            channel: IntegrationChannel::from($request->validated('channel')),
+            institutionId: $request->user()->institution_id,
             initiatedByUserId: $request->user()->id,
         );
 

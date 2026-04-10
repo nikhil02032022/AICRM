@@ -47,4 +47,11 @@ final class LeadPolicy
         return $user->can('crm.leads.view_pii')
             && $user->institution_id === $lead->institution_id;
     }
+
+    // BRD: CRM-EC-007 — Only managers/admins may reassign leads; counsellors cannot self-reassign
+    public function assign(User $user, Lead $lead): bool
+    {
+        return $user->can('crm.leads.assign')
+            && $user->institution_id === $lead->institution_id;
+    }
 }

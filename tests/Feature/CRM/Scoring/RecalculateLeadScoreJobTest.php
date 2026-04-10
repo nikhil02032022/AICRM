@@ -11,29 +11,31 @@ use App\Events\CRM\ScoreChangedEvent;
 use App\Jobs\CRM\RecalculateLeadScoreJob;
 use App\Models\CRM\Institution;
 use App\Models\CRM\Lead;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->seed(\Database\Seeders\PermissionSeeder::class);
+    $this->seed(PermissionSeeder::class);
     $this->institution = Institution::create(['name' => 'Job Test Uni', 'code' => 'JTU', 'is_active' => true]);
 });
 
 function makeScoringLead(array $attrs = []): Lead
 {
     return Lead::withoutGlobalScopes()->create(array_merge([
-        'uuid'                     => \Illuminate\Support\Str::uuid(),
-        'institution_id'           => 1,
-        'first_name'               => 'Test',
-        'last_name'                => 'Lead',
-        'mobile'                   => '9111111111',
-        'source'                   => LeadSource::WEBSITE_ORGANIC->value,
-        'status'                   => LeadStatus::NEW_ENQUIRY->value,
-        'consent_given'            => false,
-        'lead_score'               => 0,
-        'temperature'              => LeadTemperature::COLD->value,
+        'uuid' => Str::uuid(),
+        'institution_id' => 1,
+        'first_name' => 'Test',
+        'last_name' => 'Lead',
+        'mobile' => '9111111111',
+        'source' => LeadSource::WEBSITE_ORGANIC->value,
+        'status' => LeadStatus::NEW_ENQUIRY->value,
+        'consent_given' => false,
+        'lead_score' => 0,
+        'temperature' => LeadTemperature::COLD->value,
         'score_manually_overridden' => false,
     ], $attrs));
 }
@@ -41,7 +43,7 @@ function makeScoringLead(array $attrs = []): Lead
 it('fires ScoreChangedEvent when score changes', function (): void {
     Event::fake();
 
-    $lead      = makeScoringLead();
+    $lead = makeScoringLead();
     $lead->institution_id = $this->institution->id; // update to real id
     $lead->save();
 
@@ -83,21 +85,22 @@ it('fires LeadTemperatureChangedEvent when temperature changes', function (): vo
 
     $lead = makeScoringLead([
         'institution_id' => $this->institution->id,
-        'temperature'    => LeadTemperature::COLD->value,
+        'temperature' => LeadTemperature::COLD->value,
         // Give enough signals to potentially push above WARM threshold
-        'email'          => 'temp@test.com',
-        'city'           => 'Mumbai',
-        'state'          => 'MH',
-        'nationality'    => 'Indian',
-        'source'         => LeadSource::REFERRAL->value,
-        'consent_given'  => true,
-        'status'         => LeadStatus::COUNSELLING_DONE->value,
+        'email' => 'temp@test.com',
+        'city' => 'Mumbai',
+        'state' => 'MH',
+        'nationality' => 'Indian',
+        'source' => LeadSource::REFERRAL->value,
+        'consent_given' => true,
+        'status' => LeadStatus::COUNSELLING_DONE->value,
     ]);
 
     RecalculateLeadScoreJob::dispatchSync($lead->uuid);
 
     // If lead qualified (score >= 50), temperature changed from COLD
     $freshLead = $lead->fresh();
+
     if ($freshLead->temperature !== LeadTemperature::COLD) {
         Event::assertDispatched(LeadTemperatureChangedEvent::class);
     } else {
@@ -109,16 +112,16 @@ it('fires LeadTemperatureChangedEvent when temperature changes', function (): vo
 it('handles missing lead gracefully without exception', function (): void {
     expect(function () {
         RecalculateLeadScoreJob::dispatchSync('non-existent-uuid-0000-000000000000');
-    })->not->toThrow(\Throwable::class);
+    })->not->toThrow(Throwable::class);
 });
 
 it('does not recalculate score when score was manually overridden', function (): void {
     Event::fake();
 
     $lead = makeScoringLead([
-        'institution_id'           => $this->institution->id,
-        'lead_score'               => 95,
-        'temperature'              => LeadTemperature::HOT->value,
+        'institution_id' => $this->institution->id,
+        'lead_score' => 95,
+        'temperature' => LeadTemperature::HOT->value,
         'score_manually_overridden' => true,
     ]);
 

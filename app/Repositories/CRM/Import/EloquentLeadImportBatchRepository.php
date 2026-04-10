@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Repositories\CRM\Import;
 
-use App\Enums\CRM\ImportBatchStatus;
 use App\Models\CRM\LeadImportBatch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -45,11 +44,11 @@ final class EloquentLeadImportBatchRepository implements LeadImportBatchReposito
             ->with('initiatedBy:id,name')
             ->orderByDesc('created_at');
 
-        if (! empty($filters['channel'])) {
+        if (!empty($filters['channel'])) {
             $query->where('channel', $filters['channel']);
         }
 
-        if (! empty($filters['status'])) {
+        if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
@@ -66,8 +65,8 @@ final class EloquentLeadImportBatchRepository implements LeadImportBatchReposito
             ->where('id', $batch->id)
             ->update([
                 'processed_rows' => DB::raw("processed_rows + {$processed}"),
-                'failed_rows'    => DB::raw("failed_rows + {$failed}"),
-                'updated_at'     => now(),
+                'failed_rows' => DB::raw("failed_rows + {$failed}"),
+                'updated_at' => now(),
             ]);
     }
 }

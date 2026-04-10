@@ -7,6 +7,7 @@ namespace App\Models\CRM;
 use App\Enums\CRM\ImportBatchStatus;
 use App\Enums\CRM\IntegrationChannel;
 use App\Models\CRM\Scopes\InstitutionScope;
+use App\Models\User;
 use App\Observers\CRM\AuditObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -36,7 +37,7 @@ class LeadImportBatch extends Model
     // BRD: NFR-MT-001 — InstitutionScope enforces multi-tenant isolation
     protected static function booted(): void
     {
-        static::addGlobalScope(new InstitutionScope());
+        static::addGlobalScope(new InstitutionScope);
     }
 
     /** @var list<string> */
@@ -60,11 +61,11 @@ class LeadImportBatch extends Model
     protected function casts(): array
     {
         return [
-            'channel'        => IntegrationChannel::class,
-            'status'         => ImportBatchStatus::class,
-            'total_rows'     => 'integer',
+            'channel' => IntegrationChannel::class,
+            'status' => ImportBatchStatus::class,
+            'total_rows' => 'integer',
             'processed_rows' => 'integer',
-            'failed_rows'    => 'integer',
+            'failed_rows' => 'integer',
         ];
     }
 
@@ -79,7 +80,7 @@ class LeadImportBatch extends Model
 
     public function initiatedBy(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'initiated_by_user_id');
+        return $this->belongsTo(User::class, 'initiated_by_user_id');
     }
 
     // -----------------------------------------------------------------------

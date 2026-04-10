@@ -16,13 +16,13 @@ final class ScoringConfigResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'uuid'            => $this->uuid,
-            'institution_id'  => $this->institution_id,
-            'weights'         => $this->weights,
-            'hot_threshold'   => $this->hot_threshold,
-            'warm_threshold'  => $this->warm_threshold,
-            'is_active'       => $this->is_active,
-            'updated_at'      => $this->updated_at?->toIso8601String(),
+            'uuid' => $this->uuid,
+            'institution_id' => $this->institution_id,
+            'weights' => $this->weights,
+            'hot_threshold' => $this->hot_threshold,
+            'warm_threshold' => $this->warm_threshold,
+            'is_active' => $this->is_active,
+            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

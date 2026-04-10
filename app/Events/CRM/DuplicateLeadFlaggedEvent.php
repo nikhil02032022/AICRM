@@ -18,13 +18,13 @@ final class DuplicateLeadFlaggedEvent
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * @param Lead                   $lead       The newly-created lead flagged as a duplicate
-     * @param Collection<int, Lead>  $duplicates Existing leads that match on mobile/email or name+course
-     * @param string                 $matchType  'mobile_email' | 'name_course' | 'both'
+     * @param  Lead  $lead  The newly-created lead flagged as a duplicate
+     * @param  Collection<int, Lead>  $duplicates  Existing leads that match on mobile/email or name+course
+     * @param  string  $matchType  'mobile_email' | 'name_course' | 'both'
      */
     public function __construct(
-        public readonly Lead       $lead,
+        public readonly Lead $lead,
         public readonly Collection $duplicates,
-        public readonly string     $matchType,
+        public readonly string $matchType,
     ) {}
 }

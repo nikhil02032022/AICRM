@@ -37,7 +37,7 @@ class WebForm extends Model
     // BRD: NFR-MT-001 — InstitutionScope enforces multi-tenant isolation
     protected static function booted(): void
     {
-        static::addGlobalScope(new InstitutionScope());
+        static::addGlobalScope(new InstitutionScope);
     }
 
     /** @var list<string> */
@@ -62,9 +62,9 @@ class WebForm extends Model
     protected function casts(): array
     {
         return [
-            'fields'    => 'array',
+            'fields' => 'array',
             'is_active' => 'boolean',
-            'source'    => LeadSource::class,
+            'source' => LeadSource::class,
         ];
     }
 
@@ -89,13 +89,13 @@ class WebForm extends Model
     /** BRD: CRM-LC-001 — Public URL for the web enquiry form */
     public function publicUrl(): string
     {
-        return url('/f/' . $this->slug);
+        return url('/f/'.$this->slug);
     }
 
     /** BRD: CRM-LC-001 — iFrame-safe embed URL (bare HTML, no chrome) */
     public function embedUrl(): string
     {
-        return url('/f/' . $this->slug . '/embed');
+        return url('/f/'.$this->slug.'/embed');
     }
 
     /**
@@ -105,6 +105,6 @@ class WebForm extends Model
     public function qrTargetUrl(): string
     {
         return $this->publicUrl()
-            . '?utm_source=qr&utm_medium=event&utm_campaign=' . urlencode($this->slug);
+            .'?utm_source=qr&utm_medium=event&utm_campaign='.urlencode($this->slug);
     }
 }

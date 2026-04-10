@@ -11,6 +11,9 @@
 |--------|------|--------|--------|
 | Web Enquiry Forms (LC-001, LC-002, LC-009, LC-015) | [web-forms.md](web-forms.md) | Group B | ✅ Complete |
 | Lead Management (LC-011, LC-014, LC-018) | *(inline in Sprint A docs)* | Group A | ✅ Complete |
+| Digital Lead Channels (LC-003, LC-004, LC-008) | [digital-lead-channels.md](digital-lead-channels.md) | Group C | ✅ Complete |
+| Lead Scoring Engine (LQ-001 to LQ-008) | [lead-scoring-engine.md](lead-scoring-engine.md) | Group D | ✅ Complete |
+| Enquiry & Counselling Pipeline (EC-001 to EC-017) | [enquiry-counselling.md](enquiry-counselling.md) | Group E | ✅ Complete |
 
 ---
 

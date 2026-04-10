@@ -13,6 +13,8 @@ use App\Models\CRM\Lead;
 use App\Models\CRM\WebForm;
 use App\Repositories\CRM\WebForm\WebFormRepositoryInterface;
 use App\Services\CRM\Lead\LeadService;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -37,7 +39,7 @@ final class WebFormService
         $form = $this->repository->create($dto, $institutionId, $embedToken);
 
         Log::info('WebForm created', [
-            'form_uuid'      => $form->uuid,
+            'form_uuid' => $form->uuid,
             'institution_id' => $form->institution_id,
         ]);
 
@@ -49,7 +51,7 @@ final class WebFormService
     /**
      * BRD: CRM-LC-001 — Update form configuration.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function update(WebForm $form, array $data): WebForm
     {
@@ -76,8 +78,8 @@ final class WebFormService
      */
     public function generateQrCode(WebForm $form): string
     {
-        $qr = new \Endroid\QrCode\QrCode($form->qrTargetUrl());
-        $writer = new \Endroid\QrCode\Writer\PngWriter();
+        $qr = new QrCode($form->qrTargetUrl());
+        $writer = new PngWriter;
 
         return $writer->write($qr)->getString();
     }
@@ -89,8 +91,8 @@ final class WebFormService
     {
         $url = htmlspecialchars($form->embedUrl(), ENT_QUOTES, 'UTF-8');
 
-        return '<iframe src="' . $url . '" width="100%" height="600" frameborder="0" '
-            . 'allow="clipboard-write" style="border:none;"></iframe>';
+        return '<iframe src="'.$url.'" width="100%" height="600" frameborder="0" '
+            .'allow="clipboard-write" style="border:none;"></iframe>';
     }
 
     /**
@@ -112,20 +114,20 @@ final class WebFormService
 
         // Build a DTO and an anonymous actor-like object for LeadService
         $dto = new CreateLeadDTO(
-            firstName:          $data['first_name'],
-            lastName:           $data['last_name'],
-            mobile:             $data['mobile'],
-            email:              $data['email'] ?? null,
-            source:             $data['source'],
-            consentGiven:       true,                         // required:accepted in PublicFormSubmissionRequest
-            consentIp:          $ip,
+            firstName: $data['first_name'],
+            lastName: $data['last_name'],
+            mobile: $data['mobile'],
+            email: $data['email'] ?? null,
+            source: $data['source'],
+            consentGiven: true,                         // required:accepted in PublicFormSubmissionRequest
+            consentIp: $ip,
             consentFormVersion: $form->consent_form_version,
-            campusId:           $form->campus_id,
-            city:               $data['city'] ?? null,
-            state:              $data['state'] ?? null,
-            notes:              $data['notes'] ?? null,
-            sourceUtmParams:    $data['source_utm_params'] ?? null,
-            programmeIds:       null,
+            campusId: $form->campus_id,
+            city: $data['city'] ?? null,
+            state: $data['state'] ?? null,
+            notes: $data['notes'] ?? null,
+            sourceUtmParams: $data['source_utm_params'] ?? null,
+            programmeIds: null,
         );
 
         // Use a system pseudo-actor (no real user in public context)

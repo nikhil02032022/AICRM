@@ -10,14 +10,17 @@ use App\Models\CRM\Institution;
 use App\Models\CRM\Lead;
 use App\Models\CRM\ScoreOverride;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->seed(\Database\Seeders\PermissionSeeder::class);
-    $this->seed(\Database\Seeders\RoleSeeder::class);
+    $this->seed(PermissionSeeder::class);
+    $this->seed(RoleSeeder::class);
     $this->institution = Institution::create(['name' => 'Override Uni', 'code' => 'OVU', 'is_active' => true]);
 
     $this->counsellor = User::create([
@@ -27,17 +30,17 @@ beforeEach(function (): void {
     $this->counsellor->assignRole('senior-counsellor');
 
     $this->lead = Lead::withoutGlobalScopes()->create([
-        'uuid'                     => \Illuminate\Support\Str::uuid(),
-        'institution_id'           => $this->institution->id,
-        'first_name'               => 'Override',
-        'last_name'                => 'Lead',
-        'mobile'                   => '9999999999',
-        'source'                   => LeadSource::WEBSITE_ORGANIC->value,
-        'status'                   => LeadStatus::NEW_ENQUIRY->value,
-        'consent_given'            => false,
-        'lead_score'               => 30,
-        'temperature'              => LeadTemperature::COLD->value,
-        'assigned_counsellor_id'   => $this->counsellor->id,
+        'uuid' => Str::uuid(),
+        'institution_id' => $this->institution->id,
+        'first_name' => 'Override',
+        'last_name' => 'Lead',
+        'mobile' => '9999999999',
+        'source' => LeadSource::WEBSITE_ORGANIC->value,
+        'status' => LeadStatus::NEW_ENQUIRY->value,
+        'consent_given' => false,
+        'lead_score' => 30,
+        'temperature' => LeadTemperature::COLD->value,
+        'assigned_counsellor_id' => $this->counsellor->id,
         'score_manually_overridden' => false,
     ]);
 });
@@ -48,7 +51,7 @@ it('assigned counsellor can POST a score override', function (): void {
     $response = $this->actingAs($this->counsellor)
         ->post(route('crm.leads.score-override', $this->lead->uuid), [
             'override_score' => 75,
-            'reason'         => 'Spoke to lead — very engaged and ready to apply',
+            'reason' => 'Spoke to lead — very engaged and ready to apply',
         ]);
 
     $response->assertRedirectToRoute('crm.leads.show', $this->lead->uuid);
@@ -61,7 +64,7 @@ it('requires a reason for the override', function (): void {
     $response = $this->actingAs($this->counsellor)
         ->post(route('crm.leads.score-override', $this->lead->uuid), [
             'override_score' => 75,
-            'reason'         => '', // empty
+            'reason' => '', // empty
         ]);
 
     $response->assertSessionHasErrors('reason');
@@ -74,7 +77,7 @@ it('stores the override record in score_overrides table', function (): void {
     $this->actingAs($this->counsellor)
         ->post(route('crm.leads.score-override', $this->lead->uuid), [
             'override_score' => 85,
-            'reason'         => 'High quality referral — verified personally by admissions head',
+            'reason' => 'High quality referral — verified personally by admissions head',
         ]);
 
     $override = ScoreOverride::where('lead_id', $this->lead->id)->first();
@@ -90,12 +93,12 @@ it('displays override history on lead show page', function (): void {
 
     // Create an override directly
     $override = ScoreOverride::create([
-        'uuid'              => \Illuminate\Support\Str::uuid(),
-        'lead_id'           => $this->lead->id,
-        'overridden_by'     => $this->counsellor->id,
-        'previous_score'    => 30,
-        'overridden_score'  => 70,
-        'reason'            => 'Test override history display',
+        'uuid' => Str::uuid(),
+        'lead_id' => $this->lead->id,
+        'overridden_by' => $this->counsellor->id,
+        'previous_score' => 30,
+        'overridden_score' => 70,
+        'reason' => 'Test override history display',
     ]);
 
     // Verify the override is stored and queryable — the LeadWebController loads these

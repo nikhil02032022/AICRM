@@ -65,9 +65,9 @@ final class PublicFormActor implements Authenticatable
     public function __get(string $name): mixed
     {
         return match ($name) {
-            'id'             => 0,
+            'id' => 0,
             'institution_id' => $this->institution_id,
-            default          => null,
+            default => null,
         };
     }
 }

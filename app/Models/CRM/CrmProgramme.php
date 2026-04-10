@@ -26,7 +26,7 @@ class CrmProgramme extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope(new InstitutionScope());
+        static::addGlobalScope(new InstitutionScope);
     }
 
     public function leads(): BelongsToMany

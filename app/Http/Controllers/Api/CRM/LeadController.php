@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\CRM;
 
 use App\DTOs\CRM\CreateLeadDTO;
+use App\Enums\CRM\LeadStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CRM\StoreLeadRequest;
 use App\Http\Requests\Api\CRM\UpdateLeadRequest;
@@ -12,7 +13,6 @@ use App\Http\Resources\CRM\LeadResource;
 use App\Models\CRM\Lead;
 use App\Repositories\CRM\Lead\LeadRepositoryInterface;
 use App\Services\CRM\Lead\LeadService;
-use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Gate;
 final class LeadController extends Controller
 {
     public function __construct(
-        private readonly LeadService             $leadService,
+        private readonly LeadService $leadService,
         private readonly LeadRepositoryInterface $repository,
     ) {}
 
@@ -35,8 +35,8 @@ final class LeadController extends Controller
         Gate::authorize('crm.leads.view');
 
         $leads = $this->repository->paginate(
-            filters:  $request->only(['status', 'temperature', 'source', 'assigned_counsellor_id', 'search', 'sort', 'direction']),
-            perPage:  (int) $request->input('per_page', 25),
+            filters: $request->only(['status', 'temperature', 'source', 'assigned_counsellor_id', 'search', 'sort', 'direction']),
+            perPage: (int) $request->input('per_page', 25),
         );
 
         return LeadResource::collection($leads);
@@ -50,7 +50,7 @@ final class LeadController extends Controller
      */
     public function store(StoreLeadRequest $request): JsonResponse
     {
-        $dto  = CreateLeadDTO::fromRequest($request->validated(), $request->ip() ?? '');
+        $dto = CreateLeadDTO::fromRequest($request->validated(), $request->ip() ?? '');
         $lead = $this->leadService->create($dto, $request->user());
 
         return (new LeadResource($lead))
@@ -82,12 +82,12 @@ final class LeadController extends Controller
 
         // Status transitions go through the service for business rule enforcement
         if (isset($data['status'])) {
-            $newStatus = \App\Enums\CRM\LeadStatus::from($data['status']);
+            $newStatus = LeadStatus::from($data['status']);
             $this->leadService->transitionStatus($lead, $newStatus);
             unset($data['status']);
         }
 
-        if (! empty($data)) {
+        if (!empty($data)) {
             $lead = $this->leadService->update($lead, $data);
         }
 

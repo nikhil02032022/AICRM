@@ -17,16 +17,17 @@ use Illuminate\Support\Facades\Log;
 
 // BRD: CRM-LC-018 — Auto-detect duplicate leads on mobile/email match AND name+course
 // combination, persist the flag to the DB, and fire DuplicateLeadFlaggedEvent.
-final class DetectLeadDuplicatesJob implements ShouldQueue, ShouldBeUnique
+final class DetectLeadDuplicatesJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 90;
 
     public function __construct(
         public readonly string $leadUuid,
-        public readonly int    $institutionId,
+        public readonly int $institutionId,
     ) {
         $this->onQueue('default');
     }
@@ -68,7 +69,7 @@ final class DetectLeadDuplicatesJob implements ShouldQueue, ShouldBeUnique
         $leadProgrammeIds = $lead->programmeInterests->pluck('id');
 
         /** @var Collection<int, Lead> $nameCourseMatches */
-        $nameCourseMatches = new Collection();
+        $nameCourseMatches = new Collection;
 
         if ($leadProgrammeIds->isNotEmpty()) {
             $nameMatchCandidates = Lead::withoutGlobalScopes()
@@ -100,8 +101,8 @@ final class DetectLeadDuplicatesJob implements ShouldQueue, ShouldBeUnique
         // BRD: CRM-LC-018 — Determine the match type for the event payload
         $matchType = match (true) {
             $mobileEmailMatches->isNotEmpty() && $nameCourseMatches->isNotEmpty() => 'both',
-            $mobileEmailMatches->isNotEmpty()                                      => 'mobile_email',
-            default                                                                => 'name_course',
+            $mobileEmailMatches->isNotEmpty() => 'mobile_email',
+            default => 'name_course',
         };
 
         // BRD: CRM-LC-018 — Persist the flag to the leads table (non-blocking raw update,
@@ -110,19 +111,19 @@ final class DetectLeadDuplicatesJob implements ShouldQueue, ShouldBeUnique
             ->where('uuid', $this->leadUuid)
             ->update([
                 'is_duplicate_suspected' => true,
-                'duplicate_of_uuid'      => $allDuplicates->first()->uuid,
+                'duplicate_of_uuid' => $allDuplicates->first()->uuid,
             ]);
 
         // BRD: CRM-CR-002 — Never log PII; only UUIDs and counts
         Log::warning('Duplicate lead flagged', [
-            'lead_uuid'       => $this->leadUuid,
+            'lead_uuid' => $this->leadUuid,
             'duplicate_count' => $allDuplicates->count(),
-            'match_type'      => $matchType,
+            'match_type' => $matchType,
         ]);
 
         // Refresh lead model after raw update so event carries current state
         $lead->is_duplicate_suspected = true;
-        $lead->duplicate_of_uuid      = $allDuplicates->first()->uuid;
+        $lead->duplicate_of_uuid = $allDuplicates->first()->uuid;
 
         DuplicateLeadFlaggedEvent::dispatch($lead, $allDuplicates, $matchType);
     }

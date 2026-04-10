@@ -30,25 +30,25 @@ final class CollegeDuniaLeadNormalizer implements NormalizerContract
         [$firstName, $lastName] = $this->parseName($raw['name'] ?? '');
 
         $noteParts = array_filter([
-            isset($raw['course_type'])    ? 'Course: ' . $raw['course_type'] : null,
-            isset($raw['specialization']) ? 'Specialisation: ' . $raw['specialization'] : null,
+            isset($raw['course_type']) ? 'Course: '.$raw['course_type'] : null,
+            isset($raw['specialization']) ? 'Specialisation: '.$raw['specialization'] : null,
         ]);
 
         return new CreateLeadDTO(
-            firstName:          $firstName,
-            lastName:           $lastName,
-            mobile:             $this->normaliseMobile($raw['mobile'] ?? ''),
-            email:              $raw['email'] ?? null,
-            source:             LeadSource::EDUCATION_PORTAL->value,
-            consentGiven:       true,
-            consentIp:          $consentIp,
+            firstName: $firstName,
+            lastName: $lastName,
+            mobile: $this->normaliseMobile($raw['mobile'] ?? ''),
+            email: $raw['email'] ?? null,
+            source: LeadSource::EDUCATION_PORTAL->value,
+            consentGiven: true,
+            consentIp: $consentIp,
             consentFormVersion: 'channel:collegedunia:v1',
-            campusId:           null,
-            city:               $raw['location'] ?? null,
-            state:              null,
-            notes:              ! empty($noteParts) ? implode('; ', $noteParts) : null,
-            sourceUtmParams:    ['utm_source' => 'collegedunia'],
-            programmeIds:       null,
+            campusId: null,
+            city: $raw['location'] ?? null,
+            state: null,
+            notes: !empty($noteParts) ? implode('; ', $noteParts) : null,
+            sourceUtmParams: ['utm_source' => 'collegedunia'],
+            programmeIds: null,
         );
     }
 
@@ -57,7 +57,7 @@ final class CollegeDuniaLeadNormalizer implements NormalizerContract
     {
         $parts = explode(' ', trim($full), 2);
 
-        return [! empty($parts[0]) ? $parts[0] : 'Unknown', $parts[1] ?? 'Unknown'];
+        return [!empty($parts[0]) ? $parts[0] : 'Unknown', $parts[1] ?? 'Unknown'];
     }
 
     private function normaliseMobile(string $raw): string
