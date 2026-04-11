@@ -17,9 +17,9 @@
     <!-- Livewire styles -->
     @livewireStyles
 </head>
-<body class="min-h-screen bg-gray-50 font-sans antialiased">
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans antialiased">
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex min-h-screen">
 
         {{-- Sidebar --}}
         <aside class="hidden w-64 flex-shrink-0 bg-primary-800 text-white md:flex md:flex-col">
@@ -36,7 +36,7 @@
             @endauth
 
             {{-- Navigation --}}
-            <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+            <nav class="flex-1 space-y-1 px-3 py-4">
                 {{ $sidebar ?? '' }}
             </nav>
 
@@ -57,7 +57,7 @@
         </aside>
 
         {{-- Main content --}}
-        <div class="flex flex-1 flex-col overflow-hidden">
+        <div class="flex min-w-0 flex-1 flex-col">
 
             {{-- Top bar --}}
             <header class="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 shadow-sm">
@@ -71,7 +71,7 @@
             </header>
 
             {{-- Page content --}}
-            <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+            <main class="min-w-0 flex-1 overflow-x-hidden bg-gray-50 p-6">
                 {{-- Flash messages --}}
                 @if (session()->has('success'))
                     <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"

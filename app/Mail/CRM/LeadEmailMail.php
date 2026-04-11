@@ -15,18 +15,22 @@ final class LeadEmailMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    private readonly string $mailSubject;
+
     public function __construct(
-        public readonly string $subject,
+        string $subject,
         public readonly string $body,
         public readonly string $fromName,
         public readonly string $fromEmail,
-    ) {}
+    ) {
+        $this->mailSubject = $subject;
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
             from: new \Illuminate\Mail\Mailables\Address($this->fromEmail, $this->fromName),
-            subject: $this->subject,
+            subject: $this->mailSubject,
         );
     }
 

@@ -9,7 +9,7 @@
 
 | Group | Theme | BRD Req IDs | Status | Sprint Doc |
 |-------|-------|-------------|--------|------------|
-| **H** | Marketing Automation & Attribution | LC-005, LC-006, LC-013, LC-016, LC-017, MA-001 to MA-010 | ⏳ In Progress | (inline) |
+| **H** | Marketing Automation & Attribution | LC-005, LC-006, LC-013, LC-016, LC-017, MA-001 to MA-010 | 🚧 LC-005 initial slice implemented | (inline) |
 | **I** | AI & Advanced Scoring | LQ-003, LQ-009, LQ-010, AI-004, AI-006, AI-008, AI-009, AI-010 | ⏳ In Progress | (inline) |
 | **J** | Telecalling & Gamification | TC-001, TC-002, TC-005, EC-010, MB-004, MB-006, MB-007 | ⏳ In Progress | (inline) |
 | **K** | Customisation & Advanced Analytics | EC-005, AR-018, AR-020, SA-007, SA-011 | ⏳ In Progress | (inline) |
@@ -24,7 +24,7 @@
 
 | Req ID | Feature | Files |
 |--------|---------|-------|
-| LC-005 | Landing page builder for lead capture | `LandingPage`, `LandingPageController`, `LandingPageService`, `landing-page.blade.php` |
+| LC-005 | Landing page builder for lead capture | `LandingPage`, `LandingPageController`, `LandingPageService`, `LandingPageWebController`, `PublicLandingPageController`, `resources/views/crm/marketing/landing-pages/*`, `resources/views/public/landing-page/show.blade.php` |
 | LC-006 | Live chat widget for lead capture | `ChatWidget`, `ChatWidgetController`, `ChatWidgetService`, `chat-widget.blade.php` |
 | LC-013 | Walk-in enquiry kiosk interface | `KioskController`, `KioskService`, `kiosk.blade.php` |
 | LC-016 | Multi-touch attribution model | `AttributionService`, `LeadAttribution`, migration, UI integration |
@@ -118,7 +118,7 @@
 
 | Req ID | Priority | Group | Status |
 |--------|----------|-------|--------|
-| LC-005 | Should Have | H | ⏳ |
+| LC-005 | Should Have | H | 🚧 Initial implementation delivered |
 | LC-006 | Should Have | H | ⏳ |
 | LC-013 | Should Have | H | ⏳ |
 | LC-016 | Should Have | H | ⏳ |
@@ -156,3 +156,4 @@
 - DPDP Act 2023 compliance is mandatory for all new modules.
 - See [BRD_A2A_Educational_CRM_v1.0_1.md](BRD_A2A_Educational_CRM_v1.0_1.md) for full requirement details.
 - Update this file after each sprint review.
+- LC-005 now has an initial implementation slice: backend CRUD, public rendering, CRM UI, route wiring, and baseline tests. Drag-and-drop composition and expanded analytics remain pending.

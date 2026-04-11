@@ -3,8 +3,16 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Public\PublicFormController;
+use App\Http\Controllers\Public\PublicLandingPageController;
+use App\Http\Controllers\Public\PublicChatWidgetController;
+use App\Http\Controllers\Public\PublicKioskController;
+use App\Http\Controllers\Web\CRM\AttributionWebController;
 use App\Http\Controllers\Web\CRM\CallLogWebController;
+use App\Http\Controllers\Web\CRM\ChatWidgetWebController;
+use App\Http\Controllers\Web\CRM\CostTrackingWebController;
 use App\Http\Controllers\Web\CRM\ErpMatchWebController;
+use App\Http\Controllers\Web\CRM\LandingPageWebController;
+use App\Http\Controllers\Web\CRM\KioskWebController;
 use App\Http\Controllers\Web\CRM\LeadMergeWebController;
 use App\Http\Controllers\Web\CRM\CommunicationTemplateWebController;
 use App\Http\Controllers\Web\CRM\CounsellingWebController;
@@ -35,6 +43,11 @@ Route::middleware(['throttle:60,1'])->group(function (): void {
     Route::get('/f/{slug}', [PublicFormController::class, 'show'])->name('public.form.show');
     Route::get('/f/{slug}/embed', [PublicFormController::class, 'embed'])->name('public.form.embed');
     Route::post('/f/{slug}', [PublicFormController::class, 'submit'])->name('public.form.submit');
+    Route::get('/lp/{slug}', [PublicLandingPageController::class, 'show'])->name('public.landing-pages.show');
+    Route::get('/chat/widget/{institution:uuid}', [PublicChatWidgetController::class, 'show'])->name('public.chat-widget.show');
+    Route::post('/chat/widget/{institution:uuid}/submit', [PublicChatWidgetController::class, 'submit'])->name('public.chat-widget.submit');
+    Route::get('/kiosk/{institution:uuid}', [PublicKioskController::class, 'show'])->name('public.kiosk.show');
+    Route::post('/kiosk/{institution:uuid}/submit', [PublicKioskController::class, 'submit'])->name('public.kiosk.submit');
 
     // BRD: CRM-EC-016 — Public appointment booking (lead UUID as slug, rate-limited)
     Route::get('/book/{slug}', [PublicBookingController::class, 'show'])->name('public.booking.show');
@@ -118,6 +131,60 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/forms/{form:uuid}/preview', [WebFormWebController::class, 'preview'])
             ->name('forms.preview')
             ->middleware('can:crm.forms.view');
+
+        // BRD: CRM-LC-005 — Landing page builder and publishing
+        Route::prefix('marketing/landing-pages')->name('marketing.landing-pages.')->group(function (): void {
+            Route::get('/', [LandingPageWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.campaigns.manage');
+            Route::get('/create', [LandingPageWebController::class, 'create'])
+                ->name('create')
+                ->middleware('can:crm.campaigns.manage');
+            Route::post('/', [LandingPageWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.campaigns.manage');
+            Route::get('/{landingPage:uuid}/edit', [LandingPageWebController::class, 'edit'])
+                ->name('edit')
+                ->middleware('can:crm.campaigns.manage');
+            Route::put('/{landingPage:uuid}', [LandingPageWebController::class, 'update'])
+                ->name('update')
+                ->middleware('can:crm.campaigns.manage');
+            Route::delete('/{landingPage:uuid}', [LandingPageWebController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('can:crm.campaigns.manage');
+        });
+
+        // BRD: CRM-LC-006 — Live chat widget embed + captured session monitoring
+        Route::get('/marketing/chat-widget', [ChatWidgetWebController::class, 'index'])
+            ->name('marketing.chat-widget.index')
+            ->middleware('can:crm.chat-widget.manage');
+        Route::post('/marketing/chat-widget/{chatLead:uuid}/reply', [ChatWidgetWebController::class, 'reply'])
+            ->name('marketing.chat-widget.reply')
+            ->middleware('can:crm.chat-widget.manage');
+        Route::patch('/marketing/chat-widget/{chatLead:uuid}/handoff', [ChatWidgetWebController::class, 'updateHandoff'])
+            ->name('marketing.chat-widget.handoff')
+            ->middleware('can:crm.chat-widget.manage');
+
+        // BRD: CRM-LC-013 — Walk-in kiosk setup and captured enquiry monitoring
+        Route::get('/marketing/kiosk', [KioskWebController::class, 'index'])
+            ->name('marketing.kiosk.index')
+            ->middleware('can:crm.campaigns.manage');
+
+        // BRD: CRM-LC-016 — Multi-touch attribution timeline and touchpoint capture
+        Route::get('/marketing/attribution', [AttributionWebController::class, 'index'])
+            ->name('marketing.attribution.index')
+            ->middleware('can:crm.campaigns.manage');
+        Route::post('/marketing/attribution/leads/{lead:uuid}/touchpoints', [AttributionWebController::class, 'store'])
+            ->name('marketing.attribution.store')
+            ->middleware('can:crm.campaigns.manage');
+
+        // BRD: CRM-LC-017 — Campaign spend entry and cost-per-lead report
+        Route::get('/marketing/cost-tracking', [CostTrackingWebController::class, 'index'])
+            ->name('marketing.cost-tracking.index')
+            ->middleware('can:crm.campaigns.manage');
+        Route::post('/marketing/cost-tracking/spends', [CostTrackingWebController::class, 'store'])
+            ->name('marketing.cost-tracking.store')
+            ->middleware('can:crm.campaigns.manage');
 
         // BRD: CRM-LC-012 — Bulk CSV/Excel import routes
         Route::get('/imports', [LeadImportWebController::class, 'index'])

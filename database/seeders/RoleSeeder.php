@@ -54,12 +54,14 @@ class RoleSeeder extends Seeder
                 'crm.applications.view', 'crm.applications.edit', 'crm.applications.convert',
                 'crm.communications.send', 'crm.communications.view',
                 'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',
+                'crm.campaigns.manage',
                 'crm.fees.view', 'crm.fees.approve-discount',
                 'crm.documents.view', 'crm.documents.verify',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
                 'crm.reports.view', 'crm.reports.export',
                 'crm.agents.manage',
                 'crm.integrations.view',
+                'crm.chat-widget.manage',
             ]);
 
         // admissions-manager: team-level management
@@ -70,11 +72,13 @@ class RoleSeeder extends Seeder
                 'crm.applications.view', 'crm.applications.edit',
                 'crm.communications.send', 'crm.communications.view',
                 'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',
+                'crm.campaigns.manage',
                 'crm.fees.view', 'crm.fees.approve-discount',
                 'crm.documents.view', 'crm.documents.verify',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
                 'crm.reports.view', 'crm.reports.export',
                 'crm.integrations.view',
+                'crm.chat-widget.manage',
             ]);
 
         // senior-counsellor: own leads + communication + limited reports
@@ -106,6 +110,7 @@ class RoleSeeder extends Seeder
             ->givePermissionTo([
                 'crm.leads.view', 'crm.leads.import', 'crm.leads.export',
                 'crm.campaigns.manage',
+                'crm.chat-widget.manage',
                 'crm.communications.send', 'crm.communications.view',
                 'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',
                 'crm.reports.view', 'crm.reports.export',

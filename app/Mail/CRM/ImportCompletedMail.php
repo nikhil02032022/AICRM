@@ -16,17 +16,21 @@ final class ImportCompletedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    private readonly string $mailSubject;
+
     public function __construct(
         public readonly LeadImportBatch $batch,
         public readonly int $successful,
         public readonly int $failed,
         public readonly bool $hasErrorReport,
-        public readonly string $subject,
-    ) {}
+        string $subject,
+    ) {
+        $this->mailSubject = $subject;
+    }
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->subject);
+        return new Envelope(subject: $this->mailSubject);
     }
 
     public function content(): Content

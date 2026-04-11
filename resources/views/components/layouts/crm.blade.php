@@ -109,6 +109,66 @@
                 </a>
                 @endcan
 
+                @can('crm.campaigns.manage')
+                <a href="{{ route('crm.marketing.landing-pages.index') }}"
+                   aria-current="{{ request()->routeIs('crm.marketing.landing-pages.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.marketing.landing-pages.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5M3.75 9.75h16.5m-16.5 4.5h9.75m-9.75 4.5h9.75M17.25 13.5l1.5 1.5 3-3"/>
+                    </svg>
+                    Landing Pages
+                </a>
+                @endcan
+
+                @can('crm.campaigns.manage')
+                <a href="{{ route('crm.marketing.kiosk.index') }}"
+                   aria-current="{{ request()->routeIs('crm.marketing.kiosk.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.marketing.kiosk.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75A2.25 2.25 0 0 1 6 4.5h12a2.25 2.25 0 0 1 2.25 2.25v10.5A2.25 2.25 0 0 1 18 19.5H6a2.25 2.25 0 0 1-2.25-2.25V6.75Zm3 0h10.5m-10.5 3h10.5m-10.5 3h6"/>
+                    </svg>
+                    Walk-in Kiosk
+                </a>
+                @endcan
+
+                @can('crm.chat-widget.manage')
+                <a href="{{ route('crm.marketing.chat-widget.index') }}"
+                   aria-current="{{ request()->routeIs('crm.marketing.chat-widget.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.marketing.chat-widget.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75h6.75m-6.75 3h4.5m4.867 5.654A9.959 9.959 0 0 1 12 20.25a9.959 9.959 0 0 1-5.992-1.846L3.75 19.5l1.096-2.258A9.96 9.96 0 0 1 2.25 10.5a9.75 9.75 0 1 1 15.742 7.742Z"/>
+                    </svg>
+                    Website Chatbot
+                </a>
+                @endcan
+
+                @can('crm.campaigns.manage')
+                <a href="{{ route('crm.marketing.attribution.index') }}"
+                   aria-current="{{ request()->routeIs('crm.marketing.attribution.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.marketing.attribution.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 17.25V6.75m0 10.5a2.25 2.25 0 1 0 0 4.5m0-4.5a2.25 2.25 0 1 1 0 4.5m9-16.5v13.5m0-13.5a2.25 2.25 0 1 0 0-4.5m0 4.5a2.25 2.25 0 1 1 0-4.5m9 16.5V6.75m0 10.5a2.25 2.25 0 1 0 0 4.5m0-4.5a2.25 2.25 0 1 1 0 4.5"/>
+                    </svg>
+                    Attribution
+                </a>
+                @endcan
+
+                @can('crm.campaigns.manage')
+                <a href="{{ route('crm.marketing.cost-tracking.index') }}"
+                   aria-current="{{ request()->routeIs('crm.marketing.cost-tracking.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.marketing.cost-tracking.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6m10.5-7.5v15a1.5 1.5 0 0 1-3 0v-15m-3 15a1.5 1.5 0 0 1-3 0v-15m-3 15a1.5 1.5 0 0 1-3 0v-15"/>
+                    </svg>
+                    Cost Tracking
+                </a>
+                @endcan
+
                 {{-- Bulk Import — BRD: CRM-LC-012 (Group C) --}}
                 @can('crm.leads.import')
                 <a href="{{ route('crm.imports.index') }}"

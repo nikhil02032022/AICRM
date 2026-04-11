@@ -26,6 +26,7 @@ use App\Events\CRM\LeadsMergedEvent;
 use App\Events\CRM\WebFormSubmittedEvent;
 use App\Listeners\CRM\HandleEmailBounce;
 use App\Listeners\CRM\HandleLeadUnsubscribe;
+use App\Listeners\CRM\CaptureLeadAttributionOnCreate;
 use App\Listeners\CRM\LogCallToActivityTimeline;
 use App\Listeners\CRM\LogEmailSentToActivity;
 use App\Listeners\CRM\LogWhatsAppToActivityTimeline;
@@ -72,6 +73,8 @@ class AppServiceProvider extends ServiceProvider
 
         // BRD: CRM-EC-004 — Log activity entry when a lead is created
         Event::listen(LeadCreatedEvent::class, LogLeadCreatedActivity::class);
+        // BRD: CRM-LC-016 — Record first attribution touchpoint for each new lead
+        Event::listen(LeadCreatedEvent::class, CaptureLeadAttributionOnCreate::class);
 
         // BRD: CRM-EC-014 — Log activity entry on every status transition
         Event::listen(LeadStatusChangedEvent::class, LogStatusChangeActivity::class);

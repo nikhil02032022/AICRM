@@ -8,6 +8,7 @@ use App\Providers\CRM\CrmCounsellingServiceProvider;
 use App\Providers\CRM\CrmErpServiceProvider;
 use App\Providers\CRM\CrmImportServiceProvider;
 use App\Providers\CRM\CrmLeadServiceProvider;
+use App\Providers\CRM\CrmMarketingServiceProvider;
 use App\Providers\CRM\CrmScoringServiceProvider;
 use App\Providers\CRM\CrmWebFormServiceProvider;
 use App\Providers\HorizonServiceProvider;
@@ -17,6 +18,7 @@ return [
     HorizonServiceProvider::class,
     CrmLeadServiceProvider::class,
     CrmWebFormServiceProvider::class,
+    CrmMarketingServiceProvider::class,
     CrmImportServiceProvider::class,
     CrmScoringServiceProvider::class,
     CrmCounsellingServiceProvider::class,

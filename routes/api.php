@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\CRM\ErpMatchController;
+use App\Http\Controllers\Api\CRM\AttributionController;
+use App\Http\Controllers\Api\CRM\CampaignSpendController;
+use App\Http\Controllers\Api\CRM\ChatWidgetController;
+use App\Http\Controllers\Api\CRM\LandingPageController;
 use App\Http\Controllers\Api\CRM\LeadController;
 use App\Http\Controllers\Api\CRM\LeadMergeController;
 use App\Http\Controllers\Api\CRM\LeadScoringController;
@@ -41,6 +45,26 @@ Route::prefix('v1/crm')
         // BRD: CRM-LC-001 — WebForm management endpoints (external consumers only)
         Route::apiResource('forms', WebFormController::class)
             ->parameters(['forms' => 'form:uuid']);
+        Route::apiResource('landing-pages', LandingPageController::class)
+            ->parameters(['landing-pages' => 'landingPage:uuid']);
+        Route::apiResource('chat-widget/leads', ChatWidgetController::class)
+            ->only(['index', 'store', 'show'])
+            ->parameters(['leads' => 'chatLead:uuid']);
+        Route::post('chat-widget/leads/{chatLead:uuid}/reply', [ChatWidgetController::class, 'reply'])
+            ->name('chat-widget.leads.reply');
+        Route::patch('chat-widget/leads/{chatLead:uuid}/handoff', [ChatWidgetController::class, 'updateHandoff'])
+            ->name('chat-widget.leads.handoff');
+        // BRD: CRM-LC-016 — Attribution ledger and touchpoint ingestion
+        Route::get('attributions/leads/{lead:uuid}', [AttributionController::class, 'index'])
+            ->name('attributions.index');
+        Route::post('attributions/leads/{lead:uuid}/touchpoints', [AttributionController::class, 'store'])
+            ->name('attributions.store');
+
+        // BRD: CRM-LC-017 — Campaign spend CRUD-lite and CPL report
+        Route::get('campaign-spends', [CampaignSpendController::class, 'index'])
+            ->name('campaign-spends.index');
+        Route::post('campaign-spends', [CampaignSpendController::class, 'store'])
+            ->name('campaign-spends.store');
         // BRD: CRM-LC-009 — QR code PNG download
         Route::get('forms/{form:uuid}/qr', [WebFormController::class, 'qr'])
             ->name('crm.forms.qr');

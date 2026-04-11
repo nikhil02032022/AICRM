@@ -207,6 +207,12 @@ class Lead extends Model
         return $this->hasMany(CounsellingSession::class, 'lead_id');
     }
 
+    // BRD: CRM-LC-016 — Attribution timeline entries for this lead.
+    public function attributions(): HasMany
+    {
+        return $this->hasMany(LeadAttribution::class, 'lead_id')->orderBy('touchpoint_at');
+    }
+
     // BRD: CRM-LC-019 — Reverse link: the primary lead this record was merged into
     public function mergedIntoLead(): BelongsTo
     {

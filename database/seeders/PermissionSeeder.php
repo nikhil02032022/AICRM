@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * PermissionSeeder — Seeds all 32 CRM permissions (BRD §12).
+ * PermissionSeeder — Seeds all CRM permissions (BRD §12).
  *
  * Grouped by CRM entity. Run before RoleSeeder (role bundles depend on these).
  */
@@ -45,6 +45,8 @@ class PermissionSeeder extends Seeder
             'crm.communications.view',
             // Campaigns
             'crm.campaigns.manage',
+            // Live Chat Widget (BRD: CRM-LC-006)
+            'crm.chat-widget.manage',
             // Fees
             'crm.fees.view',
             'crm.fees.collect',

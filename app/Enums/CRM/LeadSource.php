@@ -17,6 +17,7 @@ enum LeadSource: string
     case IVR = 'ivr';
     case EVENT = 'event';
     case WEBSITE_ORGANIC = 'website_organic';
+    case LIVE_CHAT = 'live_chat';
     case CSV_IMPORT = 'csv_import';
     case API = 'api';
     case QR_CODE = 'qr_code';
@@ -34,6 +35,7 @@ enum LeadSource: string
             self::IVR => 'IVR',
             self::EVENT => 'Event',
             self::WEBSITE_ORGANIC => 'Website (Organic)',
+            self::LIVE_CHAT => 'Live Chat',
             self::CSV_IMPORT => 'CSV Import',
             self::API => 'API',
             self::QR_CODE => 'QR Code',
@@ -48,6 +50,7 @@ enum LeadSource: string
             self::FACEBOOK,
             self::INSTAGRAM,
             self::WEBSITE_ORGANIC,
+            self::LIVE_CHAT,
         ], true);
     }
 
