@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\CRM;
 
+use App\Enums\CRM\ErpMatchStatus;
 use App\Enums\CRM\LeadSource;
 use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LeadTemperature;
@@ -103,6 +104,12 @@ class Lead extends Model
         'sms_unsubscribed_at',
         'dnc_at',
         'dnc_reason',
+        // BRD: CRM-LC-020 — ERP Student Master match status and linked student UUID
+        'erp_match_status',
+        // BRD: CRM-LC-019 — Merge tombstone (set on secondary lead after merge)
+        'merged_into_uuid',
+        'merged_at',
+        'merge_initiated_by',
     ];
 
     /** @return array<string, mixed> */
@@ -145,6 +152,10 @@ class Lead extends Model
             // BRD: CRM-CC-006 — SMS DNC (DPDP)
             'sms_unsubscribed_at' => 'datetime',
             'dnc_at' => 'datetime',
+            // BRD: CRM-LC-020 — ERP match state machine
+            'erp_match_status' => ErpMatchStatus::class,
+            // BRD: CRM-LC-019 — Merge tombstone datetime
+            'merged_at' => 'datetime',
         ];
     }
 
@@ -196,6 +207,12 @@ class Lead extends Model
         return $this->hasMany(CounsellingSession::class, 'lead_id');
     }
 
+    // BRD: CRM-LC-019 — Reverse link: the primary lead this record was merged into
+    public function mergedIntoLead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class, 'merged_into_uuid', 'uuid');
+    }
+
     // -------------------------------------------------------------------------
     // Domain helpers
     // -------------------------------------------------------------------------
@@ -208,6 +225,12 @@ class Lead extends Model
     public function isAnonymised(): bool
     {
         return $this->pii_anonymised_at !== null;
+    }
+
+    // BRD: CRM-LC-019 — True when this lead has been merged into another (tombstone record)
+    public function isMerged(): bool
+    {
+        return $this->merged_into_uuid !== null;
     }
 
     public function canConvertToStudent(): bool

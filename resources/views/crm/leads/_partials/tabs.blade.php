@@ -4,14 +4,23 @@
 
                     {{-- Tab strip --}}
                     <div class="flex overflow-x-auto border-b border-gray-100" role="tablist">
-                        @foreach([
-                            'timeline' => 'Timeline',
-                            'sessions' => 'Sessions',
-                            'scoring'  => 'Scoring',
-                            'info'     => 'Contact Info',
-                            'dpdp'     => 'DPDP',
-                            'utm'      => 'UTM',
-                        ] as $key => $label)
+                        @php
+                            $tabs = [
+                                'timeline' => 'Timeline',
+                                'sessions' => 'Sessions',
+                                'scoring'  => 'Scoring',
+                                'info'     => 'Contact Info',
+                                'dpdp'     => 'DPDP',
+                                'utm'      => 'UTM',
+                            ];
+                            // BRD: CRM-LC-019 — Show merge history tab if this lead is merged or has merge activities
+                            $hasMergeHistory = $lead->isMerged()
+                                || $lead->activities->contains(fn ($a) => $a->type === \App\Enums\CRM\ActivityType::MERGE);
+                            if ($hasMergeHistory) {
+                                $tabs['merge'] = 'Merge History';
+                            }
+                        @endphp
+                        @foreach($tabs as $key => $label)
                         <button type="button"
                                 role="tab"
                                 :aria-selected="tab === '{{ $key }}'"
@@ -32,5 +41,8 @@
                     @include('crm.leads._partials.tab-info')
                     @include('crm.leads._partials.tab-dpdp')
                     @include('crm.leads._partials.tab-utm')
+                    @if($hasMergeHistory)
+                        @include('crm.leads._partials.tab-merge-history')
+                    @endif
 
                 </div>{{-- end tabbed card --}}

@@ -74,29 +74,29 @@
         </div>
     </div>
 
-    {{-- ── Sprint 1 in-progress callout ── --}}
-    <div class="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 p-5 shadow-sm">
+    {{-- ── Sprint 1 complete callout ── --}}
+    <div class="rounded-2xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-5 shadow-sm">
         <div class="flex items-start gap-4">
-            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-100">
-                <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5 10.5 6.75 14.25 10.5 20.25 4.5M3.75 21h16.5M17.25 21v-7.5"/>
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-green-100">
+                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                 </svg>
             </div>
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2 mb-0.5">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Now Building</p>
-                    <span class="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-semibold text-white">
-                        <span class="h-1.5 w-1.5 rounded-full bg-indigo-300 animate-pulse"></span>
-                        Sprint 1 — In Progress
+                    <p class="text-xs font-semibold uppercase tracking-wider text-green-600">Completed</p>
+                    <span class="inline-flex items-center gap-1 rounded-full bg-green-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+                        <span class="h-1.5 w-1.5 rounded-full bg-green-300"></span>
+                        Sprint 1 — Complete
                     </span>
                 </div>
-                <h3 class="text-sm font-semibold text-indigo-900">Phase 1 — Lead Capture &amp; Management</h3>
-                <p class="mt-1 text-xs text-indigo-600">Lead Data Model, deduplication, AI scoring, counsellor assignment</p>
-                <p class="mt-1 text-xs text-indigo-400">BRD: CRM-LC-001 → CRM-LC-020</p>
+                <h3 class="text-sm font-semibold text-green-900">Phase 1 — Lead Capture &amp; Management</h3>
+                <p class="mt-1 text-xs text-green-700">All core lead management, deduplication, AI scoring, and ERP match features are now live.</p>
+                <p class="mt-1 text-xs text-green-500">BRD: CRM-LC-001 → CRM-LC-020 &bull; Completed April 2026</p>
             </div>
             @can('crm.leads.view')
             <a href="{{ route('crm.leads.index') }}"
-               class="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+               class="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                 Open Leads
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>

@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0  
 **Phase:** 1 — Must Have (Months 1–4)  
-**Last Updated:** April 2026 (Group F complete ✅ — all 80 tests implemented)
+**Last Updated:** April 2026 (Group G complete ✅ — Phase 1 all groups done, 23 tests implemented)
 
 ---
 
@@ -15,7 +15,7 @@
 | **D** | Lead Scoring Engine + Temperature + Override | LQ-001, LQ-002, LQ-004, LQ-005, LQ-006, LQ-007, LQ-008 | ✅ **Complete** | [lead-scoring-engine.md](usermanual/lead-scoring-engine.md) |
 | **E** | Enquiry & Counselling Pipeline | EC-001 to EC-019 | ✅ **Complete** | [enquiry-counselling.md](usermanual/enquiry-counselling.md) |
 | **F** | Communication Engine — Email, SMS, WhatsApp, Voice, IVR, Unified Inbox | LC-007, LC-010, CC-001 to CC-023 | ✅ **Complete** | [Sprint_Group_F_Communication_Engine.md](Sprint_Group_F_Communication_Engine.md) |
-| **G** | Duplicate Merge + ERP Lead Match | LC-019, LC-020 | 🔴 Not Started | TBD |
+| **G** | Duplicate Merge + ERP Lead Match | LC-019, LC-020 | ✅ **Complete** | (inline) |
 
 ---
 
@@ -216,14 +216,21 @@
 
 ---
 
-## Group G — Planned 📋
+## Group G — Complete ✅
 
-**Theme:** Duplicate Merge + ERP Lead Match
+**Theme:** Duplicate Merge + ERP Lead Match  
+**Completed:** April 2026
 
-| Req ID | Feature |
-|--------|---------|
-| LC-019 | Manual merge of duplicate leads — `MergeLeadsJob`, activity history preserved |
-| LC-020 | ERP student/alumni match flagging — lookup against A2A ERP Student Master |
+| Req ID | Feature | Files |
+|--------|---------|-------|
+| LC-019 | Manual merge of duplicate leads — `MergeLeadsJob` (ShouldBeUnique, async, transfers activities/sessions/interests/overrides), merge tombstone on secondary, `LeadsMergedEvent`, `LogMergeActivity`, `LeadMergeService`, `LeadMergeWebController`, `LeadMergeController` (API), `ActivityType::MERGE`, merge UI modal + history tab, `LeadPolicy::merge()` | `MergeLeadsJob`, `LeadsMergedEvent`, `LogMergeActivity`, `LeadMergeService`, `MergeLeadsDTO`, `MergeLeadsRequest`, `MergeLeadsApiRequest`, `LeadMergeWebController`, `LeadMergeController`, migration `2026_04_20_000002`, `modal-merge.blade.php`, `tab-merge-history.blade.php`, `ActivityType` (MERGE case added), `LeadPolicy` (merge method), `Lead` model (merged_into_uuid, merged_at, merge_initiated_by, isMerged()), routes (web + api) |
+| LC-020 | ERP student/alumni match flagging — `CheckErpStudentMatchJob` (async, ShouldBeUnique), `ErpApiClient` (Http retry 3×, circuit breaker, per-institution credential), `ErpApiClientInterface`, `ErpStudentDTO`, `ErpStudentMatchedEvent`, `LogErpMatchActivity`, `ErpMatchStatus` enum, `erp_match_status` column, ERP badge in sidebar, ERP banner in header, auto-triggered on lead creation + mobile/email update | `CheckErpStudentMatchJob`, `ErpApiClientInterface`, `ErpApiClient`, `ErpStudentDTO`, `ErpStudentMatchedEvent`, `LogErpMatchActivity`, `ErpMatchStatus`, `CrmErpServiceProvider`, `ErpMatchWebController`, `ErpMatchController`, migration `2026_04_20_000001`, `erp-badge.blade.php`, `IntegrationChannel` (ERP_A2A case), `Lead` model (erp_match_status), `config/services.php` (a2a_erp block), routes (web + api) |
+
+**New files (31):** 2 enums, 2 migrations, 2 DTOs, 1 interface, 2 services, 2 jobs, 2 events, 2 listeners, 1 service provider, 2 form requests, 2 web controllers, 2 API controllers, 3 Blade partials, 2 test files  
+**Modified files (12):** `ActivityType`, `IntegrationChannel`, `Lead` model, `LeadService`, `AppServiceProvider`, `bootstrap/providers.php`, `config/services.php`, `LeadResource`, `header.blade.php`, `modals.blade.php`, `tabs.blade.php`, `sidebar.blade.php`, `show.blade.php`  
+**Tests:** 23 Pest tests (13 merge + 10 ERP match)  
+**Queues:** Reuses `crm-imports`  
+**Security:** Merge permission RBAC (`crm.leads.merge`); ERP credentials AES-256 in `integration_credentials`; mobile never logged (DPDP); institution boundary enforced in job context via manual re-scope
 
 ---
 
@@ -245,8 +252,8 @@
 | LC-014 | Must Have | A | ✅ |
 | LC-015 | Must Have | A+B | ✅ Complete |
 | LC-018 | Must Have | A | ✅ |
-| LC-019 | Must Have | G | 🔴 |
-| LC-020 | Must Have | G | 🔴 |
+| LC-019 | Must Have | G | ✅ |
+| LC-020 | Must Have | G | ✅ |
 
 ### Communication Engine (CC)
 | Req ID | Priority | Group | Status |

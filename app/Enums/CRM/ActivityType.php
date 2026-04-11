@@ -17,6 +17,8 @@ enum ActivityType: string
     case DOCUMENT_UPLOADED = 'document_uploaded';
     case PAYMENT_RECEIVED = 'payment_received';
     case SYSTEM = 'system';
+    // BRD: CRM-LC-019 — Lead merge is a distinct, irreversible business event
+    case MERGE = 'merge';
 
     public function label(): string
     {
@@ -31,6 +33,7 @@ enum ActivityType: string
             self::DOCUMENT_UPLOADED => 'Document Uploaded',
             self::PAYMENT_RECEIVED => 'Payment Received',
             self::SYSTEM => 'System',
+            self::MERGE => 'Lead Merged',
         };
     }
 
@@ -48,6 +51,7 @@ enum ActivityType: string
             self::DOCUMENT_UPLOADED => 'paper-clip',
             self::PAYMENT_RECEIVED => 'banknotes',
             self::SYSTEM => 'cog-6-tooth',
+            self::MERGE => 'arrows-pointing-in',
         };
     }
 
@@ -64,6 +68,7 @@ enum ActivityType: string
             self::DOCUMENT_UPLOADED => 'amber',
             self::PAYMENT_RECEIVED => 'lime',
             self::SYSTEM => 'gray',
+            self::MERGE => 'rose',
         };
     }
 
@@ -81,6 +86,7 @@ enum ActivityType: string
             self::DOCUMENT_UPLOADED => '#F59E0B',
             self::PAYMENT_RECEIVED => '#84CC16',
             self::SYSTEM => '#9CA3AF',
+            self::MERGE => '#F43F5E',
         };
     }
 }

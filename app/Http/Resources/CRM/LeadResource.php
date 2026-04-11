@@ -45,6 +45,12 @@ final class LeadResource extends JsonResource
             'consent_given' => $this->consent_given,
             'opt_out' => $this->opt_out,
             'is_anonymised' => $this->isAnonymised(),
+            // BRD: CRM-LC-020 — ERP Student Master match state
+            'erp_match_status' => $this->erp_match_status?->value,
+            'erp_student_uuid' => $this->erp_student_uuid,
+            // BRD: CRM-LC-019 — Merge tombstone (secondary leads only)
+            'is_merged' => $this->isMerged(),
+            'merged_into_uuid' => $this->merged_into_uuid,
             'assigned_counsellor' => $this->whenLoaded('assignedCounsellor', fn () => [
                 'id' => $this->assignedCounsellor->id,
                 'name' => $this->assignedCounsellor->name,

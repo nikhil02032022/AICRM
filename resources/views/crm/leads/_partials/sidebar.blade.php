@@ -58,6 +58,9 @@
                         @endif
                     </div>
 
+                    {{-- BRD: CRM-LC-020 — ERP Student Master match badge --}}
+                    @include('crm.leads._partials.erp-badge')
+
                     {{-- Info rows --}}
                     <div class="divide-y divide-gray-50 border-t border-gray-100 pt-3">
                         @can('crm.leads.view_pii', $lead)

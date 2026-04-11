@@ -147,6 +147,44 @@
                     this.deleteSubmitting = false;
                 }
             },
+
+            // BRD: CRM-LC-019 — Merge modal (irreversible — requires typed confirmation)
+            mergeOpen: false,
+            mergeSubmitting: false,
+            mergeConfirmText: '',
+
+            async submitMerge() {
+                if (this.mergeConfirmText !== 'MERGE') return;
+                this.mergeSubmitting = true;
+                try {
+                    const res = await fetch('{{ route('crm.leads.merge', $lead->uuid) }}', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept':       'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            secondary_uuid: @json($lead->duplicate_of_uuid),
+                            confirm: true,
+                        }),
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                        this.mergeOpen = false;
+                        // Poll for merge completion then reload
+                        setTimeout(() => window.location.reload(), 3000);
+                        return;
+                    }
+                    alert(json.message ?? 'Merge failed. Please try again.');
+                } catch {
+                    alert('Network error. Please try again.');
+                } finally {
+                    this.mergeSubmitting = false;
+                    this.mergeConfirmText = '';
+                }
+            },
         };
     }
     </script>

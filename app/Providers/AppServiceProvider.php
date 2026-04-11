@@ -17,10 +17,12 @@ use App\Events\CRM\CounsellingSessionBookedEvent;
 use App\Events\CRM\CounsellingSessionCancelledEvent;
 use App\Events\CRM\CounsellingSessionCompletedEvent;
 use App\Events\CRM\DigitalLeadImportedEvent;
+use App\Events\CRM\ErpStudentMatchedEvent;
 use App\Events\CRM\LeadAssignedEvent;
 use App\Events\CRM\LeadCreatedEvent;
 use App\Events\CRM\LeadStatusChangedEvent;
 use App\Events\CRM\LeadTemperatureChangedEvent;
+use App\Events\CRM\LeadsMergedEvent;
 use App\Events\CRM\WebFormSubmittedEvent;
 use App\Listeners\CRM\HandleEmailBounce;
 use App\Listeners\CRM\HandleLeadUnsubscribe;
@@ -38,6 +40,8 @@ use App\Listeners\CRM\LogStatusChangeActivity;
 use App\Listeners\CRM\NotifyImportCompleted;
 use App\Listeners\CRM\RecalculateScoreOnFormSubmit;
 use App\Listeners\CRM\TriggerDuplicateDetectionOnImport;
+use App\Listeners\CRM\LogErpMatchActivity;
+use App\Listeners\CRM\LogMergeActivity;
 use App\Listeners\CRM\TriggerScoringWorkflowListener;
 use App\Listeners\CRM\TriggerStatusWorkflowListener;
 use App\Services\CRM\TenantManager;
@@ -110,5 +114,15 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(MissedCallReceivedEvent::class, NotifyCounsellorOnMissedCall::class);
         // BRD: CRM-LC-010 — IVR auto-created lead: trigger scoring workflow
         Event::listen(IvrLeadCreatedEvent::class, TriggerScoringWorkflowListener::class);
+
+        // -----------------------------------------------------------------------
+        // Group G — Duplicate Merge + ERP Match (BRD: CRM-LC-019, CRM-LC-020)
+        // -----------------------------------------------------------------------
+
+        // BRD: CRM-LC-019 — Log MERGE activity on both primary and secondary leads after merge
+        Event::listen(LeadsMergedEvent::class, LogMergeActivity::class);
+
+        // BRD: CRM-LC-020 — Log ERP student/alumni match to lead activity timeline
+        Event::listen(ErpStudentMatchedEvent::class, LogErpMatchActivity::class);
     }
 }

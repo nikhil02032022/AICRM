@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Public\PublicFormController;
 use App\Http\Controllers\Web\CRM\CallLogWebController;
+use App\Http\Controllers\Web\CRM\ErpMatchWebController;
+use App\Http\Controllers\Web\CRM\LeadMergeWebController;
 use App\Http\Controllers\Web\CRM\CommunicationTemplateWebController;
 use App\Http\Controllers\Web\CRM\CounsellingWebController;
 use App\Http\Controllers\Web\CRM\DltTemplateWebController;
@@ -288,6 +290,24 @@ Route::middleware('auth')->group(function (): void {
                     ->middleware('can:crm.communication.send');
             });
         });
+
+        // -----------------------------------------------------------------------
+        // Group G — Duplicate Merge + ERP Lead Match
+        // BRD: CRM-LC-019, CRM-LC-020
+        // -----------------------------------------------------------------------
+
+        // BRD: CRM-LC-019 — Manual lead merge (irreversible, requires crm.leads.merge)
+        Route::post('/leads/{lead:uuid}/merge', LeadMergeWebController::class)
+            ->name('leads.merge')
+            ->middleware('can:crm.leads.merge');
+        Route::get('/leads/{lead:uuid}/merge-status', [LeadMergeWebController::class, 'status'])
+            ->name('leads.merge-status')
+            ->middleware('can:crm.leads.view');
+
+        // BRD: CRM-LC-020 — Manual trigger for ERP Student Master check
+        Route::post('/leads/{lead:uuid}/check-erp', ErpMatchWebController::class)
+            ->name('leads.check-erp')
+            ->middleware('can:crm.leads.edit');
 
         // F5: Unified Inbox
         Route::prefix('inbox')->name('inbox.')->group(function (): void {

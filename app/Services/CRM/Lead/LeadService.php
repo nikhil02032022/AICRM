@@ -9,6 +9,7 @@ use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LostReason;
 use App\Events\CRM\LeadCreatedEvent;
 use App\Events\CRM\LeadStatusChangedEvent;
+use App\Jobs\CRM\CheckErpStudentMatchJob;
 use App\Jobs\CRM\DetectLeadDuplicatesJob;
 use App\Jobs\CRM\RecalculateLeadScoreJob;
 use App\Models\CRM\Lead;
@@ -56,9 +57,11 @@ final class LeadService
 
         LeadCreatedEvent::dispatch($lead);
 
-        // Async: score and dedup (non-blocking)
+        // Async: score, dedup, and ERP match check (non-blocking)
         RecalculateLeadScoreJob::dispatch($lead->uuid);
         DetectLeadDuplicatesJob::dispatch($lead->uuid, $lead->institution_id);
+        // BRD: CRM-LC-020 — Check ERP Student Master for existing student/alumni match on creation
+        CheckErpStudentMatchJob::dispatch($lead->uuid, $lead->institution_id);
 
         return $lead;
     }
@@ -116,8 +119,10 @@ final class LeadService
         $updated = $this->repository->update($lead, $data);
 
         // BRD: CRM-LC-018 — Any change to contact details may reveal a new duplicate
+        // BRD: CRM-LC-020 — Contact change also warrants a fresh ERP match check
         if (array_key_exists('mobile', $data) || array_key_exists('email', $data)) {
             DetectLeadDuplicatesJob::dispatch($lead->uuid, $lead->institution_id);
+            CheckErpStudentMatchJob::dispatch($lead->uuid, $lead->institution_id);
         }
 
         return $updated;

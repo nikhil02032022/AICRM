@@ -222,3 +222,6 @@
     </div>
     @endcan
 
+        {{-- BRD: CRM-LC-019 — Lead merge confirmation modal --}}
+        @include('crm.leads._partials.modal-merge')
+

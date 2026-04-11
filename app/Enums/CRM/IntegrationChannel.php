@@ -18,6 +18,8 @@ enum IntegrationChannel: string
     case CAREERS360 = 'careers360';
     case COLLEGEDUNIA = 'collegedunia';
     case BULK_CSV = 'bulk_csv';
+    // BRD: CRM-LC-020 — A2A ERP Student Master outbound lookup channel
+    case ERP_A2A = 'erp_a2a';
 
     public function label(): string
     {
@@ -29,6 +31,7 @@ enum IntegrationChannel: string
             self::CAREERS360 => 'Careers360',
             self::COLLEGEDUNIA => 'Collegedunia',
             self::BULK_CSV => 'Bulk CSV / Excel Upload',
+            self::ERP_A2A => 'A2A ERP Student Master',
         };
     }
 

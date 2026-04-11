@@ -52,7 +52,7 @@
         </div>
 
         {{-- BRD: CRM-LC-018 — Duplicate suspected banner ── --}}
-        @if($lead->is_duplicate_suspected)
+        @if($lead->is_duplicate_suspected && !$lead->isMerged())
         <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5"
              role="alert" aria-live="polite">
             <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor"
@@ -70,6 +70,62 @@
                             View suspected original lead →
                         </a>
                     @endif
+                </p>
+            </div>
+            {{-- BRD: CRM-LC-019 — Merge CTA only for authorised roles --}}
+            @can('crm.leads.merge', $lead)
+            @if($lead->duplicate_of_uuid)
+            <button type="button" @click="mergeOpen = true"
+                    class="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-200 transition-colors">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                Merge
+            </button>
+            @endif
+            @endcan
+        </div>
+        @endif
+
+        {{-- BRD: CRM-LC-019 — Merged tombstone banner (secondary lead) --}}
+        @if($lead->isMerged())
+        <div class="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3.5"
+             role="alert">
+            <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-500" fill="none" stroke="currentColor"
+                 viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-rose-900">This lead has been merged</p>
+                <p class="mt-0.5 text-xs text-rose-700">
+                    This record was merged into a primary lead and is now archived.
+                    @if($lead->merged_into_uuid)
+                        <a href="{{ route('crm.leads.show', $lead->merged_into_uuid) }}"
+                           class="font-medium underline underline-offset-2 hover:text-rose-900 transition-colors">
+                            View primary lead →
+                        </a>
+                    @endif
+                </p>
+            </div>
+        </div>
+        @endif
+
+        {{-- BRD: CRM-LC-020 — ERP student match banner --}}
+        @if($lead->erp_match_status?->value === 'matched')
+        <div class="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3.5"
+             role="status">
+            <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500" fill="none" stroke="currentColor"
+                 viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-green-900">ERP Student / Alumni Match Found</p>
+                <p class="mt-0.5 text-xs text-green-700">
+                    This lead has been matched to an existing record in the A2A ERP Student Master.
+                    The ERP student UUID is linked — no re-entry required on enrolment.
                 </p>
             </div>
         </div>

@@ -54,4 +54,12 @@ final class LeadPolicy
         return $user->can('crm.leads.assign')
             && $user->institution_id === $lead->institution_id;
     }
+
+    // BRD: CRM-LC-019 — Merge is restricted to admissions-director and above;
+    // both leads must be in the same institution as the acting user.
+    public function merge(User $user, Lead $lead): bool
+    {
+        return $user->can('crm.leads.merge')
+            && $user->institution_id === $lead->institution_id;
+    }
 }

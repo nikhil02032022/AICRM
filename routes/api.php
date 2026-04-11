@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\CRM\ErpMatchController;
 use App\Http\Controllers\Api\CRM\LeadController;
+use App\Http\Controllers\Api\CRM\LeadMergeController;
 use App\Http\Controllers\Api\CRM\LeadScoringController;
 use App\Http\Controllers\Api\CRM\WebFormController;
 use App\Http\Controllers\Api\CRM\Webhooks\EducationPortalWebhookController;
@@ -50,6 +52,23 @@ Route::prefix('v1/crm')
             ->name('scoring.config.update');
         Route::post('leads/{lead:uuid}/score-override', [LeadScoringController::class, 'override'])
             ->name('leads.score-override');
+
+        // -----------------------------------------------------------------------
+        // Group G — Duplicate Merge + ERP Lead Match
+        // BRD: CRM-LC-019, CRM-LC-020
+        // -----------------------------------------------------------------------
+
+        // BRD: CRM-LC-019 — Manual lead merge; returns 202 Accepted (async job)
+        Route::post('leads/{lead:uuid}/merge', LeadMergeController::class)
+            ->name('leads.merge');
+        Route::get('leads/{lead:uuid}/merge-status', [LeadMergeController::class, 'status'])
+            ->name('leads.merge-status');
+
+        // BRD: CRM-LC-020 — ERP Student Master match check (trigger + query)
+        Route::post('leads/{lead:uuid}/check-erp', ErpMatchController::class)
+            ->name('leads.check-erp');
+        Route::get('leads/{lead:uuid}/erp-match', [ErpMatchController::class, 'show'])
+            ->name('leads.erp-match');
     });
 
 // -----------------------------------------------------------------------

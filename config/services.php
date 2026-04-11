@@ -82,6 +82,13 @@ return [
         ],
     ],
 
+    // BRD: CRM-LC-020 — A2A ERP Student Master outbound lookup (fallback for demo/single-tenant mode)
+    // Per-institution credentials are stored in integration_credentials (channel = erp_a2a).
+    'a2a_erp' => [
+        'base_url' => env('A2A_ERP_BASE_URL', ''),
+        'timeout'  => (int) env('A2A_ERP_TIMEOUT', 10),
+    ],
+
     'telephony' => [
         'default_provider' => env('TELEPHONY_DEFAULT_PROVIDER', 'exotel'),
 
