@@ -55,6 +55,9 @@ class RoleSeeder extends Seeder
                 'crm.communications.send', 'crm.communications.view',
                 'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',
                 'crm.campaigns.manage',
+                'crm.voice.performance',
+                // BRD: CRM-TC-009 — Directors can manage DNC list
+                'crm.dnc.manage',
                 'crm.fees.view', 'crm.fees.approve-discount',
                 'crm.documents.view', 'crm.documents.verify',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
@@ -73,6 +76,9 @@ class RoleSeeder extends Seeder
                 'crm.communications.send', 'crm.communications.view',
                 'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',
                 'crm.campaigns.manage',
+                'crm.voice.performance',
+                // BRD: CRM-TC-009 — Managers can manage DNC list
+                'crm.dnc.manage',
                 'crm.fees.view', 'crm.fees.approve-discount',
                 'crm.documents.view', 'crm.documents.verify',
                 'crm.tasks.view', 'crm.tasks.create', 'crm.tasks.edit',
@@ -110,6 +116,7 @@ class RoleSeeder extends Seeder
             ->givePermissionTo([
                 'crm.leads.view', 'crm.leads.import', 'crm.leads.export',
                 'crm.campaigns.manage',
+                'crm.voice.performance',
                 'crm.chat-widget.manage',
                 'crm.communications.send', 'crm.communications.view',
                 'crm.communication.send', 'crm.communication.templates.manage', 'crm.campaigns.send',

@@ -11,7 +11,7 @@
 |-------|-------|-------------|--------|------------|
 | **H** | Marketing Automation & Attribution | LC-005, LC-006, LC-013, LC-016, LC-017, MA-001 to MA-010 | 🚧 LC-005/006/013/016/017 slice implemented | (inline) |
 | **I** | AI & Advanced Scoring | LQ-003, LQ-009, LQ-010, AI-004, AI-006, AI-008, AI-009, AI-010, AI-011, AI-012 | ✅ LQ-003 + LQ-009 + LQ-010 + AI-004 + AI-005 + AI-006 + AI-008 + AI-009 + AI-010 + AI-011 + AI-012 completed | (inline) |
-| **J** | Telecalling & Gamification | TC-001, TC-002, TC-005, EC-010, MB-004, MB-006, MB-007 | ⏳ In Progress | (inline) |
+| **J** | Telecalling & Gamification | TC-001, TC-002, TC-003, TC-004, TC-005, TC-006, EC-010, MB-004, MB-006, MB-007 | 🚧 TC-001 to TC-006 core telecalling items completed; remaining items in progress | (inline) |
 | **K** | Customisation & Advanced Analytics | EC-005, AR-018, AR-020, SA-007, SA-011 | ⏳ In Progress | (inline) |
 | **L** | Integrations & Document Management | DM-006, DM-007, EI-008, EI-010, AG-006, AG-008 | ⏳ In Progress | (inline) |
 
@@ -66,9 +66,12 @@
 
 | Req ID | Feature | Files |
 |--------|---------|-------|
-| TC-001 | Power/auto-dialler | `DiallerService`, `DiallerController`, `dialler.blade.php` |
-| TC-002 | Call scripts with branching | `CallScript`, `CallScriptController`, `call-script.blade.php` |
-| TC-005 | Supervisor call monitoring | `CallMonitorService`, `call-monitor.blade.php` |
+| TC-001 | Power/auto-dialler | `DiallerSession`, `DiallerLog`, `DiallerService`, `DiallerJob`, `DiallerWebController`, `DiallerController`, `dialler.blade.php` |
+| TC-002 | Call scripts with branching | `CallScript`, `CallScriptStep`, `CallScriptService`, `CallScriptController`, `CallScriptWebController`, `call-script.blade.php` |
+| TC-003 | Configurable call dispositions | `CallDispositionConfig`, `CallDispositionService`, `CallDispositionWebController`, `CallDispositionController`, `dispositions.blade.php` |
+| TC-004 | Post-call follow-up scheduling prompt | `CallLogWebController`, `CallDispositionService`, `SessionWebController`, `crm/sessions/create.blade.php` |
+| TC-005 | Supervisor call monitoring | `CallMonitorLog`, `CallMonitorService`, `CallMonitorWebController`, `CallMonitorController`, `call-monitor.blade.php` |
+| TC-006 | Calling campaign management | `TelecallingCampaign`, `TelecallingCampaignService`, `TelecallingCampaignWebController`, `TelecallingCampaignController`, `campaigns.blade.php` |
 | EC-010 | Counsellor performance gamification | `GamificationService`, `gamification-dashboard.blade.php` |
 | MB-004 | Business card scanner (OCR) | `OcrService`, `ocr-upload.blade.php` |
 | MB-006 | Mobile offline mode | Mobile app update, sync logic |
@@ -144,6 +147,12 @@
 | MB-004 | Should Have | J | ⏳ |
 | MB-006 | Should Have | J | ⏳ |
 | MB-007 | Should Have | J | ⏳ |
+| TC-001 | Should Have | J | ✅ Completed |
+| TC-002 | Should Have | J | ✅ Completed |
+| TC-003 | Must Have | J | ✅ Completed |
+| TC-004 | Must Have | J | ✅ Completed |
+| TC-005 | Should Have | J | ✅ Completed |
+| TC-006 | Must Have | J | ✅ Completed |
 | AI-004 | Should Have | I | ⏳ |
 | AI-006 | Should Have | I | ✅ Completed |
 | AI-008 | Should Have | I | ✅ Completed |
@@ -173,3 +182,9 @@
 - Group I has completed AI-010 with nba_journeys persistence, segment-wise journey suggestion service + async daily job, API/web nurture journey dashboard endpoints, scheduler trigger, and passing journey API/job tests.
 - Group I has completed AI-011 with ai_suggestion_decisions persistence, explicit Accept/Edit/Dismiss service + API/web endpoints, and counsellor-facing suggestion controls across lead and journey AI surfaces with passing API tests.
 - Group I has completed AI-012 with ai_usage_logs persistence, event-driven immutable AI usage logging across generation and human decision events, API/web audit log access, and passing logging API/listener tests.
+- Group J has completed TC-001 end-to-end with dialler_sessions/dialler_logs persistence, queued DiallerJob flow on `crm-telecalling`, consent/DNC-safe lead filtering, event-driven queue progression from call completion, web/API dialler session controls, and passing feature/API tests.
+- Group J has completed TC-002 end-to-end with call_scripts/call_script_steps persistence, repository-service branching engine, web/API CRUD + resolve endpoints, call script runner UI, and passing feature/API tests.
+- Group J has completed TC-003 end-to-end with institution-scoped call_disposition_configs, web/API disposition management, and call log validation against active configured outcomes.
+- Group J has completed TC-004 end-to-end with disposition-driven follow-up prompt routing and a working counselling session scheduling form for immediate post-call booking.
+- Group J has completed TC-005 end-to-end with call_monitor_logs persistence, consent-aware monitor session controls (listen/whisper/barge-in), web/API monitor dashboards, and passing feature/API tests.
+- Group J has completed TC-006 end-to-end with telecalling_campaigns + assignment tables, web/API campaign management endpoints, dedicated web edit screen, dialler session campaign linkage, time-window/tenant-safe assignment validation, campaign progress tracking, and passing web/API tests.

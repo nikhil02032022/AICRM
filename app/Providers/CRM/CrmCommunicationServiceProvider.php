@@ -6,10 +6,18 @@ namespace App\Providers\CRM;
 
 use App\Repositories\CRM\Communication\CommunicationLogRepositoryInterface;
 use App\Repositories\CRM\Communication\CommunicationTemplateRepositoryInterface;
+use App\Repositories\CRM\Communication\CallScriptRepositoryInterface;
+use App\Repositories\CRM\Communication\CallMonitorRepositoryInterface;
+use App\Repositories\CRM\Communication\CallDispositionRepositoryInterface;
+use App\Repositories\CRM\Communication\EloquentCallDispositionRepository;
+use App\Repositories\CRM\Communication\EloquentCallMonitorRepository;
+use App\Repositories\CRM\Communication\EloquentCallScriptRepository;
+use App\Repositories\CRM\Communication\EloquentTelecallingCampaignRepository;
 use App\Repositories\CRM\Communication\EloquentCommunicationLogRepository;
 use App\Repositories\CRM\Communication\EloquentCommunicationTemplateRepository;
 use App\Repositories\CRM\Communication\EloquentEmailCampaignRepository;
 use App\Repositories\CRM\Communication\EmailCampaignRepositoryInterface;
+use App\Repositories\CRM\Communication\TelecallingCampaignRepositoryInterface;
 use App\Services\CRM\Communication\BSP\GupshupBsp;
 use App\Services\CRM\Communication\BSP\InteraktBsp;
 use App\Services\CRM\Communication\BSP\MetaCloudBsp;
@@ -33,6 +41,10 @@ final class CrmCommunicationServiceProvider extends ServiceProvider
         CommunicationTemplateRepositoryInterface::class => EloquentCommunicationTemplateRepository::class,
         CommunicationLogRepositoryInterface::class      => EloquentCommunicationLogRepository::class,
         EmailCampaignRepositoryInterface::class         => EloquentEmailCampaignRepository::class,
+        CallScriptRepositoryInterface::class            => EloquentCallScriptRepository::class,
+        CallMonitorRepositoryInterface::class           => EloquentCallMonitorRepository::class,
+        CallDispositionRepositoryInterface::class       => EloquentCallDispositionRepository::class,
+        TelecallingCampaignRepositoryInterface::class   => EloquentTelecallingCampaignRepository::class,
     ];
 
     public function register(): void

@@ -392,4 +392,114 @@
                 </div>
                 @endcan
 
+                {{-- BRD: CRM-TC-009 — Add lead to DNC / show DNC status --}}
+                @can('crm.dnc.manage')
+                <div class="card p-4">
+                    <p class="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Do-Not-Call (DNC)</p>
+                    @if ($lead->dnc_at)
+                        <div class="mb-2 flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                            DNC since {{ $lead->dnc_at->format('d M Y') }}
+                        </div>
+                        @if ($lead->dnc_reason)
+                            <p class="mb-3 text-xs text-gray-500">Reason: {{ $lead->dnc_reason }}</p>
+                        @endif
+                        <form
+                            method="POST"
+                            action="{{ route('crm.communication.voice.dnc.destroy', $lead->uuid) }}"
+                        >
+                            @csrf
+                            @method('DELETE')
+                            <button
+                                type="submit"
+                                class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-600 transition-colors duration-150 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                                aria-label="Remove {{ $lead->fullName() }} from DNC list"
+                                onclick="return confirm('Remove this lead from DNC? They will not receive communications until re-consent is provided.')"
+                            >
+                                Remove from DNC
+                            </button>
+                        </form>
+                    @else
+                        <div
+                            x-data="{ open: false }"
+                            @keydown.escape.window="open = false"
+                            class="space-y-2"
+                        >
+                            <button
+                                type="button"
+                                @click="open = !open"
+                                class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition-colors duration-150 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-400/40"
+                                aria-label="Add {{ $lead->fullName() }} to DNC list"
+                            >
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                                </svg>
+                                Add to DNC
+                            </button>
+
+                            <div
+                                x-show="open"
+                                x-transition:enter="transition ease-out duration-150"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-100"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="rounded-lg border border-red-200 bg-red-50 p-3"
+                            >
+                                <form
+                                    method="POST"
+                                    action="{{ route('crm.communication.voice.dnc.store', $lead->uuid) }}"
+                                    class="space-y-2"
+                                >
+                                    @csrf
+                                    <div>
+                                        <label for="dnc-reason-{{ $lead->uuid }}" class="block text-[11px] font-semibold uppercase tracking-wide text-red-700">
+                                            Reason <span class="text-red-500" aria-hidden="true">*</span>
+                                        </label>
+                                        <input
+                                            id="dnc-reason-{{ $lead->uuid }}"
+                                            type="text"
+                                            name="reason"
+                                            required
+                                            maxlength="255"
+                                            placeholder="e.g. Requested not to be contacted"
+                                            class="mt-1 block w-full rounded-md border border-red-300 bg-white px-2.5 py-1.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-400/40"
+                                            aria-label="DNC reason"
+                                            aria-required="true"
+                                        >
+                                        @error('reason')
+                                            <p class="mt-0.5 text-xs text-red-600" role="alert">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button
+                                            type="button"
+                                            @click="open = false"
+                                            class="flex-1 rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            class="flex-1 rounded bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white transition-colors duration-150 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                                        >
+                                            Confirm DNC
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+                    <a
+                        href="{{ route('crm.communication.voice.dnc.index') }}"
+                        class="mt-2 block text-center text-[11px] text-indigo-600 transition-colors duration-150 hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500/30 rounded"
+                    >
+                        View full DNC list →
+                    </a>
+                </div>
+                @endcan
+
             </div>{{-- end LEFT --}}

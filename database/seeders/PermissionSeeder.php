@@ -45,6 +45,8 @@ class PermissionSeeder extends Seeder
             'crm.communications.view',
             // Campaigns
             'crm.campaigns.manage',
+            // Voice/Telecalling (BRD: CRM-TC-007)
+            'crm.voice.performance',
             // Live Chat Widget (BRD: CRM-LC-006)
             'crm.chat-widget.manage',
             // Fees
@@ -92,6 +94,8 @@ class PermissionSeeder extends Seeder
             'crm.communication.send',             // send/view individual comms + call log + WA inbox
             'crm.communication.templates.manage', // create/edit email/SMS/WA templates + DLT templates
             'crm.campaigns.send',                 // create + launch bulk email/SMS campaigns
+            // Do-Not-Call list management (BRD: CRM-TC-009)
+            'crm.dnc.manage',                     // view DNC list, add/remove leads from DNC
         ];
     }
 

@@ -8,10 +8,17 @@ use App\Http\Controllers\Public\PublicChatWidgetController;
 use App\Http\Controllers\Public\PublicKioskController;
 use App\Http\Controllers\Web\CRM\AttributionWebController;
 use App\Http\Controllers\Web\CRM\CallLogWebController;
+use App\Http\Controllers\Web\CRM\CallDispositionWebController;
+use App\Http\Controllers\Web\CRM\CallMonitorWebController;
+use App\Http\Controllers\Web\CRM\CallScriptWebController;
+use App\Http\Controllers\Web\CRM\TelecallingCampaignWebController;
+use App\Http\Controllers\Web\CRM\CallCentrePerformanceWebController;
 use App\Http\Controllers\Web\CRM\ChatWidgetWebController;
 use App\Http\Controllers\Web\CRM\CostTrackingWebController;
 use App\Http\Controllers\Web\CRM\AutomationWorkflowWebController;
 use App\Http\Controllers\Web\CRM\ErpMatchWebController;
+use App\Http\Controllers\Web\CRM\DiallerWebController;
+use App\Http\Controllers\Web\CRM\DncWebController;
 use App\Http\Controllers\Web\CRM\LandingPageWebController;
 use App\Http\Controllers\Web\CRM\KioskWebController;
 use App\Http\Controllers\Web\CRM\LeadMergeWebController;
@@ -461,12 +468,96 @@ Route::middleware('auth')->group(function (): void {
                 Route::get('/', [CallLogWebController::class, 'index'])
                     ->name('index')
                     ->middleware('can:crm.communication.send');
+                // BRD: CRM-TC-003 — Configurable call dispositions
+                Route::get('dispositions', [CallDispositionWebController::class, 'index'])
+                    ->name('dispositions.index')
+                    ->middleware('can:crm.settings.manage');
+                Route::post('dispositions', [CallDispositionWebController::class, 'store'])
+                    ->name('dispositions.store')
+                    ->middleware('can:crm.settings.manage');
+                Route::put('dispositions/{callDispositionConfig:uuid}', [CallDispositionWebController::class, 'update'])
+                    ->name('dispositions.update')
+                    ->middleware('can:crm.settings.manage');
+                // BRD: CRM-TC-005 — Supervisor monitoring (listen/whisper/barge-in)
+                Route::get('monitor', [CallMonitorWebController::class, 'index'])
+                    ->name('monitor.index')
+                    ->middleware('can:crm.communication.send');
+                Route::post('monitor', [CallMonitorWebController::class, 'store'])
+                    ->name('monitor.store')
+                    ->middleware('can:crm.communication.send');
+                Route::post('monitor/{callMonitorLog:uuid}/stop', [CallMonitorWebController::class, 'stop'])
+                    ->name('monitor.stop')
+                    ->middleware('can:crm.communication.send');
+                // BRD: CRM-TC-002 — Call scripts with branching
+                Route::get('scripts', [CallScriptWebController::class, 'index'])
+                    ->name('scripts.index')
+                    ->middleware('can:crm.communication.send');
+                Route::post('scripts', [CallScriptWebController::class, 'store'])
+                    ->name('scripts.store')
+                    ->middleware('can:crm.communication.send');
+                Route::get('scripts/{callScript:uuid}', [CallScriptWebController::class, 'show'])
+                    ->name('scripts.show')
+                    ->middleware('can:crm.communication.send');
+                Route::put('scripts/{callScript:uuid}', [CallScriptWebController::class, 'update'])
+                    ->name('scripts.update')
+                    ->middleware('can:crm.communication.send');
+                Route::delete('scripts/{callScript:uuid}', [CallScriptWebController::class, 'destroy'])
+                    ->name('scripts.destroy')
+                    ->middleware('can:crm.communication.send');
+                Route::post('scripts/{callScript:uuid}/resolve', [CallScriptWebController::class, 'resolve'])
+                    ->name('scripts.resolve')
+                    ->middleware('can:crm.communication.send');
+                // BRD: CRM-TC-006 — Telecalling campaign definition, assignment, launch, and progress
+                Route::get('campaigns', [TelecallingCampaignWebController::class, 'index'])
+                    ->name('campaigns.index')
+                    ->middleware('can:crm.campaigns.manage');
+                Route::get('campaigns/{telecallingCampaign:uuid}/edit', [TelecallingCampaignWebController::class, 'edit'])
+                    ->name('campaigns.edit')
+                    ->middleware('can:crm.campaigns.manage');
+                Route::post('campaigns', [TelecallingCampaignWebController::class, 'store'])
+                    ->name('campaigns.store')
+                    ->middleware('can:crm.campaigns.manage');
+                Route::put('campaigns/{telecallingCampaign:uuid}', [TelecallingCampaignWebController::class, 'update'])
+                    ->name('campaigns.update')
+                    ->middleware('can:crm.campaigns.manage');
+                Route::post('campaigns/{telecallingCampaign:uuid}/launch', [TelecallingCampaignWebController::class, 'launch'])
+                    ->name('campaigns.launch')
+                    ->middleware('can:crm.campaigns.manage');
+                // BRD: CRM-TC-007 — Call centre performance dashboard
+                Route::get('performance', [CallCentrePerformanceWebController::class, 'index'])
+                    ->name('performance')
+                    ->middleware('can:crm.voice.performance');
+                Route::get('dialler', [DiallerWebController::class, 'index'])
+                    ->name('dialler.index')
+                    ->middleware('can:crm.communication.send');
+                Route::post('dialler/start', [DiallerWebController::class, 'store'])
+                    ->name('dialler.start')
+                    ->middleware('can:crm.communication.send');
+                Route::post('dialler/{diallerSession:uuid}/stop', [DiallerWebController::class, 'stop'])
+                    ->name('dialler.stop')
+                    ->middleware('can:crm.communication.send');
+                Route::post('dialler/{diallerSession:uuid}/dispatch-next', [DiallerWebController::class, 'dispatchNext'])
+                    ->name('dialler.next')
+                    ->middleware('can:crm.communication.send');
                 Route::post('calls/{callLog:uuid}/disposition', [CallLogWebController::class, 'updateDisposition'])
                     ->name('calls.disposition')
+                    ->middleware('can:crm.communication.send');
+                Route::get('calls/{callLog:uuid}/recording', [CallLogWebController::class, 'playRecording'])
+                    ->name('calls.recording')
                     ->middleware('can:crm.communication.send');
                 Route::post('leads/{lead:uuid}/call', [CallLogWebController::class, 'initiateCall'])
                     ->name('leads.call')
                     ->middleware('can:crm.communication.send');
+                // BRD: CRM-TC-009 — Do-Not-Call (DNC) list management
+                Route::get('dnc', [DncWebController::class, 'index'])
+                    ->name('dnc.index')
+                    ->middleware('can:crm.dnc.manage');
+                Route::post('dnc/{lead:uuid}', [DncWebController::class, 'store'])
+                    ->name('dnc.store')
+                    ->middleware('can:crm.dnc.manage');
+                Route::delete('dnc/{lead:uuid}', [DncWebController::class, 'destroy'])
+                    ->name('dnc.destroy')
+                    ->middleware('can:crm.dnc.manage');
             });
         });
 

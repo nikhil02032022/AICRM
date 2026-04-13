@@ -50,6 +50,7 @@ final class VoiceService
             'direction'          => CallDirection::OUTBOUND,
             'from_number'        => $counsellor->phone ?? '',
             'to_number'          => $lead->mobile,
+            'call_consent_given' => (bool) $lead->call_consent_given,
             'status'             => CallStatus::INITIATED,
             'initiated_by'       => $counsellor->id,
             'called_at'          => now(),
@@ -77,6 +78,7 @@ final class VoiceService
             'ended_at'          => now(),
         ]);
 
+        event(new CallCompletedEvent($callLog->lead, $callLog));
         event(new CallLoggedEvent($callLog->lead, $callLog));
 
         return $callLog->fresh();

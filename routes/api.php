@@ -8,10 +8,16 @@ use App\Http\Controllers\Api\CRM\CampaignSpendController;
 use App\Http\Controllers\Api\CRM\ChatWidgetController;
 use App\Http\Controllers\Api\CRM\LandingPageController;
 use App\Http\Controllers\Api\CRM\AutomationWorkflowController;
+use App\Http\Controllers\Api\CRM\CallCentrePerformanceController;
+use App\Http\Controllers\Api\CRM\CallMonitorController;
+use App\Http\Controllers\Api\CRM\CallDispositionController;
+use App\Http\Controllers\Api\CRM\CallScriptController;
+use App\Http\Controllers\Api\CRM\DiallerController;
 use App\Http\Controllers\Api\CRM\LeadController;
 use App\Http\Controllers\Api\CRM\LeadMergeController;
 use App\Http\Controllers\Api\CRM\LeadScoringController;
 use App\Http\Controllers\Api\CRM\QuestionnaireController;
+use App\Http\Controllers\Api\CRM\TelecallingCampaignController;
 use App\Http\Controllers\Api\CRM\WebFormController;
 use App\Http\Controllers\Api\CRM\Webhooks\EducationPortalWebhookController;
 use App\Http\Controllers\Api\CRM\Webhooks\EmailWebhookController;
@@ -34,7 +40,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1/crm')
-    ->name('api.crm.')
+    ->name('api.v1.crm.')
     ->middleware(['auth:sanctum', 'tenancy'])
     ->group(function (): void {
         // Health-check (used in tests)
@@ -75,6 +81,9 @@ Route::prefix('v1/crm')
         // BRD: CRM-MA-010 — Automation workflow performance reporting API
         Route::get('automation/workflows-performance', [AutomationWorkflowController::class, 'performanceReport'])
             ->name('automation.workflows.performance');
+        // BRD: CRM-TC-007 — Call centre performance dashboard API endpoint
+        Route::get('voice/performance', [CallCentrePerformanceController::class, 'performance'])
+            ->name('voice.performance');
         // BRD: CRM-LC-009 — QR code PNG download
         Route::get('forms/{form:uuid}/qr', [WebFormController::class, 'qr'])
             ->name('crm.forms.qr');
@@ -126,6 +135,52 @@ Route::prefix('v1/crm')
             ->name('scoring.ai-suggestions.decision');
         Route::get('scoring/ai-usage-logs', [LeadScoringController::class, 'aiUsageLogs'])
             ->name('scoring.ai-usage-logs');
+
+        // BRD: CRM-TC-001 — Dialler session APIs for mobile/ERP integrations
+        Route::get('dialler/sessions', [DiallerController::class, 'index'])
+            ->name('dialler.sessions.index');
+        Route::post('dialler/sessions', [DiallerController::class, 'store'])
+            ->name('dialler.sessions.store');
+        Route::get('dialler/sessions/{diallerSession:uuid}', [DiallerController::class, 'show'])
+            ->name('dialler.sessions.show');
+        Route::post('dialler/sessions/{diallerSession:uuid}/stop', [DiallerController::class, 'stop'])
+            ->name('dialler.sessions.stop');
+        Route::post('dialler/sessions/{diallerSession:uuid}/dispatch-next', [DiallerController::class, 'dispatchNext'])
+            ->name('dialler.sessions.dispatch-next');
+
+        // BRD: CRM-TC-002 — Call script CRUD + branch resolution
+        Route::apiResource('voice/call-scripts', CallScriptController::class)
+            ->parameters(['call-scripts' => 'callScript:uuid']);
+        Route::post('voice/call-scripts/{callScript:uuid}/resolve', [CallScriptController::class, 'resolve'])
+            ->name('voice.call-scripts.resolve');
+
+        // BRD: CRM-TC-006 — Telecalling campaign management APIs
+        Route::get('voice/campaigns', [TelecallingCampaignController::class, 'index'])
+            ->name('voice.campaigns.index');
+        Route::post('voice/campaigns', [TelecallingCampaignController::class, 'store'])
+            ->name('voice.campaigns.store');
+        Route::get('voice/campaigns/{telecallingCampaign:uuid}', [TelecallingCampaignController::class, 'show'])
+            ->name('voice.campaigns.show');
+        Route::put('voice/campaigns/{telecallingCampaign:uuid}', [TelecallingCampaignController::class, 'update'])
+            ->name('voice.campaigns.update');
+        Route::post('voice/campaigns/{telecallingCampaign:uuid}/launch', [TelecallingCampaignController::class, 'launch'])
+            ->name('voice.campaigns.launch');
+
+        // BRD: CRM-TC-005 — Supervisor call monitoring APIs
+        Route::get('voice/call-monitor/sessions', [CallMonitorController::class, 'index'])
+            ->name('voice.call-monitor.sessions.index');
+        Route::post('voice/call-monitor/sessions', [CallMonitorController::class, 'store'])
+            ->name('voice.call-monitor.sessions.store');
+        Route::post('voice/call-monitor/sessions/{callMonitorLog:uuid}/stop', [CallMonitorController::class, 'stop'])
+            ->name('voice.call-monitor.sessions.stop');
+
+        // BRD: CRM-TC-003 — Call disposition configuration APIs
+        Route::get('voice/call-dispositions', [CallDispositionController::class, 'index'])
+            ->name('voice.call-dispositions.index');
+        Route::post('voice/call-dispositions', [CallDispositionController::class, 'store'])
+            ->name('voice.call-dispositions.store');
+        Route::put('voice/call-dispositions/{callDispositionConfig:uuid}', [CallDispositionController::class, 'update'])
+            ->name('voice.call-dispositions.update');
 
         // BRD: CRM-LQ-009 — Qualification questionnaire CRUD + response capture
         Route::apiResource('scoring/questionnaires', QuestionnaireController::class)

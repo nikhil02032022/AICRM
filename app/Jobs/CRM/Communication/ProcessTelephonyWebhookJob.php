@@ -64,11 +64,23 @@ final class ProcessTelephonyWebhookJob implements ShouldQueue, ShouldBeUnique
             default                 => $callLog->status,
         };
 
-        $callLog->update([
+        $recordingUrl = $this->payload['recording_url']
+            ?? $this->payload['recording_file']
+            ?? $this->payload['RecordingUrl']
+            ?? null;
+
+        $updates = [
             'status'           => $status,
             'duration_seconds' => (int) ($this->payload['Duration'] ?? $this->payload['duration'] ?? 0),
             'ended_at'         => now(),
-        ]);
+        ];
+
+        // BRD: CRM-TC-008 + DPDP — attach recording only when explicit call consent exists.
+        if ($callLog->call_consent_given && is_string($recordingUrl) && $recordingUrl !== '') {
+            $updates['recording_url'] = $recordingUrl;
+        }
+
+        $callLog->update($updates);
 
         if ($status->isTerminal()) {
             event(new CallCompletedEvent($callLog->lead, $callLog));

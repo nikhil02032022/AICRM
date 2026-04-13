@@ -44,6 +44,7 @@ use App\Listeners\CRM\EvaluateAutomationOnLeadTemperatureChanged;
 use App\Listeners\CRM\EvaluateReEngagementOnLeadTemperatureChanged;
 use App\Listeners\CRM\EvaluateAutomationOnWebFormSubmitted;
 use App\Listeners\CRM\CaptureLeadAttributionOnCreate;
+use App\Listeners\CRM\ContinueDiallerOnCallLogged;
 use App\Listeners\CRM\LogCallToActivityTimeline;
 use App\Listeners\CRM\LogEmailSentToActivity;
 use App\Listeners\CRM\LogWhatsAppToActivityTimeline;
@@ -144,6 +145,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(WhatsAppLeadCreatedEvent::class, TriggerScoringWorkflowListener::class);
 
         // F4: Voice/IVR events
+        // BRD: CRM-TC-001 — Continue dialler queue after current call finishes.
+        Event::listen(CallLoggedEvent::class, ContinueDiallerOnCallLogged::class);
+
         // BRD: CRM-CC-017 — Log call to activity timeline
         Event::listen(CallLoggedEvent::class, LogCallToActivityTimeline::class);
         // BRD: CRM-CC-018 — Notify counsellor on missed call

@@ -12,6 +12,7 @@ use App\Http\Requests\Web\CRM\BookSessionRequest;
 use App\Http\Requests\Web\CRM\UpdateSessionRequest;
 use App\Models\CRM\CounsellingSession;
 use App\Models\CRM\Lead;
+use App\Models\User;
 use App\Services\CRM\Counselling\CounsellingService;
 use App\Services\CRM\Counselling\CounsellorAvailabilityService;
 use Carbon\Carbon;
@@ -57,7 +58,14 @@ final class SessionWebController extends Controller
             ? $this->availabilityService->getAvailableTimesForDate($counsellorId, Carbon::parse($date))
             : collect();
 
-        return view('crm.sessions.create', compact('lead', 'counsellorId', 'date', 'availableTimes'));
+        $counsellors = User::query()
+            ->where('institution_id', (int) $request->user()->institution_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $followUpPrompt = $request->session()->get('follow_up_prompt');
+
+        return view('crm.sessions.create', compact('lead', 'counsellorId', 'date', 'availableTimes', 'counsellors', 'followUpPrompt'));
     }
 
     /**
