@@ -328,6 +328,18 @@ return [
             'timeout' => 60,
             'nice' => 2,
         ],
+        // BRD: CRM-MA-002 — Marketing automation trigger evaluation queue
+        'supervisor-automation' => [
+            'connection' => 'redis',
+            'queue' => ['crm-automation'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 3,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 60,
+            'nice' => 4,
+        ],
     ],
 
     'environments' => [
@@ -343,6 +355,7 @@ return [
             'supervisor-comms-sms' => ['maxProcesses' => 8, 'balanceMaxShift' => 2, 'balanceCooldown' => 2],
             'supervisor-comms-whatsapp' => ['maxProcesses' => 15, 'balanceMaxShift' => 5, 'balanceCooldown' => 2],
             'supervisor-comms-voice' => ['maxProcesses' => 6, 'balanceMaxShift' => 2, 'balanceCooldown' => 3],
+            'supervisor-automation' => ['maxProcesses' => 5, 'balanceMaxShift' => 2, 'balanceCooldown' => 3],
         ],
 
         'local' => [
@@ -357,6 +370,7 @@ return [
             'supervisor-comms-sms' => ['maxProcesses' => 1],
             'supervisor-comms-whatsapp' => ['maxProcesses' => 1],
             'supervisor-comms-voice' => ['maxProcesses' => 1],
+            'supervisor-automation' => ['maxProcesses' => 1],
         ],
     ],
 

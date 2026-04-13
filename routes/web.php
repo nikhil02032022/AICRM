@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\CRM\AttributionWebController;
 use App\Http\Controllers\Web\CRM\CallLogWebController;
 use App\Http\Controllers\Web\CRM\ChatWidgetWebController;
 use App\Http\Controllers\Web\CRM\CostTrackingWebController;
+use App\Http\Controllers\Web\CRM\AutomationWorkflowWebController;
 use App\Http\Controllers\Web\CRM\ErpMatchWebController;
 use App\Http\Controllers\Web\CRM\LandingPageWebController;
 use App\Http\Controllers\Web\CRM\KioskWebController;
@@ -185,6 +186,28 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/marketing/cost-tracking/spends', [CostTrackingWebController::class, 'store'])
             ->name('marketing.cost-tracking.store')
             ->middleware('can:crm.campaigns.manage');
+
+        // BRD: CRM-MA-001 — Visual workflow builder CRUD routes for marketing automation
+        Route::prefix('marketing/automation-workflows')->name('marketing.automation-workflows.')->group(function (): void {
+            Route::get('/', [AutomationWorkflowWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.campaigns.manage');
+            Route::get('/create', [AutomationWorkflowWebController::class, 'create'])
+                ->name('create')
+                ->middleware('can:crm.campaigns.manage');
+            Route::post('/', [AutomationWorkflowWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.campaigns.manage');
+            Route::get('/{automationWorkflow:uuid}/edit', [AutomationWorkflowWebController::class, 'edit'])
+                ->name('edit')
+                ->middleware('can:crm.campaigns.manage');
+            Route::put('/{automationWorkflow:uuid}', [AutomationWorkflowWebController::class, 'update'])
+                ->name('update')
+                ->middleware('can:crm.campaigns.manage');
+            Route::delete('/{automationWorkflow:uuid}', [AutomationWorkflowWebController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('can:crm.campaigns.manage');
+        });
 
         // BRD: CRM-LC-012 — Bulk CSV/Excel import routes
         Route::get('/imports', [LeadImportWebController::class, 'index'])

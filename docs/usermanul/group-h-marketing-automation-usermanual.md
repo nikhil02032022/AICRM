@@ -17,7 +17,7 @@ Group H focuses on marketing-led lead generation and attribution.
 | LC-006 Website chatbot widget | Implemented (initial slice) | Public chatbot + lead capture + CRM lead creation + API ingestion |
 | LC-013 Walk-in kiosk interface | Not Implemented | Walk-in source exists, but no kiosk UI/controller flow |
 | LC-017 Cost-per-lead tracking | Not Implemented | Planned only |
-| MA-001 to MA-010 Automation engine | Not Implemented | Planned only |
+| MA-001 to MA-010 Automation engine | Implemented | MA-001/002/003/004/005/006/007/008/009/010 implemented |
 
 ### Currently available in this build
 - LC-005 Landing Page Builder (initial slice)
@@ -34,12 +34,23 @@ Group H focuses on marketing-led lead generation and attribution.
 - LC-016 Attribution support (partial)
    - Capture landing-page UTM fields and append them to the embedded form URL.
    - Full multi-touch attribution model/reporting is not available yet.
+- Marketing Automation (partial)
+   - MA-001 workflow builder CRUD is available.
+   - MA-002 trigger evaluation is available for event, date/time, and inactivity trigger families.
+   - MA-003 action runtime is available for supported action types.
+   - MA-004 A/B testing is available for automated email subject/content variants.
+   - MA-005 drip delay scheduling is available per workflow step.
+   - MA-006 auto-exits nurture sequences when lead status progresses to Contacted or higher.
+   - MA-007 re-engagement workflows are available for cold and inactive lead scenarios.
+   - MA-008 programme-specific nurture journeys are available through `programme_ids` / `programme_codes` trigger configuration.
+   - MA-009 event-based journeys are available using `event_based` trigger config (`event_type`, `event_at`, `window_minutes`, `reminder_offsets_days`).
+   - MA-010 automation performance reporting is available through `/api/v1/crm/automation/workflows-performance` with workflow-level KPIs.
 
 ### Planned (not fully available yet)
 - LC-013 Walk-in kiosk UI
 - LC-016 Multi-touch attribution model
 - LC-017 Cost-per-lead tracking
-- MA-001 to MA-010 Workflow automation builder and reporting
+- None in MA scope (MA-001 to MA-010 complete)
 
 ---
 

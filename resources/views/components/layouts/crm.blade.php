@@ -169,6 +169,18 @@
                 </a>
                 @endcan
 
+                @can('crm.campaigns.manage')
+                <a href="{{ route('crm.marketing.automation-workflows.index') }}"
+                   aria-current="{{ request()->routeIs('crm.marketing.automation-workflows.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.marketing.automation-workflows.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 6h6m3 0h6M4.5 12h3m6 0h6M4.5 18h6m3 0h6"/>
+                    </svg>
+                    Automation Workflows
+                </a>
+                @endcan
+
                 {{-- Bulk Import — BRD: CRM-LC-012 (Group C) --}}
                 @can('crm.leads.import')
                 <a href="{{ route('crm.imports.index') }}"

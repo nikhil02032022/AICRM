@@ -11,11 +11,12 @@ Deliver advanced marketing automation, multi-touch attribution, kiosk/chat lead 
 | LC-013 | Walk-in enquiry kiosk interface | Should Have | ✅ Implemented (current slice) |
 | LC-016 | Multi-touch attribution model | Should Have | ✅ Implemented (current slice) |
 | LC-017 | Cost-per-lead tracking | Should Have | ✅ Implemented (current slice) |
-| MA-001–MA-010 | Visual workflow builder, triggers, actions, A/B testing, drip, re-engagement, reporting | Must/Should Have | ❌ Not Implemented |
+| MA-001–MA-010 | Visual workflow builder, triggers, actions, A/B testing, drip, re-engagement, reporting | Must/Should Have | ✅ Implemented (MA-001 to MA-010) |
 
 ## 📊 Current Build Summary
 - Fully implemented: LC-005, LC-006, LC-013, LC-016, LC-017 (current slice)
-- Not implemented: MA-001 to MA-010
+- Implemented in current slice: MA-001, MA-002, MA-003, MA-004, MA-005, MA-006, MA-007, MA-008, MA-009, MA-010
+- Remaining: None
 
 ## 🧩 Features Breakdown
 
@@ -128,29 +129,33 @@ Embeddable chat widget for websites, auto-creates CRM leads from chat sessions.
 #### 📌 Description
 Kiosk-friendly interface for walk-in lead capture at events/campus.
 #### ✅ Implemented In Current Build
-- Walk-in source support exists in lead domain enums/scoring.
+- Added public kiosk flow with dedicated kiosk lead capture endpoints and DPDP consent validation.
+- Added `KioskService`, `CreateKioskLeadDTO`, and `KioskLeadCreatedEvent` for service-layer processing and event hooks.
+- Added kiosk CRM web screen for launch/monitoring and recent submission visibility.
+- Added feature tests for success, consent validation failure, and inactive institution rejection.
 #### ⏭️ Pending For Full BRD Completion
-- No dedicated kiosk experience exists yet.
-- No `KioskController`, `KioskService`, `CreateKioskLeadDTO`, `KioskLeadCreatedEvent`, kiosk routes, or `kiosk.blade.php` are implemented.
+- Dedicated kiosk analytics dashboard and advanced device-session management are pending.
+- Offline-first kiosk submission queueing is pending.
 #### 👤 User Stories
 - As a staff member, I can register walk-in enquiries quickly.
 #### ✅ Acceptance Criteria
-- Given a walk-in, when details are entered, then a lead is created with source=kiosk.
+- Given a walk-in, when details are entered, then a lead is created with source=walk_in.
 #### ⚙️ Backend Design
-- Controllers: KioskController
+- Controllers: PublicKioskController (public), KioskWebController (CRM web)
 - Services: KioskService
 - DTOs: CreateKioskLeadDTO
 - Jobs: N/A
 - Events: KioskLeadCreatedEvent
-- DB Schema: leads (source=kiosk)
+- DB Schema: leads (source=walk_in)
 #### 🎨 UI/UX
-- kiosk.blade.php (touch-friendly form)
+- `resources/views/public/kiosk/show.blade.php` (touch-friendly kiosk form)
+- `resources/views/crm/marketing/kiosk/index.blade.php` (CRM kiosk monitor/launch screen)
 #### 🔗 Dependencies
 - Lead foundation (A)
 #### 🔐 Security / DPDP
 - Consent checkbox, audit log
 #### 🧪 Test Cases
-- Kiosk flow, DPDP consent
+- Kiosk flow success, DPDP consent enforcement, inactive institution rejection
 
 ---
 
@@ -221,24 +226,33 @@ Track campaign spend and calculate cost per lead by source.
 #### 📌 Description
 Visual workflow builder for multi-step automation: triggers, actions, A/B testing, drip, re-engagement, reporting.
 #### ✅ Implemented In Current Build
-- None
+- MA-001 foundation implemented: workflow schema, models, DTO, repository/service, web+API CRUD, and builder/list UI.
+- MA-002 trigger engine implemented: event/date/inactivity trigger evaluation, queue jobs, listeners, and scheduler wiring.
+- MA-003 action runtime implemented: supported action strategies with execution audit records on `crm-automation` queue.
+- MA-005 drip scheduling implemented: delay-aware per-step progression using `delay_minutes` with queue re-dispatch until completion.
+- MA-006 nurture exit implemented: active nurture instances auto-exit on lead status progression to `contacted` or higher.
+- MA-004 A/B testing implemented: deterministic variant selection for automated email subject/content in workflow sequences.
+- MA-007 re-engagement implemented: dedicated workflows for cold/inactive leads via `re_engagement` trigger support.
+- MA-008 programme-specific journeys implemented: trigger matching by `programme_ids` and `programme_codes` against lead programme interests.
+- MA-009 event-based journeys implemented: `event_based` trigger support with event windows/reminders and scheduled evaluation job.
+- MA-010 automation reporting implemented: API reporting endpoint with workflow-level KPIs and summary performance metrics.
 #### ⏭️ Pending For Full BRD Completion
-- Workflow engine is not yet implemented.
-- No automation models, DTOs, jobs, events, DB tables, controllers, or workflow builder UI currently exist for MA-001 to MA-010.
+- MA-001 to MA-010 are implemented for current sprint scope.
 #### 👤 User Stories
 - As a marketing manager, I can automate nurture journeys and campaigns.
 #### ✅ Acceptance Criteria
 - Given a workflow, when triggers fire, then actions are executed as per configuration.
 #### ⚙️ Backend Design
-- Controllers: AutomationController
-- Services: AutomationService
-- DTOs: CreateWorkflowDTO, UpdateWorkflowDTO
-- Jobs: ExecuteAutomationJob, ABTestJob
-- Events: WorkflowTriggeredEvent, ActionExecutedEvent
-- DB Schema: automation_workflows, workflow_steps, workflow_triggers, workflow_actions
+- Controllers: AutomationWorkflowWebController (web), AutomationWorkflowController (API)
+- Services: AutomationWorkflowService, AutomationTriggerService, AutomationActionService, AutomationPerformanceReportService, NurtureExitService
+- DTOs: CreateAutomationWorkflowDTO
+- Jobs: EvaluateAutomationTriggerJob, EvaluateTimedAutomationTriggersJob, EvaluateInactivityAutomationTriggersJob, EvaluateEventBasedAutomationTriggersJob, ExecuteWorkflowActionsJob
+- Events: LeadCreatedEvent, LeadStatusChangedEvent, LeadTemperatureChangedEvent, EmailOpenedEvent, EmailLinkClickedEvent (trigger sources)
+- DB Schema: automation_workflows, workflow_steps, workflow_instances, workflow_action_executions
 - Queues: crm-automation
 #### 🎨 UI/UX
-- automation-workflow.blade.php (drag-and-drop builder, stats)
+- `resources/views/crm/marketing/automation-workflows/edit.blade.php` (workflow builder form)
+- `resources/views/crm/marketing/automation-workflows/index.blade.php` (workflow listing and management)
 #### 🔗 Dependencies
 - Communication Engine (F), Lead foundation (A), Analytics (K)
 #### 🔐 Security / DPDP
@@ -250,6 +264,6 @@ Visual workflow builder for multi-step automation: triggers, actions, A/B testin
 
 ## ✅ Implementation Truth Snapshot (April 2026)
 - LC-005, LC-006, LC-013, LC-016, and LC-017 are complete for the current sprint slice.
-- MA-001 to MA-010 remain pending implementation.
+- MA-001, MA-002, MA-003, MA-004, MA-005, MA-006, MA-007, MA-008, MA-009, and MA-010 are complete for the current sprint slice.
 
 ---

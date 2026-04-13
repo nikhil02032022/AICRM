@@ -9,6 +9,8 @@ use App\Enums\CRM\CommunicationChannel;
 use App\Enums\CRM\MessageDirection;
 use App\Enums\CRM\MessageStatus;
 use App\Events\CRM\Communication\EmailBouncedEvent;
+use App\Events\CRM\Communication\EmailLinkClickedEvent;
+use App\Events\CRM\Communication\EmailOpenedEvent;
 use App\Events\CRM\Communication\EmailSentEvent;
 use App\Events\CRM\Communication\EmailUnsubscribedEvent;
 use App\Jobs\CRM\Communication\EnforceUnsubscribeJob;
@@ -37,14 +39,16 @@ final class EmailService
             ? \App\Models\CRM\CommunicationTemplate::find($dto->templateId)
             : null;
 
-        $renderedBody = $template !== null
-            ? $this->templateService->render($template, [
-                'first_name'        => $lead->first_name,
-                'full_name'         => trim($lead->first_name.' '.($lead->last_name ?? '')),
-                'institution_name'  => '',
-                'unsubscribe_link'  => route('crm.unsubscribe', ['uuid' => $lead->uuid]),
-            ])
-            : ($dto->customBodyHtml ?? '');
+        $renderedBody = trim((string) ($dto->customBodyHtml ?? ''));
+
+        if ($renderedBody === '' && $template !== null) {
+            $renderedBody = $this->templateService->render($template, [
+                'first_name' => $lead->first_name,
+                'full_name' => trim($lead->first_name.' '.($lead->last_name ?? '')),
+                'institution_name' => '',
+                'unsubscribe_link' => route('crm.unsubscribe', ['uuid' => $lead->uuid]),
+            ]);
+        }
 
         // BRD: CRM-CC-005 — Never send to unsubscribed leads
         if ($lead->email_unsubscribed_at !== null || $lead->dnc_at !== null) {
@@ -129,6 +133,14 @@ final class EmailService
 
         if (! empty($updates)) {
             $this->logRepository->update($log, $updates);
+
+                if ($eventType === 'open' || $eventType === 'opened') {
+                    event(new EmailOpenedEvent($log->lead, $log));
+                }
+
+                if ($eventType === 'click' || $eventType === 'clicked') {
+                    event(new EmailLinkClickedEvent($log->lead, $log));
+                }
 
             if ($eventType === 'bounce' || $eventType === 'hardbounce') {
                 event(new EmailBouncedEvent($log->lead, $log));

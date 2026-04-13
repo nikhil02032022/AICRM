@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CRM\AttributionController;
 use App\Http\Controllers\Api\CRM\CampaignSpendController;
 use App\Http\Controllers\Api\CRM\ChatWidgetController;
 use App\Http\Controllers\Api\CRM\LandingPageController;
+use App\Http\Controllers\Api\CRM\AutomationWorkflowController;
 use App\Http\Controllers\Api\CRM\LeadController;
 use App\Http\Controllers\Api\CRM\LeadMergeController;
 use App\Http\Controllers\Api\CRM\LeadScoringController;
@@ -65,6 +66,12 @@ Route::prefix('v1/crm')
             ->name('campaign-spends.index');
         Route::post('campaign-spends', [CampaignSpendController::class, 'store'])
             ->name('campaign-spends.store');
+        // BRD: CRM-MA-001 — Automation workflow builder API for external integrations
+        Route::apiResource('automation/workflows', AutomationWorkflowController::class)
+            ->parameters(['workflows' => 'automationWorkflow:uuid']);
+        // BRD: CRM-MA-010 — Automation workflow performance reporting API
+        Route::get('automation/workflows-performance', [AutomationWorkflowController::class, 'performanceReport'])
+            ->name('automation.workflows.performance');
         // BRD: CRM-LC-009 — QR code PNG download
         Route::get('forms/{form:uuid}/qr', [WebFormController::class, 'qr'])
             ->name('crm.forms.qr');

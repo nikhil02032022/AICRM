@@ -11,12 +11,12 @@ Deliver advanced marketing automation, multi-touch attribution, kiosk/chat lead 
 | LC-013 | Walk-in enquiry kiosk interface | Should Have | ✅ Implemented (done) |
 | LC-016 | Multi-touch attribution model | Should Have | ✅ Implemented (done) |
 | LC-017 | Cost-per-lead tracking | Should Have | ✅ Implemented (done) |
-| MA-001–MA-010 | Visual workflow builder, triggers, actions, A/B testing, drip, re-engagement, reporting | Must/Should Have | ❌ Not Implemented |
+| MA-001–MA-010 | Visual workflow builder, triggers, actions, A/B testing, drip, re-engagement, reporting | Must/Should Have | ✅ Implemented (MA-001 to MA-010) |
 
 ## 📊 Current Build Summary
 - Fully implemented: LC-005, LC-006, LC-013, LC-016, LC-017 (done)
-- Implemented in current slice: None
-- Not implemented: MA-001 to MA-010
+- Implemented in current slice: MA-001, MA-002, MA-003, MA-004, MA-005, MA-006, MA-007, MA-008, MA-009, MA-010
+- Remaining: None
 
 ## 🧩 Features Breakdown
 
@@ -279,10 +279,77 @@ Track campaign spend and calculate cost per lead by source.
 #### 📌 Description
 Visual workflow builder for multi-step automation: triggers, actions, A/B testing, drip, re-engagement, reporting.
 #### ✅ Implemented In Current Build
-- None
+- MA-001 initial foundation slice implemented:
+	- Added core automation schema migrations: `automation_workflows`, `workflow_steps`, `workflow_instances`, `workflow_action_executions`.
+	- Added CRM models with UUID + soft deletes + InstitutionScope for multi-tenant isolation.
+	- Added workflow enums (`WorkflowStatus`, `WorkflowNodeType`) and typed workflow DTO for builder payload normalization.
+	- Added repository + service layer for workflow CRUD and ordered step persistence.
+	- Added web controller + API controller + API resource + validation requests for workflow management.
+	- Added authenticated CRM routes under `/crm/marketing/automation-workflows` and integration API routes under `/api/v1/crm/automation/workflows`.
+	- Added CRM sidebar navigation entry and initial builder/list Blade views with step add/remove/reorder and `steps_json` payload handling.
+	- Added API feature tests for create/list/update/delete, institution isolation, and `steps_json` parsing.
+- MA-002 trigger engine initial slice implemented:
+	- Added `AutomationTriggerService` to evaluate event-based, date/time-based, and inactivity timeout triggers.
+	- Added queued trigger jobs (`EvaluateAutomationTriggerJob`, `EvaluateTimedAutomationTriggersJob`, `EvaluateInactivityAutomationTriggersJob`) on `crm-automation` queue.
+	- Added trigger listeners for `lead_created`, `form_submitted`, `status_changed`, `lead_score_changed`, `email_opened`, and `link_clicked` trigger types.
+	- Added email webhook event dispatch for open/click events (`EmailOpenedEvent`, `EmailLinkClickedEvent`) to feed trigger evaluation.
+	- Added scheduler wiring for timed/inactivity trigger scans in `routes/console.php`.
+	- Added Horizon supervisor configuration for `crm-automation` queue.
+	- Added MA-002 feature tests for trigger evaluation across lead_created, status_changed, date_time_based, and inactivity_timeout flows.
+- MA-002 completed for current sprint scope:
+	- Trigger type validation and builder options now cover all BRD MA-002 trigger families: lead created, form submitted, email opened, link clicked, lead score changed, status changed, date/time based, inactivity timeout.
+	- Added trigger tests for `lead_score_changed` and `link_clicked` paths.
+- MA-003 initial action runtime slice implemented:
+	- Added `AutomationActionService` with action strategy handling for: send_email, send_sms, send_whatsapp, assign_counsellor, update_lead_field, enrol_in_workflow, webhook_call.
+	- Added graceful pending stubs for `add_tag` and `create_task` until those module entities are available.
+	- Added queued MA-003 action executor job `ExecuteWorkflowActionsJob` on `crm-automation`.
+	- Updated MA-002 trigger service to dispatch MA-003 action execution after workflow instance creation.
+	- Added MA-003 feature tests for update-lead-field action, webhook action, and pending action behavior.
+- MA-003 completed for current sprint scope:
+	- Implemented remaining MA-003 action types end-to-end by adding CRM `Tag` + `Task` entities and storage (`crm_tags`, `lead_tag`, `crm_tasks`).
+	- `add_tag` action now creates/links tenant-scoped tags to lead records.
+	- `create_task` action now creates tenant-scoped CRM follow-up tasks and writes timeline activity entries.
+	- Hardened action executor to catch per-step exceptions and persist failed execution records without crashing workflow processing.
+	- Extended MA-003 test suite to cover `assign_counsellor`, `update_lead_field`, `add_tag`, `create_task`, `enrol_in_workflow`, and `webhook_call` action flows.
+- MA-005 completed for current sprint scope (drip campaign scheduling):
+	- Updated MA action runtime to execute one workflow action step at a time using `current_workflow_step_id` progression.
+	- Added delay-aware scheduling so each step honors `delay_minutes` before execution.
+	- Added workflow instance scheduling context keys (`next_action_step_id`, `next_action_due_at`) for deterministic queue resumes.
+	- Updated `ExecuteWorkflowActionsJob` to self-reschedule immediate or delayed follow-up runs until the workflow instance reaches `completed` status.
+	- Added MA-005 feature coverage to assert delayed drip progression and non-immediate execution of future steps.
+- MA-006 completed for current sprint scope (nurture exit on progression):
+	- Added `NurtureExitService` to auto-exit active nurture workflow instances when a lead reaches `contacted` or higher statuses.
+	- Integrated MA-006 exit orchestration in `LeadStatusWorkflowService` status-transition handling.
+	- Added execution guard in `ExecuteWorkflowActionsJob` to skip instances already moved to terminal states such as `exited`.
+	- Added MA-006 feature tests for contacted-triggered nurture exit and non-exit on unchanged `new_enquiry` status.
+- MA-004 completed for current sprint scope (A/B testing for automated email sequences):
+	- Added MA-004 variant resolution in `AutomationActionService` for `send_email` actions with deterministic variant assignment.
+	- Added support for split and weighted A/B strategies using lead-specific hashing for stable variant selection.
+	- Added variant-level overrides for subject/content (`subject`, `custom_body_html`) and persisted selected variant metadata in workflow action execution results.
+	- Updated `EmailService` to honour `custom_body_html` override for automated A/B content variants.
+	- Added MA-004 feature coverage in automation action tests validating variant metadata capture and selected-subject delivery.
+- MA-007 completed for current sprint scope (re-engagement for cold/inactive leads):
+	- Added dedicated `re_engagement` trigger type support in workflow request validation and builder options.
+	- Added cold-lead re-engagement listener (`EvaluateReEngagementOnLeadTemperatureChanged`) to dispatch automation evaluation on COLD transitions.
+	- Extended inactivity scan logic to enrol leads into `re_engagement` workflows configured with inactivity reason.
+	- Added trigger-config reason matching (`cold` / `inactive`) in automation trigger evaluation.
+	- Added MA-007 feature tests covering both cold and inactive re-engagement enrollment paths.
+- MA-008 completed for current sprint scope (programme-specific nurture journeys):
+	- Added programme-level trigger matching in `AutomationTriggerService` using `trigger_config.programme_ids` and `trigger_config.programme_codes`.
+	- Configured journey enrollment checks to match against lead programme interests (`lead_programme_interests` / `crm_programmes`) before creating workflow instances.
+	- Added MA-008 trigger test coverage validating positive and negative matching for programme ID and code combinations.
+- MA-009 completed for current sprint scope (event-based automation journeys):
+	- Added `event_based` workflow trigger support in API request validation and workflow builder trigger options.
+	- Added event trigger evaluation in `AutomationTriggerService` with support for `event_at`, `event_type`, `window_minutes`, and `reminder_offsets_days`.
+	- Added scheduled job `EvaluateEventBasedAutomationTriggersJob` to run event journey evaluation every 15 minutes.
+	- Added MA-009 feature tests for due event enrollment and same-day reminder deduplication.
+- MA-010 completed for current sprint scope (automation performance reporting):
+	- Added integration API endpoint `GET /api/v1/crm/automation/workflows-performance` for workflow performance reporting.
+	- Added `AutomationPerformanceReportService` with workflow-level and summary KPIs: instances, completion rate, actions success/failure, action success rate.
+	- Added `IndexAutomationPerformanceReportRequest` for validated filters (`days`, `workflow_uuid`).
+	- Added MA-010 API feature test covering report generation and KPI payload assertions.
 #### ⏭️ Pending For Full BRD Completion
-- Workflow engine is not yet implemented.
-- No automation models, DTOs, jobs, events, DB tables, controllers, or workflow builder UI currently exist for MA-001 to MA-010.
+- MA-001 to MA-010 are implemented for current sprint scope.
 #### 👤 User Stories
 - As a marketing manager, I can automate nurture journeys and campaigns.
 #### ✅ Acceptance Criteria
@@ -308,6 +375,6 @@ Visual workflow builder for multi-step automation: triggers, actions, A/B testin
 
 ## ✅ Implementation Truth Snapshot (April 2026)
 - LC-005, LC-006, LC-013, LC-016, and LC-017 are complete for the current sprint slice.
-- MA-001 to MA-010 remain pending implementation.
+- MA-001, MA-002, MA-003, MA-004, MA-005, MA-006, MA-007, MA-008, MA-009, and MA-010 are complete for the current sprint slice.
 
 ---

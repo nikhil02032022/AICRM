@@ -207,6 +207,20 @@ class Lead extends Model
         return $this->hasMany(CounsellingSession::class, 'lead_id');
     }
 
+    // BRD: CRM-MA-003 — Tags assigned directly or through automation actions.
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'lead_tag', 'lead_id', 'crm_tag_id')
+            ->withPivot('institution_id')
+            ->withTimestamps();
+    }
+
+    // BRD: CRM-MA-003 — Tasks created by automation or manual counsellor flow.
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'lead_id');
+    }
+
     // BRD: CRM-LC-016 — Attribution timeline entries for this lead.
     public function attributions(): HasMany
     {

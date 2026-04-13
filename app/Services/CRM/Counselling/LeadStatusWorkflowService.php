@@ -6,11 +6,16 @@ namespace App\Services\CRM\Counselling;
 
 use App\Enums\CRM\LeadStatus;
 use App\Models\CRM\Lead;
+use App\Services\CRM\Marketing\NurtureExitService;
 use Illuminate\Support\Facades\Log;
 
 // BRD: CRM-EC-012 — Status transitions trigger configured automation actions
 final class LeadStatusWorkflowService
 {
+    public function __construct(
+        private readonly NurtureExitService $nurtureExitService,
+    ) {}
+
     /**
      * Run automation triggered by a status transition.
      *
@@ -27,6 +32,16 @@ final class LeadStatusWorkflowService
             'new_status' => $newStatus->value,
         ]);
 
+        // BRD: CRM-MA-006 — Auto-remove lead from active nurture sequences when status reaches Contacted or higher.
+        $exitedNurtureInstances = $this->nurtureExitService->exitForLeadOnStatus($lead, $newStatus);
+        if ($exitedNurtureInstances > 0) {
+            Log::info('Nurture sequences exited due to status progression', [
+                'lead_uuid' => $lead->uuid,
+                'new_status' => $newStatus->value,
+                'exited_instances' => $exitedNurtureInstances,
+            ]);
+        }
+
         match ($newStatus) {
             LeadStatus::CONTACTED => $this->onContacted($lead),
             LeadStatus::COUNSELLING_SCHEDULED => $this->onCounsellingScheduled($lead),
@@ -38,8 +53,7 @@ final class LeadStatusWorkflowService
 
     private function onContacted(Lead $lead): void
     {
-        // Lead has been contacted — remove from cold nurture queue (stub for Group F)
-        // QueueStopNurtureSequenceJob::dispatch($lead->uuid);
+        // BRD: CRM-MA-006 — Nurture exit is handled in NurtureExitService.
     }
 
     private function onCounsellingScheduled(Lead $lead): void

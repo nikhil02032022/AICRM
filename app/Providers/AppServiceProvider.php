@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Events\CRM\BulkImportCompletedEvent;
 use App\Events\CRM\Communication\CallLoggedEvent;
 use App\Events\CRM\Communication\EmailBouncedEvent;
+use App\Events\CRM\Communication\EmailLinkClickedEvent;
+use App\Events\CRM\Communication\EmailOpenedEvent;
 use App\Events\CRM\Communication\EmailSentEvent;
 use App\Events\CRM\Communication\EmailUnsubscribedEvent;
 use App\Events\CRM\Communication\IvrLeadCreatedEvent;
@@ -26,6 +28,13 @@ use App\Events\CRM\LeadsMergedEvent;
 use App\Events\CRM\WebFormSubmittedEvent;
 use App\Listeners\CRM\HandleEmailBounce;
 use App\Listeners\CRM\HandleLeadUnsubscribe;
+use App\Listeners\CRM\EvaluateAutomationOnEmailLinkClicked;
+use App\Listeners\CRM\EvaluateAutomationOnEmailOpened;
+use App\Listeners\CRM\EvaluateAutomationOnLeadCreated;
+use App\Listeners\CRM\EvaluateAutomationOnLeadStatusChanged;
+use App\Listeners\CRM\EvaluateAutomationOnLeadTemperatureChanged;
+use App\Listeners\CRM\EvaluateReEngagementOnLeadTemperatureChanged;
+use App\Listeners\CRM\EvaluateAutomationOnWebFormSubmitted;
 use App\Listeners\CRM\CaptureLeadAttributionOnCreate;
 use App\Listeners\CRM\LogCallToActivityTimeline;
 use App\Listeners\CRM\LogEmailSentToActivity;
@@ -70,17 +79,28 @@ class AppServiceProvider extends ServiceProvider
 
         // BRD: CRM-LQ-004 — Recalculate score on web form submission (engagement signal)
         Event::listen(WebFormSubmittedEvent::class, RecalculateScoreOnFormSubmit::class);
+        // BRD: CRM-MA-002 — Evaluate form_submitted automation triggers
+        Event::listen(WebFormSubmittedEvent::class, EvaluateAutomationOnWebFormSubmitted::class);
 
         // BRD: CRM-EC-004 — Log activity entry when a lead is created
         Event::listen(LeadCreatedEvent::class, LogLeadCreatedActivity::class);
         // BRD: CRM-LC-016 — Record first attribution touchpoint for each new lead
         Event::listen(LeadCreatedEvent::class, CaptureLeadAttributionOnCreate::class);
+        // BRD: CRM-MA-002 — Evaluate lead_created automation triggers
+        Event::listen(LeadCreatedEvent::class, EvaluateAutomationOnLeadCreated::class);
 
         // BRD: CRM-EC-014 — Log activity entry on every status transition
         Event::listen(LeadStatusChangedEvent::class, LogStatusChangeActivity::class);
 
         // BRD: CRM-EC-012 — Trigger configured workflow automation on status change
         Event::listen(LeadStatusChangedEvent::class, TriggerStatusWorkflowListener::class);
+        // BRD: CRM-MA-002 — Evaluate status_changed automation triggers
+        Event::listen(LeadStatusChangedEvent::class, EvaluateAutomationOnLeadStatusChanged::class);
+
+        // BRD: CRM-MA-002 — Evaluate lead_score_changed automation triggers
+        Event::listen(LeadTemperatureChangedEvent::class, EvaluateAutomationOnLeadTemperatureChanged::class);
+        // BRD: CRM-MA-007 — Evaluate re-engagement workflows for cold lead temperature changes
+        Event::listen(LeadTemperatureChangedEvent::class, EvaluateReEngagementOnLeadTemperatureChanged::class);
 
         // BRD: CRM-EC-004 — Log ASSIGNMENT activity on lead (re)assignment
         Event::listen(LeadAssignedEvent::class, LogAssignmentActivity::class);
@@ -101,6 +121,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(EmailBouncedEvent::class, HandleEmailBounce::class);
         // BRD: CRM-CC-005, DPDP — Enforce unsubscribe and audit log entry
         Event::listen(EmailUnsubscribedEvent::class, HandleLeadUnsubscribe::class);
+        // BRD: CRM-MA-002 — Evaluate email_opened automation triggers
+        Event::listen(EmailOpenedEvent::class, EvaluateAutomationOnEmailOpened::class);
+        // BRD: CRM-MA-002 — Evaluate link_clicked automation triggers
+        Event::listen(EmailLinkClickedEvent::class, EvaluateAutomationOnEmailLinkClicked::class);
 
         // F3: WhatsApp events
         // BRD: CRM-CC-012 — Log inbound WhatsApp to lead activity timeline
