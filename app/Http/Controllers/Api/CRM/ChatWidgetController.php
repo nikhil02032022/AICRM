@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CRM\StoreChatLeadAgentReplyRequest;
 use App\Http\Requests\Api\CRM\StoreChatLeadRequest;
 use App\Http\Requests\Api\CRM\UpdateChatLeadHandoffRequest;
+use App\Jobs\CRM\GenerateChatbotReplyJob;
 use App\Http\Resources\CRM\ChatLeadResource;
 use App\Models\CRM\ChatLead;
 use App\Services\CRM\Marketing\ChatWidgetService;
@@ -92,6 +93,19 @@ final class ChatWidgetController extends Controller
         return $this->success(
             new ChatLeadResource($updated->loadMissing(['lead', 'assignedTo:id,name,email'])),
             'Chat handoff status updated.',
+        );
+    }
+
+    public function generateAiReply(ChatLead $chatLead): JsonResponse
+    {
+        Gate::authorize('crm.chat-widget.manage');
+
+        GenerateChatbotReplyJob::dispatch($chatLead->uuid);
+
+        return $this->success(
+            data: ['chat_lead_uuid' => $chatLead->uuid],
+            message: 'AI chatbot reply generation queued.',
+            status: 202,
         );
     }
 }

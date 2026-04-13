@@ -227,6 +227,42 @@ class Lead extends Model
         return $this->hasMany(LeadAttribution::class, 'lead_id')->orderBy('touchpoint_at');
     }
 
+    // BRD: CRM-LQ-009 — Qualification questionnaire responses filled for this lead.
+    public function questionnaireResponses(): HasMany
+    {
+        return $this->hasMany(QuestionnaireResponse::class, 'lead_id');
+    }
+
+    // BRD: CRM-LQ-003 — AI-assisted score history snapshots for this lead.
+    public function aiLeadScores(): HasMany
+    {
+        return $this->hasMany(AiLeadScore::class, 'lead_id')->latest('calculated_at');
+    }
+
+    // BRD: CRM-LQ-010 — Churn risk snapshots for this lead (latest first).
+    public function churnFlags(): HasMany
+    {
+        return $this->hasMany(ChurnFlag::class, 'lead_id')->latest('flagged_at');
+    }
+
+    // BRD: CRM-AI-002 — Next best action recommendation snapshots for this lead.
+    public function nbaRecommendations(): HasMany
+    {
+        return $this->hasMany(LeadNbaRecommendation::class, 'lead_id')->latest('generated_at');
+    }
+
+    // BRD: CRM-AI-003 — AI-assisted communication draft snapshots for this lead.
+    public function aiMessageDrafts(): HasMany
+    {
+        return $this->hasMany(AiMessageDraft::class, 'lead_id')->latest('generated_at');
+    }
+
+    // BRD: CRM-AI-004 — Inbound sentiment snapshots for this lead.
+    public function sentimentFlags(): HasMany
+    {
+        return $this->hasMany(SentimentFlag::class, 'lead_id')->latest('flagged_at');
+    }
+
     // BRD: CRM-LC-019 — Reverse link: the primary lead this record was merged into
     public function mergedIntoLead(): BelongsTo
     {

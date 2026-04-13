@@ -66,6 +66,13 @@ final class ChatWidgetService
         return $this->repository->paginate($filters, $perPage);
     }
 
+    public function findByUuid(string $uuid): ?ChatLead
+    {
+        return ChatLead::withoutGlobalScopes()
+            ->where('uuid', $uuid)
+            ->first();
+    }
+
     public function appendStaffReply(ChatLead $chatLead, string $message, User $actor): ChatLead
     {
         $trimmed = trim($message);

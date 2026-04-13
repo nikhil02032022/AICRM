@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\CRM\AutomationWorkflowController;
 use App\Http\Controllers\Api\CRM\LeadController;
 use App\Http\Controllers\Api\CRM\LeadMergeController;
 use App\Http\Controllers\Api\CRM\LeadScoringController;
+use App\Http\Controllers\Api\CRM\QuestionnaireController;
 use App\Http\Controllers\Api\CRM\WebFormController;
 use App\Http\Controllers\Api\CRM\Webhooks\EducationPortalWebhookController;
 use App\Http\Controllers\Api\CRM\Webhooks\EmailWebhookController;
@@ -53,6 +54,8 @@ Route::prefix('v1/crm')
             ->parameters(['leads' => 'chatLead:uuid']);
         Route::post('chat-widget/leads/{chatLead:uuid}/reply', [ChatWidgetController::class, 'reply'])
             ->name('chat-widget.leads.reply');
+        Route::post('chat-widget/leads/{chatLead:uuid}/ai-reply', [ChatWidgetController::class, 'generateAiReply'])
+            ->name('chat-widget.leads.ai-reply');
         Route::patch('chat-widget/leads/{chatLead:uuid}/handoff', [ChatWidgetController::class, 'updateHandoff'])
             ->name('chat-widget.leads.handoff');
         // BRD: CRM-LC-016 — Attribution ledger and touchpoint ingestion
@@ -83,6 +86,53 @@ Route::prefix('v1/crm')
             ->name('scoring.config.update');
         Route::post('leads/{lead:uuid}/score-override', [LeadScoringController::class, 'override'])
             ->name('leads.score-override');
+        Route::get('leads/{lead:uuid}/ai-score', [LeadScoringController::class, 'aiScore'])
+            ->name('leads.ai-score');
+        Route::post('leads/{lead:uuid}/ai-score/recalculate', [LeadScoringController::class, 'triggerAiRecalculation'])
+            ->name('leads.ai-score.recalculate');
+        Route::get('leads/{lead:uuid}/churn-risk', [LeadScoringController::class, 'churnRisk'])
+            ->name('leads.churn-risk');
+        Route::post('leads/{lead:uuid}/churn-risk/recalculate', [LeadScoringController::class, 'triggerChurnRecalculation'])
+            ->name('leads.churn-risk.recalculate');
+        Route::get('leads/{lead:uuid}/next-best-action', [LeadScoringController::class, 'nextBestAction'])
+            ->name('leads.next-best-action');
+        Route::post('leads/{lead:uuid}/next-best-action/recalculate', [LeadScoringController::class, 'triggerNbaRecalculation'])
+            ->name('leads.next-best-action.recalculate');
+        Route::get('leads/{lead:uuid}/ai-drafts', [LeadScoringController::class, 'aiMessageDraft'])
+            ->name('leads.ai-drafts');
+        Route::post('leads/{lead:uuid}/ai-drafts/generate', [LeadScoringController::class, 'triggerAiMessageDraft'])
+            ->name('leads.ai-drafts.generate');
+        Route::get('leads/{lead:uuid}/sentiment', [LeadScoringController::class, 'sentiment'])
+            ->name('leads.sentiment');
+        Route::post('leads/{lead:uuid}/sentiment/recalculate', [LeadScoringController::class, 'triggerSentimentRecalculation'])
+            ->name('leads.sentiment.recalculate');
+        Route::get('scoring/priority-leads', [LeadScoringController::class, 'priorityLeads'])
+            ->name('scoring.priority-leads');
+        Route::post('scoring/priority-leads/generate', [LeadScoringController::class, 'triggerPriorityLeadGeneration'])
+            ->name('scoring.priority-leads.generate');
+        Route::get('scoring/enrolment-forecasts', [LeadScoringController::class, 'enrolmentForecasts'])
+            ->name('scoring.enrolment-forecasts');
+        Route::post('scoring/enrolment-forecasts/generate', [LeadScoringController::class, 'triggerEnrolmentForecastGeneration'])
+            ->name('scoring.enrolment-forecasts.generate');
+        Route::get('scoring/anomaly-alerts', [LeadScoringController::class, 'anomalyAlerts'])
+            ->name('scoring.anomaly-alerts');
+        Route::post('scoring/anomaly-alerts/detect', [LeadScoringController::class, 'triggerAnomalyDetection'])
+            ->name('scoring.anomaly-alerts.detect');
+        Route::get('scoring/nba-journeys', [LeadScoringController::class, 'nbaJourneys'])
+            ->name('scoring.nba-journeys');
+        Route::post('scoring/nba-journeys/generate', [LeadScoringController::class, 'triggerNbaJourneyGeneration'])
+            ->name('scoring.nba-journeys.generate');
+        Route::post('scoring/ai-suggestions/decision', [LeadScoringController::class, 'storeAiSuggestionDecision'])
+            ->name('scoring.ai-suggestions.decision');
+        Route::get('scoring/ai-usage-logs', [LeadScoringController::class, 'aiUsageLogs'])
+            ->name('scoring.ai-usage-logs');
+
+        // BRD: CRM-LQ-009 — Qualification questionnaire CRUD + response capture
+        Route::apiResource('scoring/questionnaires', QuestionnaireController::class)
+            ->parameters(['questionnaires' => 'questionnaire:uuid']);
+        Route::put('scoring/questionnaires/{questionnaire:uuid}/responses/{lead:uuid}', [QuestionnaireController::class, 'upsertResponse'])
+            ->name('scoring.questionnaires.responses.upsert')
+            ->withoutScopedBindings();
 
         // -----------------------------------------------------------------------
         // Group G — Duplicate Merge + ERP Lead Match

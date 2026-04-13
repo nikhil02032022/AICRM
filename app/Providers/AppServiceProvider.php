@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Events\CRM\BulkImportCompletedEvent;
+use App\Events\CRM\AiSuggestionDecisionRecordedEvent;
+use App\Events\CRM\AnomalyDetectedEvent;
+use App\Events\CRM\ForecastGeneratedEvent;
 use App\Events\CRM\Communication\CallLoggedEvent;
 use App\Events\CRM\Communication\EmailBouncedEvent;
 use App\Events\CRM\Communication\EmailLinkClickedEvent;
@@ -21,10 +24,15 @@ use App\Events\CRM\CounsellingSessionCompletedEvent;
 use App\Events\CRM\DigitalLeadImportedEvent;
 use App\Events\CRM\ErpStudentMatchedEvent;
 use App\Events\CRM\LeadAssignedEvent;
+use App\Events\CRM\LeadAiMessageDraftedEvent;
+use App\Events\CRM\LeadAiScoreCalculatedEvent;
+use App\Events\CRM\LeadNbaRecommendedEvent;
+use App\Events\CRM\LeadSentimentFlaggedEvent;
 use App\Events\CRM\LeadCreatedEvent;
 use App\Events\CRM\LeadStatusChangedEvent;
 use App\Events\CRM\LeadTemperatureChangedEvent;
 use App\Events\CRM\LeadsMergedEvent;
+use App\Events\CRM\NbaJourneySuggestedEvent;
 use App\Events\CRM\WebFormSubmittedEvent;
 use App\Listeners\CRM\HandleEmailBounce;
 use App\Listeners\CRM\HandleLeadUnsubscribe;
@@ -42,6 +50,7 @@ use App\Listeners\CRM\LogWhatsAppToActivityTimeline;
 use App\Listeners\CRM\NotifyAssignedCounsellorOnInbound;
 use App\Listeners\CRM\NotifyCounsellorOnMissedCall;
 use App\Listeners\CRM\LogAssignmentActivity;
+use App\Listeners\CRM\RecordAiUsageLogFromEvent;
 use App\Listeners\CRM\LogLeadCreatedActivity;
 use App\Listeners\CRM\LogSessionBookedActivity;
 use App\Listeners\CRM\LogSessionCancelledActivity;
@@ -151,5 +160,15 @@ class AppServiceProvider extends ServiceProvider
 
         // BRD: CRM-LC-020 — Log ERP student/alumni match to lead activity timeline
         Event::listen(ErpStudentMatchedEvent::class, LogErpMatchActivity::class);
+
+        // BRD: CRM-AI-012 — Persist immutable usage logs for all AI generation/decision events.
+        Event::listen(LeadAiScoreCalculatedEvent::class, RecordAiUsageLogFromEvent::class);
+        Event::listen(LeadNbaRecommendedEvent::class, RecordAiUsageLogFromEvent::class);
+        Event::listen(LeadAiMessageDraftedEvent::class, RecordAiUsageLogFromEvent::class);
+        Event::listen(LeadSentimentFlaggedEvent::class, RecordAiUsageLogFromEvent::class);
+        Event::listen(ForecastGeneratedEvent::class, RecordAiUsageLogFromEvent::class);
+        Event::listen(AnomalyDetectedEvent::class, RecordAiUsageLogFromEvent::class);
+        Event::listen(NbaJourneySuggestedEvent::class, RecordAiUsageLogFromEvent::class);
+        Event::listen(AiSuggestionDecisionRecordedEvent::class, RecordAiUsageLogFromEvent::class);
     }
 }

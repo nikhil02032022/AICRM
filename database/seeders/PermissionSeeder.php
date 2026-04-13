@@ -85,6 +85,9 @@ class PermissionSeeder extends Seeder
             'crm.settings.manage',
             // Settings / Scoring Config (BRD: CRM-LQ-005)
             'crm.settings.scoring',
+            // Group I Questionnaires (BRD: CRM-LQ-009)
+            'crm.questionnaires.manage',
+            'crm.questionnaires.respond',
             // Communication Engine — Group F (BRD: CRM-CC-001 to CRM-CC-025)
             'crm.communication.send',             // send/view individual comms + call log + WA inbox
             'crm.communication.templates.manage', // create/edit email/SMS/WA templates + DLT templates

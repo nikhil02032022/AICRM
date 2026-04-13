@@ -374,6 +374,19 @@
 
                             {{-- Col 4 — Actions (3 cols) --}}
                             <div class="flex flex-wrap items-center gap-2 lg:col-span-3 lg:flex-col lg:items-stretch lg:justify-center xl:flex-row xl:items-center xl:justify-end">
+                                <form method="POST" action="{{ route('crm.marketing.chat-widget.ai-reply', $chatLead->uuid) }}">
+                                    @csrf
+                                    <button
+                                        type="submit"
+                                        class="inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 shadow-sm transition-colors duration-150 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
+                                    >
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-2.844.813a1.125 1.125 0 0 0 0 2.124l2.844.813.813 2.844a1.125 1.125 0 0 0 2.124 0l.813-2.844 2.844-.813a1.125 1.125 0 0 0 0-2.124l-2.844-.813-.813-2.844a1.125 1.125 0 0 0-2.124 0ZM18.25 8.25h.008v.008h-.008V8.25Zm-3.25 0h.008v.008H15V8.25Z" />
+                                        </svg>
+                                        Generate AI Reply
+                                    </button>
+                                </form>
+
                                 <button
                                     type="button"
                                     @click="openReplyModal(@js($chatLead->uuid), @js($leadName))"

@@ -89,6 +89,13 @@ return [
         'timeout'  => (int) env('A2A_ERP_TIMEOUT', 10),
     ],
 
+    // BRD: CRM-LQ-003 — AI-assisted lead scoring model configuration
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY', ''),
+        'model' => env('ANTHROPIC_MODEL', 'claude-3-5-sonnet-latest'),
+        'timeout' => (int) env('ANTHROPIC_TIMEOUT', 30),
+    ],
+
     'telephony' => [
         'default_provider' => env('TELEPHONY_DEFAULT_PROVIDER', 'exotel'),
 

@@ -194,16 +194,101 @@
                 </a>
                 @endcan
 
+                {{-- AI & Qualification — BRD: CRM-LQ-003, CRM-LQ-009, CRM-LQ-010 (Group I) --}}
+                <div class="my-4 border-t" style="border-color: rgba(99,102,241,0.2)"></div>
+                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">AI &amp; Qualification</p>
+
                 {{-- Lead Scoring — BRD: CRM-LQ-001, CRM-LQ-008 (Group D) --}}
                 @can('crm.leads.view')
                 <a href="{{ route('crm.scoring.source-quality') }}"
-                   aria-current="{{ request()->routeIs('crm.scoring.source-quality') ? 'page' : 'false' }}"
+                   aria-current="{{ request()->routeIs('crm.scoring.source-quality') || request()->routeIs('crm.leads.ai-score') || request()->routeIs('crm.leads.ai-score.recalculate') || request()->routeIs('crm.leads.churn-risk') || request()->routeIs('crm.leads.churn-risk.recalculate') ? 'page' : 'false' }}"
                    class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
-                          {{ request()->routeIs('crm.scoring.source-quality') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                          {{ request()->routeIs('crm.scoring.source-quality') || request()->routeIs('crm.leads.ai-score') || request()->routeIs('crm.leads.ai-score.recalculate') || request()->routeIs('crm.leads.churn-risk') || request()->routeIs('crm.leads.churn-risk.recalculate') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
                     <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
                     </svg>
                     Lead Scoring
+                </a>
+                @endcan
+
+                {{-- Qualification Questionnaires — BRD: CRM-LQ-009 (Group I) --}}
+                @can('crm.questionnaires.manage')
+                <a href="{{ route('crm.scoring.questionnaires.index') }}"
+                   aria-current="{{ request()->routeIs('crm.scoring.questionnaires.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.scoring.questionnaires.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m5.25 2.25a8.25 8.25 0 1 1-16.5 0 8.25 8.25 0 0 1 16.5 0Z"/>
+                    </svg>
+                    Qualification Questionnaires
+                </a>
+                @endcan
+
+                {{-- Daily Priority Leads — BRD: CRM-AI-005 (Group I) --}}
+                @can('crm.leads.view')
+                <a href="{{ route('crm.scoring.priority-leads') }}"
+                   aria-current="{{ request()->routeIs('crm.scoring.priority-leads') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.scoring.priority-leads') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5h7.5M3 12h4.5M3 16.5h6"/>
+                    </svg>
+                    Daily Priority Leads
+                </a>
+                @endcan
+
+                {{-- Enrolment Forecasting — BRD: CRM-AI-008 (Group I) --}}
+                @can('crm.leads.view')
+                <a href="{{ route('crm.scoring.enrolment-forecasts') }}"
+                   aria-current="{{ request()->routeIs('crm.scoring.enrolment-forecasts') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.scoring.enrolment-forecasts') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25m0 0 3-3m-3 3 3 3m13.5-3V3m0 11.25-3-3m3 3-3 3"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 18.75h6"/>
+                    </svg>
+                    Enrolment Forecasts
+                </a>
+                @endcan
+
+                {{-- Anomaly Alerts — BRD: CRM-AI-009 (Group I) --}}
+                @can('crm.leads.view')
+                <a href="{{ route('crm.scoring.anomaly-alerts') }}"
+                   aria-current="{{ request()->routeIs('crm.scoring.anomaly-alerts') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.scoring.anomaly-alerts') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.645c-1.73 0-2.813-1.874-1.948-3.374L10.051 3.378c.866-1.5 3.032-1.5 3.898 0l7.354 12.748Z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5h.007v.008H12V16.5Z"/>
+                    </svg>
+                    Anomaly Alerts
+                </a>
+                @endcan
+
+                {{-- Nurture Journey Builder — BRD: CRM-AI-010 (Group I) --}}
+                @can('crm.leads.view')
+                <a href="{{ route('crm.scoring.nba-journeys') }}"
+                   aria-current="{{ request()->routeIs('crm.scoring.nba-journeys') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.scoring.nba-journeys') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 10.5 13.821l7.071-7.071M5.25 4.5h13.5A2.25 2.25 0 0 1 21 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 17.25V6.75A2.25 2.25 0 0 1 5.25 4.5Z"/>
+                    </svg>
+                    Nurture Journeys
+                </a>
+                @endcan
+
+                {{-- AI Usage Logs — BRD: CRM-AI-012 (Group I) --}}
+                @can('crm.leads.view')
+                <a href="{{ route('crm.scoring.ai-usage-logs') }}"
+                   aria-current="{{ request()->routeIs('crm.scoring.ai-usage-logs') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.scoring.ai-usage-logs') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7.5 4.5h9A1.5 1.5 0 0 1 18 6v12a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 18V6a1.5 1.5 0 0 1 1.5-1.5Z"/>
+                    </svg>
+                    AI Usage Logs
                 </a>
                 @endcan
 

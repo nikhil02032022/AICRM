@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web\CRM;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CRM\StoreChatLeadAgentReplyRequest;
 use App\Http\Requests\Api\CRM\UpdateChatLeadHandoffRequest;
+use App\Jobs\CRM\GenerateChatbotReplyJob;
 use App\Models\CRM\ChatLead;
 use App\Services\CRM\Marketing\ChatWidgetService;
 use Illuminate\Http\RedirectResponse;
@@ -69,5 +70,14 @@ final class ChatWidgetWebController extends Controller
         );
 
         return back()->with('success', 'Chat handoff status updated.');
+    }
+
+    public function generateAiReply(ChatLead $chatLead): RedirectResponse
+    {
+        Gate::authorize('crm.chat-widget.manage');
+
+        GenerateChatbotReplyJob::dispatch($chatLead->uuid);
+
+        return back()->with('success', 'AI chatbot reply generation queued.');
     }
 }

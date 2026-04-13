@@ -6,6 +6,7 @@ declare(strict_types=1);
 use App\Enums\CRM\LeadSource;
 use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LeadTemperature;
+use App\Models\CRM\AiLeadScore;
 use App\Events\CRM\LeadTemperatureChangedEvent;
 use App\Events\CRM\ScoreChangedEvent;
 use App\Jobs\CRM\RecalculateLeadScoreJob;
@@ -137,4 +138,19 @@ it('job is unique per lead UUID preventing duplicates queuing', function (): voi
     $job2 = new RecalculateLeadScoreJob('same-uuid');
 
     expect($job1->uniqueId())->toBe($job2->uniqueId());
+});
+
+it('creates ai score snapshot after rule-based scoring run', function (): void {
+    $lead = makeScoringLead([
+        'institution_id' => $this->institution->id,
+        'consent_given' => true,
+        'consent_timestamp' => now(),
+        'consent_form_version' => 'v1',
+    ]);
+
+    RecalculateLeadScoreJob::dispatchSync($lead->uuid);
+
+    expect(
+        AiLeadScore::withoutGlobalScopes()->where('lead_id', $lead->id)->exists()
+    )->toBeTrue();
 });

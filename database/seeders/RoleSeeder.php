@@ -185,6 +185,17 @@ class RoleSeeder extends Seeder
         }
 
         // ---------------------------------------------------------------
+        // BRD: CRM-LQ-009 — Questionnaire management + response permissions
+        // ---------------------------------------------------------------
+        foreach (['institution-admin', 'admissions-director', 'admissions-manager'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo('crm.questionnaires.manage');
+        }
+
+        foreach (['institution-admin', 'admissions-director', 'admissions-manager', 'senior-counsellor', 'junior-counsellor'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo('crm.questionnaires.respond');
+        }
+
+        // ---------------------------------------------------------------
         // BRD: CRM-CC-004, CRM-CC-019 — Settings: Sender Domains + IVR
         // admissions-manager needs settings access to manage comms infrastructure
         // ---------------------------------------------------------------

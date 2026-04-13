@@ -10,7 +10,7 @@
 | Group | Theme | BRD Req IDs | Status | Sprint Doc |
 |-------|-------|-------------|--------|------------|
 | **H** | Marketing Automation & Attribution | LC-005, LC-006, LC-013, LC-016, LC-017, MA-001 to MA-010 | 🚧 LC-005 initial slice implemented | (inline) |
-| **I** | AI & Advanced Scoring | LQ-003, LQ-009, LQ-010, AI-004, AI-006, AI-008, AI-009, AI-010 | ⏳ In Progress | (inline) |
+| **I** | AI & Advanced Scoring | LQ-003, LQ-009, LQ-010, AI-004, AI-006, AI-008, AI-009, AI-010, AI-011, AI-012 | ✅ LQ-003 + LQ-009 + LQ-010 + AI-004 + AI-005 + AI-006 + AI-008 + AI-009 + AI-010 + AI-011 + AI-012 completed | (inline) |
 | **J** | Telecalling & Gamification | TC-001, TC-002, TC-005, EC-010, MB-004, MB-006, MB-007 | ⏳ In Progress | (inline) |
 | **K** | Customisation & Advanced Analytics | EC-005, AR-018, AR-020, SA-007, SA-011 | ⏳ In Progress | (inline) |
 | **L** | Integrations & Document Management | DM-006, DM-007, EI-008, EI-010, AG-006, AG-008 | ⏳ In Progress | (inline) |
@@ -47,10 +47,12 @@
 | LQ-009 | Custom qualification questionnaires | `QualificationQuestionnaire`, `QuestionnaireController`, `questionnaire.blade.php` |
 | LQ-010 | Predictive churn flag | `ChurnDetectionService`, `churn-flag.blade.php` |
 | AI-004 | Sentiment analysis on inbound | `SentimentAnalysisService`, `sentiment-job`, UI integration |
-| AI-006 | Conversational AI chatbot | `ChatbotService`, `ChatbotController`, `chatbot.blade.php` |
-| AI-008 | Predictive enrolment forecasting | `ForecastingService`, `forecast-dashboard.blade.php` |
+| AI-006 | Conversational AI chatbot | `ChatbotService`, `GenerateChatbotReplyJob`, `ChatbotEscalationEvent`, `ChatWidgetController`, `ChatWidgetWebController`, `crm/marketing/chat-widget/index.blade.php` |
+| AI-008 | Predictive enrolment forecasting | `ForecastingService`, `GenerateEnrolmentForecastJob`, `ForecastGeneratedEvent`, `EnrolmentForecast`, `crm/scoring/forecast-dashboard.blade.php` |
 | AI-009 | Anomaly detection for drop-offs | `AnomalyDetectionService`, `anomaly-alerts.blade.php` |
 | AI-010 | AI-powered nurture journey builder | `NbaJourneyService`, `nba-journey.blade.php` |
+| AI-011 | Human-in-the-loop AI suggestion governance | `AiSuggestionDecisionService`, `AiSuggestionDecision`, `StoreAiSuggestionDecisionRequest`, lead/journey AI decision actions |
+| AI-012 | AI usage logs for audit/DPDP compliance | `AiUsageLoggingService`, `AiUsageLog`, `RecordAiUsageLogFromEvent`, `ai-usage-logs.blade.php` |
 
 **Tests:** 15+ planned  
 **Security/DPDP:** All AI logs, suggestions only, no PII in logs
@@ -143,10 +145,12 @@
 | MB-006 | Should Have | J | ⏳ |
 | MB-007 | Should Have | J | ⏳ |
 | AI-004 | Should Have | I | ⏳ |
-| AI-006 | Should Have | I | ⏳ |
-| AI-008 | Should Have | I | ⏳ |
-| AI-009 | Should Have | I | ⏳ |
-| AI-010 | Should Have | I | ⏳ |
+| AI-006 | Should Have | I | ✅ Completed |
+| AI-008 | Should Have | I | ✅ Completed |
+| AI-009 | Should Have | I | ✅ Completed |
+| AI-010 | Should Have | I | ✅ Completed |
+| AI-011 | Must Have | I | ✅ Completed |
+| AI-012 | Must Have | I | ✅ Completed |
 
 ---
 
@@ -157,3 +161,8 @@
 - See [BRD_A2A_Educational_CRM_v1.0_1.md](BRD_A2A_Educational_CRM_v1.0_1.md) for full requirement details.
 - Update this file after each sprint review.
 - LC-005 now has an initial implementation slice: backend CRUD, public rendering, CRM UI, route wiring, and baseline tests. Drag-and-drop composition and expanded analytics remain pending.
+- Group I has completed AI-008 with enrolment_forecasts persistence, forecasting service + async monthly job, API/web forecast dashboard endpoints, scheduler trigger, and passing forecast API/job tests.
+- Group I has completed AI-009 with anomaly_alerts persistence, rolling-window anomaly detection service + async daily job, API/web anomaly dashboard endpoints, scheduler trigger, and passing anomaly API/job tests.
+- Group I has completed AI-010 with nba_journeys persistence, segment-wise journey suggestion service + async daily job, API/web nurture journey dashboard endpoints, scheduler trigger, and passing journey API/job tests.
+- Group I has completed AI-011 with ai_suggestion_decisions persistence, explicit Accept/Edit/Dismiss service + API/web endpoints, and counsellor-facing suggestion controls across lead and journey AI surfaces with passing API tests.
+- Group I has completed AI-012 with ai_usage_logs persistence, event-driven immutable AI usage logging across generation and human decision events, API/web audit log access, and passing logging API/listener tests.

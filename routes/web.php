@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\CRM\ErpMatchWebController;
 use App\Http\Controllers\Web\CRM\LandingPageWebController;
 use App\Http\Controllers\Web\CRM\KioskWebController;
 use App\Http\Controllers\Web\CRM\LeadMergeWebController;
+use App\Http\Controllers\Web\CRM\QuestionnaireWebController;
 use App\Http\Controllers\Web\CRM\CommunicationTemplateWebController;
 use App\Http\Controllers\Web\CRM\CounsellingWebController;
 use App\Http\Controllers\Web\CRM\DltTemplateWebController;
@@ -162,6 +163,9 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/marketing/chat-widget/{chatLead:uuid}/reply', [ChatWidgetWebController::class, 'reply'])
             ->name('marketing.chat-widget.reply')
             ->middleware('can:crm.chat-widget.manage');
+        Route::post('/marketing/chat-widget/{chatLead:uuid}/ai-reply', [ChatWidgetWebController::class, 'generateAiReply'])
+            ->name('marketing.chat-widget.ai-reply')
+            ->middleware('can:crm.chat-widget.manage');
         Route::patch('/marketing/chat-widget/{chatLead:uuid}/handoff', [ChatWidgetWebController::class, 'updateHandoff'])
             ->name('marketing.chat-widget.handoff')
             ->middleware('can:crm.chat-widget.manage');
@@ -253,11 +257,96 @@ Route::middleware('auth')->group(function (): void {
                 ->name('config.update');
             Route::get('/source-quality', [LeadScoringWebController::class, 'sourceQualityReport'])
                 ->name('source-quality');
+            // BRD: CRM-LQ-009 — Qualification questionnaire listing (web)
+            Route::get('/questionnaires', [QuestionnaireWebController::class, 'index'])
+                ->name('questionnaires.index')
+                ->middleware('can:crm.questionnaires.manage');
+            Route::get('/questionnaires/create', [QuestionnaireWebController::class, 'create'])
+                ->name('questionnaires.create')
+                ->middleware('can:crm.questionnaires.manage');
+            Route::post('/questionnaires', [QuestionnaireWebController::class, 'store'])
+                ->name('questionnaires.store')
+                ->middleware('can:crm.questionnaires.manage');
+            Route::get('/questionnaires/{questionnaire:uuid}/edit', [QuestionnaireWebController::class, 'edit'])
+                ->name('questionnaires.edit')
+                ->middleware('can:crm.questionnaires.manage');
+            Route::put('/questionnaires/{questionnaire:uuid}', [QuestionnaireWebController::class, 'update'])
+                ->name('questionnaires.update')
+                ->middleware('can:crm.questionnaires.manage');
+            Route::delete('/questionnaires/{questionnaire:uuid}', [QuestionnaireWebController::class, 'destroy'])
+                ->name('questionnaires.destroy')
+                ->middleware('can:crm.questionnaires.manage');
+            Route::post('/questionnaires/{questionnaire:uuid}/responses/{lead:uuid}', [QuestionnaireWebController::class, 'storeResponse'])
+                ->name('questionnaires.responses.store')
+                ->middleware('can:crm.questionnaires.respond')
+                ->withoutScopedBindings();
+            Route::get('/priority-leads', [LeadScoringWebController::class, 'priorityLeads'])
+                ->name('priority-leads')
+                ->middleware('can:crm.leads.view');
+            Route::post('/priority-leads/generate', [LeadScoringWebController::class, 'triggerPriorityLeadGeneration'])
+                ->name('priority-leads.generate')
+                ->middleware('can:crm.leads.edit');
+            Route::get('/enrolment-forecasts', [LeadScoringWebController::class, 'enrolmentForecasts'])
+                ->name('enrolment-forecasts')
+                ->middleware('can:crm.leads.view');
+            Route::post('/enrolment-forecasts/generate', [LeadScoringWebController::class, 'triggerEnrolmentForecastGeneration'])
+                ->name('enrolment-forecasts.generate')
+                ->middleware('can:crm.leads.edit');
+            Route::get('/anomaly-alerts', [LeadScoringWebController::class, 'anomalyAlerts'])
+                ->name('anomaly-alerts')
+                ->middleware('can:crm.leads.view');
+            Route::post('/anomaly-alerts/detect', [LeadScoringWebController::class, 'triggerAnomalyDetection'])
+                ->name('anomaly-alerts.detect')
+                ->middleware('can:crm.leads.edit');
+            Route::get('/nba-journeys', [LeadScoringWebController::class, 'nbaJourneys'])
+                ->name('nba-journeys')
+                ->middleware('can:crm.leads.view');
+            Route::post('/nba-journeys/generate', [LeadScoringWebController::class, 'triggerNbaJourneyGeneration'])
+                ->name('nba-journeys.generate')
+                ->middleware('can:crm.leads.edit');
+            Route::post('/ai-suggestions/decision', [LeadScoringWebController::class, 'storeAiSuggestionDecision'])
+                ->name('ai-suggestions.decision')
+                ->middleware('can:crm.leads.edit');
+            Route::get('/ai-usage-logs', [LeadScoringWebController::class, 'aiUsageLogs'])
+                ->name('ai-usage-logs')
+                ->middleware('can:crm.leads.view');
         });
 
         // BRD: CRM-LQ-007 — Manual score override (posted from lead show page)
         Route::post('/leads/{lead:uuid}/score-override', [LeadScoringWebController::class, 'override'])
             ->name('leads.score-override')
+            ->middleware('can:crm.leads.edit');
+
+        // BRD: CRM-LQ-003 — AI score fetch/trigger routes for lead scoring UI
+        Route::get('/leads/{lead:uuid}/ai-score', [LeadScoringWebController::class, 'aiScore'])
+            ->name('leads.ai-score')
+            ->middleware('can:crm.leads.view');
+        Route::post('/leads/{lead:uuid}/ai-score/recalculate', [LeadScoringWebController::class, 'triggerAiRecalculation'])
+            ->name('leads.ai-score.recalculate')
+            ->middleware('can:crm.leads.edit');
+        Route::get('/leads/{lead:uuid}/churn-risk', [LeadScoringWebController::class, 'churnRisk'])
+            ->name('leads.churn-risk')
+            ->middleware('can:crm.leads.view');
+        Route::post('/leads/{lead:uuid}/churn-risk/recalculate', [LeadScoringWebController::class, 'triggerChurnRecalculation'])
+            ->name('leads.churn-risk.recalculate')
+            ->middleware('can:crm.leads.edit');
+        Route::get('/leads/{lead:uuid}/next-best-action', [LeadScoringWebController::class, 'nextBestAction'])
+            ->name('leads.next-best-action')
+            ->middleware('can:crm.leads.view');
+        Route::post('/leads/{lead:uuid}/next-best-action/recalculate', [LeadScoringWebController::class, 'triggerNbaRecalculation'])
+            ->name('leads.next-best-action.recalculate')
+            ->middleware('can:crm.leads.edit');
+        Route::get('/leads/{lead:uuid}/ai-drafts', [LeadScoringWebController::class, 'aiMessageDraft'])
+            ->name('leads.ai-drafts')
+            ->middleware('can:crm.leads.view');
+        Route::post('/leads/{lead:uuid}/ai-drafts/generate', [LeadScoringWebController::class, 'triggerAiMessageDraft'])
+            ->name('leads.ai-drafts.generate')
+            ->middleware('can:crm.communication.send');
+        Route::get('/leads/{lead:uuid}/sentiment', [LeadScoringWebController::class, 'sentiment'])
+            ->name('leads.sentiment')
+            ->middleware('can:crm.leads.view');
+        Route::post('/leads/{lead:uuid}/sentiment/recalculate', [LeadScoringWebController::class, 'triggerSentimentRecalculation'])
+            ->name('leads.sentiment.recalculate')
             ->middleware('can:crm.leads.edit');
 
         // BRD: CRM-EC-016 — Public booking confirmation (auth not needed — already routed)

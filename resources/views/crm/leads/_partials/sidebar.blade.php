@@ -218,15 +218,137 @@
                 <div class="card p-4">
                     <p class="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">AI Next Best Action</p>
                     <div class="rounded-lg border border-violet-100 bg-violet-50/60 p-3">
-                        <p class="mb-1.5 text-[10px] font-bold text-violet-600">⚡ Recommended</p>
-                        <p class="text-xs leading-relaxed text-gray-600">
-                            AI scoring is active. Next best action will appear here once the engine analyses this lead's activity.
+                        <p class="mb-2 rounded-md border border-violet-200 bg-white px-2 py-1 text-[11px] text-violet-700">
+                            Suggestion only. Final action is always decided by counsellor.
                         </p>
-                        <button type="button" class="btn-primary-sm mt-2.5 w-full justify-center">
-                            Request AI Analysis
-                        </button>
+                        <p class="mb-1.5 text-[10px] font-bold text-violet-600">Recommended Action</p>
+                        @if($latestNbaRecommendation)
+                            <p class="text-xs font-semibold text-violet-700">{{ str_replace('_', ' ', strtoupper($latestNbaRecommendation->recommended_action)) }}</p>
+                            <p class="mt-1 text-xs leading-relaxed text-gray-600">{{ $latestNbaRecommendation->reasoning }}</p>
+                            <p class="mt-2 text-[11px] text-gray-500">
+                                Confidence: <span class="font-mono text-gray-700">{{ $latestNbaRecommendation->confidence_score }}%</span>
+                                @if(is_array($latestNbaRecommendation->channels) && !empty($latestNbaRecommendation->channels))
+                                    · Channels: {{ implode(', ', $latestNbaRecommendation->channels) }}
+                                @endif
+                            </p>
+                            <p class="mt-1 text-[11px] text-gray-500">Generated: {{ $latestNbaRecommendation->generated_at?->format('d M Y, h:i A') }}</p>
+
+                            @if(isset($latestNbaDecision) && $latestNbaDecision)
+                                <p class="mt-1 text-[11px] text-gray-500">
+                                    Latest decision: <span class="font-semibold text-gray-700">{{ strtoupper($latestNbaDecision->decision) }}</span>
+                                    on {{ $latestNbaDecision->acted_at?->format('d M Y, h:i A') }}
+                                </p>
+                            @endif
+
+                            <div class="mt-3 grid grid-cols-2 gap-2">
+                                <form action="{{ route('crm.scoring.ai-suggestions.decision') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="lead_uuid" value="{{ $lead->uuid }}">
+                                    <input type="hidden" name="suggestion_type" value="next_best_action">
+                                    <input type="hidden" name="suggestion_uuid" value="{{ $latestNbaRecommendation->uuid }}">
+                                    <input type="hidden" name="decision" value="accepted">
+                                    <button type="submit" class="btn-primary-sm w-full justify-center">Accept</button>
+                                </form>
+                                <form action="{{ route('crm.scoring.ai-suggestions.decision') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="lead_uuid" value="{{ $lead->uuid }}">
+                                    <input type="hidden" name="suggestion_type" value="next_best_action">
+                                    <input type="hidden" name="suggestion_uuid" value="{{ $latestNbaRecommendation->uuid }}">
+                                    <input type="hidden" name="decision" value="dismissed">
+                                    <button type="submit" class="btn-secondary-sm w-full justify-center">Dismiss</button>
+                                </form>
+                            </div>
+                        @else
+                            <p class="text-xs leading-relaxed text-gray-600">
+                                AI scoring is active. Generate the first Next Best Action recommendation for this lead.
+                            </p>
+                        @endif
+
+                        <form action="{{ route('crm.leads.next-best-action.recalculate', $lead->uuid) }}" method="POST" class="mt-2.5">
+                            @csrf
+                            <button type="submit" class="btn-primary-sm w-full justify-center">
+                                Refresh Recommendation
+                            </button>
+                        </form>
                     </div>
                 </div>
+
+                {{-- AI Communication Draft --}}
+                @can('crm.communication.send')
+                <div class="card p-4">
+                    <p class="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">AI Communication Draft</p>
+                    <div class="rounded-lg border border-indigo-100 bg-indigo-50/60 p-3">
+                        <p class="mb-2 rounded-md border border-indigo-200 bg-white px-2 py-1 text-[11px] text-indigo-700">
+                            Draft is AI-assisted suggestion. Review, edit, and approve before sending.
+                        </p>
+                        @if($latestAiMessageDraft)
+                            <p class="text-[11px] font-semibold text-indigo-700">
+                                Channel: {{ strtoupper($latestAiMessageDraft->channel) }}
+                                @if($latestAiMessageDraft->subject)
+                                    · Subject: {{ $latestAiMessageDraft->subject }}
+                                @endif
+                            </p>
+                            <div class="mt-2 rounded-md border border-indigo-100 bg-white p-2.5">
+                                <p class="whitespace-pre-line text-xs leading-relaxed text-gray-700">{{ $latestAiMessageDraft->draft_text }}</p>
+                            </div>
+                            <p class="mt-1 text-[11px] text-gray-500">Generated: {{ $latestAiMessageDraft->generated_at?->format('d M Y, h:i A') }}</p>
+
+                            @if(isset($latestDraftDecision) && $latestDraftDecision)
+                                <p class="mt-1 text-[11px] text-gray-500">
+                                    Latest decision: <span class="font-semibold text-gray-700">{{ strtoupper($latestDraftDecision->decision) }}</span>
+                                    on {{ $latestDraftDecision->acted_at?->format('d M Y, h:i A') }}
+                                </p>
+                            @endif
+
+                            <div class="mt-3 grid grid-cols-2 gap-2">
+                                <form action="{{ route('crm.scoring.ai-suggestions.decision') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="lead_uuid" value="{{ $lead->uuid }}">
+                                    <input type="hidden" name="suggestion_type" value="message_draft">
+                                    <input type="hidden" name="suggestion_uuid" value="{{ $latestAiMessageDraft->uuid }}">
+                                    <input type="hidden" name="decision" value="accepted">
+                                    <button type="submit" class="btn-primary-sm w-full justify-center">Accept Draft</button>
+                                </form>
+                                <form action="{{ route('crm.scoring.ai-suggestions.decision') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="lead_uuid" value="{{ $lead->uuid }}">
+                                    <input type="hidden" name="suggestion_type" value="message_draft">
+                                    <input type="hidden" name="suggestion_uuid" value="{{ $latestAiMessageDraft->uuid }}">
+                                    <input type="hidden" name="decision" value="dismissed">
+                                    <button type="submit" class="btn-secondary-sm w-full justify-center">Dismiss Draft</button>
+                                </form>
+                            </div>
+
+                            <form action="{{ route('crm.scoring.ai-suggestions.decision') }}" method="POST" class="mt-2 space-y-2">
+                                @csrf
+                                <input type="hidden" name="lead_uuid" value="{{ $lead->uuid }}">
+                                <input type="hidden" name="suggestion_type" value="message_draft">
+                                <input type="hidden" name="suggestion_uuid" value="{{ $latestAiMessageDraft->uuid }}">
+                                <input type="hidden" name="decision" value="edited">
+                                <label for="edited_draft_content" class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Edited Final Copy</label>
+                                <textarea id="edited_draft_content" name="edited_content" rows="3" class="input-field w-full text-xs" placeholder="Edit AI draft before final send..."></textarea>
+                                <button type="submit" class="btn-primary-sm w-full justify-center">Save Edited Decision</button>
+                            </form>
+                        @else
+                            <p class="text-xs leading-relaxed text-gray-600">
+                                Generate an AI-assisted outreach draft for counsellor review before sending.
+                            </p>
+                        @endif
+
+                        <form action="{{ route('crm.leads.ai-drafts.generate', $lead->uuid) }}" method="POST" class="mt-3 space-y-2">
+                            @csrf
+                            <label for="ai_draft_channel" class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Channel</label>
+                            <select id="ai_draft_channel" name="channel" class="input-field w-full text-xs" required>
+                                <option value="email" @selected(($latestAiMessageDraft?->channel ?? 'email') === 'email')>Email</option>
+                                <option value="whatsapp" @selected(($latestAiMessageDraft?->channel ?? '') === 'whatsapp')>WhatsApp</option>
+                            </select>
+                            <button type="submit" class="btn-primary-sm w-full justify-center">
+                                Generate Draft
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endcan
 
                 {{-- BRD: CRM-EC-007 — Reassign counsellor action --}}
                 @can('assign', $lead)

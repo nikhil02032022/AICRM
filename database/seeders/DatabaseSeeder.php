@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,  // must run before RoleSeeder
             RoleSeeder::class,
             UserSeeder::class,
+            QuestionnaireSeeder::class,
         ]);
     }
 }

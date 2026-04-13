@@ -6,6 +6,7 @@ use App\Providers\AppServiceProvider;
 use App\Providers\CRM\CrmCommunicationServiceProvider;
 use App\Providers\CRM\CrmCounsellingServiceProvider;
 use App\Providers\CRM\CrmErpServiceProvider;
+use App\Providers\CRM\CrmAiServiceProvider;
 use App\Providers\CRM\CrmImportServiceProvider;
 use App\Providers\CRM\CrmLeadServiceProvider;
 use App\Providers\CRM\CrmMarketingServiceProvider;
@@ -21,6 +22,7 @@ return [
     CrmMarketingServiceProvider::class,
     CrmImportServiceProvider::class,
     CrmScoringServiceProvider::class,
+    CrmAiServiceProvider::class,
     CrmCounsellingServiceProvider::class,
     CrmCommunicationServiceProvider::class,
     CrmErpServiceProvider::class,

@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 use App\Jobs\CRM\EscalateUnactionedLeadsJob;
+use App\Jobs\CRM\GenerateEnrolmentForecastJob;
+use App\Jobs\CRM\GenerateDailyPriorityLeadListJob;
+use App\Jobs\CRM\GenerateNbaJourneyJob;
+use App\Jobs\CRM\RunAnomalyDetectionJob;
 use App\Jobs\CRM\Automation\EvaluateEventBasedAutomationTriggersJob;
 use App\Jobs\CRM\Automation\EvaluateInactivityAutomationTriggersJob;
 use App\Jobs\CRM\Automation\EvaluateTimedAutomationTriggersJob;
@@ -29,3 +33,15 @@ Schedule::job(EvaluateEventBasedAutomationTriggersJob::class, 'crm-automation')-
 
 // BRD: CRM-MA-002 — Evaluate inactivity timeout automation triggers daily
 Schedule::job(EvaluateInactivityAutomationTriggersJob::class, 'crm-automation')->daily();
+
+// BRD: CRM-AI-005 — Generate daily counsellor priority lead lists at start of workday.
+Schedule::job(new GenerateDailyPriorityLeadListJob(null, now()->toDateString()), 'ai')->dailyAt('06:00');
+
+// BRD: CRM-AI-008 — Generate monthly programme-wise enrolment forecasts for planning dashboards.
+Schedule::job(new GenerateEnrolmentForecastJob(null, now()->startOfMonth()->toDateString()), 'ai')->monthlyOn(1, '06:15');
+
+// BRD: CRM-AI-009 — Detect anomaly drop-offs daily for managerial monitoring.
+Schedule::job(new RunAnomalyDetectionJob(null, now()->toDateString(), 7, 28, 25), 'ai')->dailyAt('06:45');
+
+// BRD: CRM-AI-010 — Generate segment-wise nurture journey suggestions daily for marketing orchestration.
+Schedule::job(new GenerateNbaJourneyJob(null, now()->toDateString(), null), 'ai')->dailyAt('07:00');

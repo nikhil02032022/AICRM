@@ -10,8 +10,15 @@ use App\Enums\CRM\LeadStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CRM\StoreLeadRequest;
 use App\Http\Requests\Api\CRM\UpdateLeadRequest;
+use App\Models\CRM\AiLeadScore;
+use App\Models\CRM\AiMessageDraft;
+use App\Models\CRM\AiSuggestionDecision;
+use App\Models\CRM\ChurnFlag;
 use App\Models\CRM\Lead;
+use App\Models\CRM\LeadNbaRecommendation;
+use App\Models\CRM\QualificationQuestionnaire;
 use App\Models\CRM\ScoreOverride;
+use App\Models\CRM\SentimentFlag;
 use App\Services\CRM\Lead\LeadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -51,7 +58,7 @@ final class LeadWebController extends Controller
      */
     public function show(Lead $lead): View
     {
-        $lead->load(['assignedCounsellor', 'programmeInterests']);
+        $lead->load(['assignedCounsellor', 'programmeInterests', 'questionnaireResponses', 'nbaRecommendations']);
 
         // Load audit timeline — latest 20 entries with actor name
         $auditLogs = $lead->auditLogs()
@@ -69,7 +76,73 @@ final class LeadWebController extends Controller
         $sourceOptions = LeadSource::optionsForSelect();
         $statusOptions = collect(LeadStatus::cases())->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all();
 
-        return view('crm.leads.show', compact('lead', 'auditLogs', 'scoreOverrides', 'sourceOptions', 'statusOptions'));
+        // BRD: CRM-LQ-003 — Latest AI-assisted score snapshot for rationale display.
+        $latestAiScore = AiLeadScore::query()
+            ->where('lead_id', $lead->id)
+            ->latest('calculated_at')
+            ->first();
+
+        // BRD: CRM-LQ-010 — Latest churn risk snapshot for proactive counsellor actions.
+        $latestChurnFlag = ChurnFlag::query()
+            ->where('lead_id', $lead->id)
+            ->latest('flagged_at')
+            ->first();
+
+        // BRD: CRM-AI-002 — Latest next best action recommendation for lead sidebar.
+        $latestNbaRecommendation = LeadNbaRecommendation::query()
+            ->where('lead_id', $lead->id)
+            ->latest('generated_at')
+            ->first();
+
+        // BRD: CRM-AI-003 — Latest AI-assisted communication draft for counsellor outreach.
+        $latestAiMessageDraft = AiMessageDraft::query()
+            ->where('lead_id', $lead->id)
+            ->latest('generated_at')
+            ->first();
+
+        // BRD: CRM-AI-011 — Latest human decisions on AI suggestions for transparency.
+        $latestNbaDecision = AiSuggestionDecision::query()
+            ->where('lead_id', $lead->id)
+            ->where('suggestion_type', 'next_best_action')
+            ->latest('acted_at')
+            ->first();
+
+        $latestDraftDecision = AiSuggestionDecision::query()
+            ->where('lead_id', $lead->id)
+            ->where('suggestion_type', 'message_draft')
+            ->latest('acted_at')
+            ->first();
+
+        // BRD: CRM-AI-004 — Latest inbound sentiment signal for communication triage.
+        $latestSentimentFlag = SentimentFlag::query()
+            ->where('lead_id', $lead->id)
+            ->latest('flagged_at')
+            ->first();
+
+        // BRD: CRM-LQ-009 — Active qualification questionnaires available for counsellor response.
+        $activeQuestionnaires = QualificationQuestionnaire::query()
+            ->where('status', 'active')
+            ->latest('updated_at')
+            ->get();
+
+        $responseByQuestionnaireId = $lead->questionnaireResponses->keyBy('qualification_questionnaire_id');
+
+        return view('crm.leads.show', compact(
+            'lead',
+            'auditLogs',
+            'scoreOverrides',
+            'sourceOptions',
+            'statusOptions',
+            'latestAiScore',
+            'latestChurnFlag',
+            'latestNbaRecommendation',
+            'latestAiMessageDraft',
+            'latestNbaDecision',
+            'latestDraftDecision',
+            'latestSentimentFlag',
+            'activeQuestionnaires',
+            'responseByQuestionnaireId',
+        ));
     }
 
     /**

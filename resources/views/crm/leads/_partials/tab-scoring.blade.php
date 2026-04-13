@@ -38,6 +38,139 @@
                             </div>
                         </div>
 
+                        {{-- BRD: CRM-LQ-003 — Latest AI score rationale and async refresh trigger --}}
+                        <div class="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-600">AI Scoring Rationale</h3>
+                                    @if($latestAiScore)
+                                        <p class="mt-2 text-xs text-gray-700">{{ $latestAiScore->explanation }}</p>
+                                        <p class="mt-2 text-[11px] text-gray-500">
+                                            Model: <span class="font-mono">{{ $latestAiScore->model_version }}</span>
+                                            · Calculated: {{ $latestAiScore->calculated_at?->format('d M Y, h:i A') }}
+                                        </p>
+                                    @else
+                                        <p class="mt-2 text-xs text-gray-600">AI rationale not available yet for this lead. Trigger analysis to generate the first snapshot.</p>
+                                    @endif
+                                </div>
+                                <form action="{{ route('crm.leads.ai-score.recalculate', $lead->uuid) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn-primary-sm whitespace-nowrap">Run AI Analysis</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        {{-- BRD: CRM-LQ-010 — Churn risk visibility with recommended next actions --}}
+                        <div class="rounded-xl border border-rose-100 bg-rose-50/60 p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="w-full">
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-rose-600">Churn Risk Signal</h3>
+                                    @if($latestChurnFlag)
+                                        @php
+                                            $riskValue = $latestChurnFlag->risk_level?->value;
+                                            $riskClass = $riskValue === 'high'
+                                                ? 'badge-red'
+                                                : ($riskValue === 'medium' ? 'badge-orange' : 'badge-green');
+
+                                            $recommendedActions = match($riskValue) {
+                                                'high' => [
+                                                    'Schedule counsellor call within 24 hours.',
+                                                    'Send personalised fee and scholarship guidance.',
+                                                    'Create follow-up task with escalation owner.',
+                                                ],
+                                                'medium' => [
+                                                    'Send programme-fit nudges and reminders.',
+                                                    'Review pending questionnaire fields.',
+                                                    'Plan next follow-up within 48 hours.',
+                                                ],
+                                                default => [
+                                                    'Continue scheduled nurture cadence.',
+                                                    'Monitor engagement for inactivity drift.',
+                                                ],
+                                            };
+                                        @endphp
+                                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                                            <span class="badge {{ $riskClass }} text-[10px] uppercase">
+                                                {{ $latestChurnFlag->risk_level?->label() ?? 'Unknown Risk' }}
+                                            </span>
+                                            <span class="text-xs font-mono text-rose-700">Score: {{ $latestChurnFlag->risk_score }}/100</span>
+                                        </div>
+                                        <p class="mt-2 text-xs text-gray-700">{{ $latestChurnFlag->rationale }}</p>
+
+                                        @if(is_array($latestChurnFlag->indicators) && !empty($latestChurnFlag->indicators))
+                                            <div class="mt-3">
+                                                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Detected Indicators</p>
+                                                <ul class="mt-2 space-y-1 text-xs text-gray-700">
+                                                    @foreach($latestChurnFlag->indicators as $label => $value)
+                                                        <li>
+                                                            <span class="font-semibold text-gray-800">{{ ucfirst(str_replace('_', ' ', (string) $label)) }}:</span>
+                                                            {{ $value }}
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
+
+                                        <div class="mt-3">
+                                            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Recommended Next Actions</p>
+                                            <ul class="mt-2 space-y-1 text-xs text-gray-700">
+                                                @foreach($recommendedActions as $action)
+                                                    <li>{{ $action }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+
+                                        <p class="mt-2 text-[11px] text-gray-500">Flagged: {{ $latestChurnFlag->flagged_at?->format('d M Y, h:i A') }}</p>
+                                    @else
+                                        <p class="mt-2 text-xs text-gray-600">Churn risk snapshot not available yet. Trigger analysis to generate a risk profile.</p>
+                                    @endif
+                                </div>
+                                <form action="{{ route('crm.leads.churn-risk.recalculate', $lead->uuid) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn-secondary-sm whitespace-nowrap" aria-label="Recalculate churn risk">Run Churn Analysis</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        {{-- BRD: CRM-AI-004 — Inbound sentiment signal for communication urgency triage --}}
+                        <div class="rounded-xl border border-amber-100 bg-amber-50/60 p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="w-full">
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-amber-700">Inbound Sentiment Signal</h3>
+                                    @if($latestSentimentFlag)
+                                        @php
+                                            $sentimentValue = $latestSentimentFlag->sentiment_label?->value;
+                                            $sentimentClass = $sentimentValue === 'negative'
+                                                ? 'badge-red'
+                                                : ($sentimentValue === 'positive' ? 'badge-green' : 'badge-blue');
+                                        @endphp
+                                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                                            <span class="badge {{ $sentimentClass }} text-[10px] uppercase">
+                                                {{ $latestSentimentFlag->sentiment_label?->label() ?? 'Unknown' }}
+                                            </span>
+                                            <span class="text-xs font-mono text-amber-700">Score: {{ $latestSentimentFlag->sentiment_score }}</span>
+                                            @if($latestSentimentFlag->is_urgent)
+                                                <span class="badge badge-red text-[10px] uppercase">Urgent</span>
+                                            @endif
+                                        </div>
+                                        <p class="mt-2 text-xs text-gray-700">{{ $latestSentimentFlag->rationale }}</p>
+                                        @if($latestSentimentFlag->source_excerpt)
+                                            <div class="mt-2 rounded-md border border-amber-200 bg-white p-2.5">
+                                                <p class="text-xs italic leading-relaxed text-gray-600">"{{ $latestSentimentFlag->source_excerpt }}"</p>
+                                            </div>
+                                        @endif
+                                        <p class="mt-2 text-[11px] text-gray-500">Flagged: {{ $latestSentimentFlag->flagged_at?->format('d M Y, h:i A') }}</p>
+                                    @else
+                                        <p class="mt-2 text-xs text-gray-600">No sentiment snapshot available yet. Trigger analysis to classify the latest inbound communication.</p>
+                                    @endif
+                                </div>
+                                <form action="{{ route('crm.leads.sentiment.recalculate', $lead->uuid) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn-secondary-sm whitespace-nowrap" aria-label="Recalculate inbound sentiment">Run Sentiment Scan</button>
+                                </form>
+                            </div>
+                        </div>
+
                         {{-- Manual override form --}}
                         @can('override', $lead)
                         <div x-data="{ overrideOpen: false }">
@@ -129,5 +262,63 @@
                         @else
                         <p class="text-xs text-gray-400">No score overrides recorded for this lead.</p>
                         @endif
+
+                        {{-- BRD: CRM-LQ-009 — Counsellor questionnaire response capture for this lead --}}
+                        @can('crm.questionnaires.respond')
+                        @if($activeQuestionnaires->isNotEmpty())
+                            <div class="space-y-4">
+                                <h3 class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Qualification Questionnaires</h3>
+                                @foreach($activeQuestionnaires as $questionnaire)
+                                    @php
+                                        $savedResponse = $responseByQuestionnaireId->get($questionnaire->id);
+                                        $savedValues = is_array($savedResponse?->responses) ? $savedResponse->responses : [];
+                                    @endphp
+                                    <div class="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div class="mb-3 flex items-center justify-between gap-2">
+                                            <p class="text-sm font-semibold text-gray-900">{{ $questionnaire->name }}</p>
+                                            @if($savedResponse)
+                                                <span class="badge badge-green text-[10px]">Response Saved</span>
+                                            @endif
+                                        </div>
+                                        <form method="POST" action="{{ route('crm.scoring.questionnaires.responses.store', ['questionnaire' => $questionnaire->uuid, 'lead' => $lead->uuid]) }}" class="space-y-3">
+                                            @csrf
+                                            @foreach(($questionnaire->questions ?? []) as $question)
+                                                @php
+                                                    $questionKey = $question['key'] ?? null;
+                                                    $questionLabel = $question['label'] ?? $questionKey;
+                                                    $questionType = $question['type'] ?? 'text';
+                                                    $required = (bool)($question['required'] ?? false);
+                                                @endphp
+                                                @if($questionKey)
+                                                    <div>
+                                                        <label class="label" for="q_{{ $questionnaire->id }}_{{ $questionKey }}">{{ $questionLabel }}@if($required) <span class="text-red-500">*</span>@endif</label>
+                                                        @if($questionType === 'select' && is_array($question['options'] ?? null))
+                                                            <select id="q_{{ $questionnaire->id }}_{{ $questionKey }}" name="responses[{{ $questionKey }}]" class="input-field" @if($required) required @endif>
+                                                                <option value="">Select</option>
+                                                                @foreach($question['options'] as $option)
+                                                                    <option value="{{ $option }}" @selected((string)($savedValues[$questionKey] ?? '') === (string)$option)>{{ $option }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        @elseif($questionType === 'boolean')
+                                                            <select id="q_{{ $questionnaire->id }}_{{ $questionKey }}" name="responses[{{ $questionKey }}]" class="input-field" @if($required) required @endif>
+                                                                <option value="">Select</option>
+                                                                <option value="yes" @selected((string)($savedValues[$questionKey] ?? '') === 'yes')>Yes</option>
+                                                                <option value="no" @selected((string)($savedValues[$questionKey] ?? '') === 'no')>No</option>
+                                                            </select>
+                                                        @else
+                                                            <input id="q_{{ $questionnaire->id }}_{{ $questionKey }}" type="text" name="responses[{{ $questionKey }}]" class="input-field" value="{{ $savedValues[$questionKey] ?? '' }}" @if($required) required @endif>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                            <div class="flex justify-end">
+                                                <button type="submit" class="btn-secondary-sm">Save Responses</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                        @endcan
 
                     </div>{{-- end scoring tab panel --}}

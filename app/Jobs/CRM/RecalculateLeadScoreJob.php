@@ -6,6 +6,7 @@ namespace App\Jobs\CRM;
 
 use App\Events\CRM\LeadTemperatureChangedEvent;
 use App\Events\CRM\ScoreChangedEvent;
+use App\Jobs\CRM\RecalculateAiLeadScoreJob;
 use App\Models\CRM\Lead;
 use App\Services\CRM\Scoring\LeadScoringService;
 use Illuminate\Bus\Queueable;
@@ -16,7 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-// BRD: CRM-LQ-001, CRM-LQ-004 — Recalculate lead score on every qualifying activity
+// BRD: CRM-LQ-001, CRM-LQ-004 ï¿½ Recalculate lead score on every qualifying activity
 final class RecalculateLeadScoreJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -28,7 +29,7 @@ final class RecalculateLeadScoreJob implements ShouldBeUnique, ShouldQueue
     public function __construct(
         public readonly string $leadUuid,
     ) {
-        // BRD: CRM-LQ-004 — Dedicated queue keeps scoring isolated from other operations
+        // BRD: CRM-LQ-004 ï¿½ Dedicated queue keeps scoring isolated from other operations
         $this->onQueue('crm-scoring');
     }
 
@@ -40,8 +41,8 @@ final class RecalculateLeadScoreJob implements ShouldBeUnique, ShouldQueue
 
     /**
      * Method injection resolves the service from the container (testable).
-     * BRD: CRM-LQ-001 — Full configurable scoring engine replaces the previous stub.
-     * BRD: CRM-LQ-003 — AI scoring engine augments this in Phase 2 (Should Have).
+     * BRD: CRM-LQ-001 ï¿½ Full configurable scoring engine replaces the previous stub.
+     * BRD: CRM-LQ-003 ï¿½ AI scoring engine augments this in Phase 2 (Should Have).
      */
     public function handle(LeadScoringService $scoringService): void
     {
@@ -51,11 +52,11 @@ final class RecalculateLeadScoreJob implements ShouldBeUnique, ShouldQueue
             ->first();
 
         if ($lead === null) {
-            // Lead deleted before job ran — safe to discard
+            // Lead deleted before job ran ï¿½ safe to discard
             return;
         }
 
-        // BRD: CRM-LQ-007 — Do NOT auto-recalculate if score was manually overridden
+        // BRD: CRM-LQ-007 ï¿½ Do NOT auto-recalculate if score was manually overridden
         if ($lead->score_manually_overridden) {
             return;
         }
@@ -66,7 +67,7 @@ final class RecalculateLeadScoreJob implements ShouldBeUnique, ShouldQueue
         $config = $scoringService->getScoringConfig($lead->institution_id);
         $newScore = $scoringService->calculateScore($lead, $config);
 
-        // BRD: CRM-LQ-005 — Temperature derived from institution-configured thresholds
+        // BRD: CRM-LQ-005 ï¿½ Temperature derived from institution-configured thresholds
         $newTemperature = $scoringService->deriveTemperature($newScore, $config);
 
         $lead->update([
@@ -74,14 +75,14 @@ final class RecalculateLeadScoreJob implements ShouldBeUnique, ShouldQueue
             'temperature' => $newTemperature->value,
         ]);
 
-        // BRD: CRM-CR-002 — No PII in logs
+        // BRD: CRM-CR-002 ï¿½ No PII in logs
         Log::info('Lead score recalculated', [
             'lead_uuid' => $this->leadUuid,
             'old_score' => $previousScore,
             'new_score' => $newScore,
         ]);
 
-        // BRD: CRM-LQ-006 — Fire events only when values actually change
+        // BRD: CRM-LQ-006 ï¿½ Fire events only when values actually change
         if ($newScore !== $previousScore) {
             ScoreChangedEvent::dispatch($lead, $previousScore, $newScore);
         }
@@ -89,5 +90,8 @@ final class RecalculateLeadScoreJob implements ShouldBeUnique, ShouldQueue
         if ($newTemperature !== $previousTemperature) {
             LeadTemperatureChangedEvent::dispatch($lead, $previousTemperature, $newTemperature);
         }
+
+        // BRD: CRM-LQ-003 â€” Queue AI-assisted scoring as an asynchronous augmentation step.
+        RecalculateAiLeadScoreJob::dispatch($lead->uuid);
     }
 }
