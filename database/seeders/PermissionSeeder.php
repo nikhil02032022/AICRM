@@ -70,6 +70,11 @@ class PermissionSeeder extends Seeder
             'crm.config.manage',
             // Agents
             'crm.agents.manage',
+            // Group L — Agent Commission + Bulk Comms (BRD: CRM-AG-006, CRM-AG-008)
+            'crm.agents.commissions.view',
+            'crm.agents.commissions.manage',
+            'crm.agents.comms.view',
+            'crm.agents.comms.send',
             // Web Forms (BRD: CRM-LC-001)
             'crm.forms.view',
             'crm.forms.create',

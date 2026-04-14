@@ -231,6 +231,18 @@ class RoleSeeder extends Seeder
         // Junior counsellors: send only
         Role::findByName('junior-counsellor')->givePermissionTo('crm.communication.send');
 
+        // ---------------------------------------------------------------
+        // BRD: CRM-AG-006, CRM-AG-008 — Agent commissions + bulk comms
+        // ---------------------------------------------------------------
+        foreach (['super-admin', 'institution-admin', 'admissions-director', 'admissions-manager'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo([
+                'crm.agents.commissions.view',
+                'crm.agents.commissions.manage',
+                'crm.agents.comms.view',
+                'crm.agents.comms.send',
+            ]);
+        }
+
         $this->command->info('✅ 11 BRD roles and permissions seeded successfully.');
     }
 }

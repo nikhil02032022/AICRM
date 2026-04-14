@@ -6,7 +6,13 @@ use App\Http\Controllers\Public\PublicFormController;
 use App\Http\Controllers\Public\PublicLandingPageController;
 use App\Http\Controllers\Public\PublicChatWidgetController;
 use App\Http\Controllers\Public\PublicKioskController;
+use App\Http\Controllers\Web\CRM\AadhaarEkycWebController;
+use App\Http\Controllers\Web\CRM\AgentCommissionWebController;
+use App\Http\Controllers\Web\CRM\AgentCommsWebController;
+use App\Http\Controllers\Web\CRM\AlumniBridgeWebController;
 use App\Http\Controllers\Web\CRM\AttributionWebController;
+use App\Http\Controllers\Web\CRM\DigiLockerWebController;
+use App\Http\Controllers\Web\CRM\LmsEnrolmentWebController;
 use App\Http\Controllers\Web\CRM\CustomFieldWebController;
 use App\Http\Controllers\Web\CRM\CustomReportWebController;
 use App\Http\Controllers\Web\CRM\ReportSchedulerWebController;
@@ -725,6 +731,77 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/history/{component}', [SystemHealthWebController::class, 'history'])
                 ->name('history')
                 ->middleware('can:crm.admin.system-health.view');
+        });
+
+        // -----------------------------------------------------------------------
+        // Group L — Integrations & Document Management
+        // BRD: DM-006, DM-007, EI-008, EI-010, AG-006, AG-008
+        // -----------------------------------------------------------------------
+
+        // BRD: DM-006 — DigiLocker document retrieval and verification
+        Route::prefix('integrations/digilocker')->name('integrations.digilocker.')->group(function (): void {
+            Route::get('/', [DigiLockerWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.integrations.manage');
+            Route::post('/', [DigiLockerWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.integrations.manage');
+        });
+
+        // BRD: DM-007 — Aadhaar eKYC initiation and OTP verification
+        Route::prefix('integrations/aadhaar-ekyc')->name('integrations.aadhaar-ekyc.')->group(function (): void {
+            Route::get('/', [AadhaarEkycWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.integrations.manage');
+            Route::post('/', [AadhaarEkycWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.integrations.manage');
+            Route::patch('/{ekycLogUuid}/verify-otp', [AadhaarEkycWebController::class, 'verifyOtp'])
+                ->name('verify-otp')
+                ->middleware('can:crm.integrations.manage');
+        });
+
+        // BRD: EI-008 — Alumni Bridge: sync converted students to A2A ERP alumni module
+        Route::prefix('integrations/alumni-bridge')->name('integrations.alumni-bridge.')->group(function (): void {
+            Route::get('/', [AlumniBridgeWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.integrations.manage');
+            Route::post('/', [AlumniBridgeWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.integrations.manage');
+        });
+
+        // BRD: EI-010 — LMS auto-enrolment trigger (CamPLUS / Moodle)
+        Route::prefix('integrations/lms-enrolment')->name('integrations.lms-enrolment.')->group(function (): void {
+            Route::get('/', [LmsEnrolmentWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.integrations.manage');
+            Route::post('/', [LmsEnrolmentWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.integrations.manage');
+        });
+
+        // BRD: AG-006 — Agent commission tracking, approval, and payout
+        Route::prefix('agents/commissions')->name('agents.commission.')->group(function (): void {
+            Route::get('/', [AgentCommissionWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.agents.commissions.view');
+            Route::post('/', [AgentCommissionWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.agents.commissions.manage');
+            Route::patch('/{commissionUuid}', [AgentCommissionWebController::class, 'update'])
+                ->name('update')
+                ->middleware('can:crm.agents.commissions.manage');
+        });
+
+        // BRD: AG-008 — Bulk communication to channel partner agents
+        Route::prefix('agents/comms')->name('agents.comms.')->group(function (): void {
+            Route::get('/', [AgentCommsWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.agents.comms.view');
+            Route::post('/', [AgentCommsWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.agents.comms.send');
         });
     });
 

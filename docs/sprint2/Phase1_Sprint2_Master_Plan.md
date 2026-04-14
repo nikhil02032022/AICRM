@@ -103,7 +103,7 @@
 ## Group L — Integrations & Document Management
 
 **Theme:** DigiLocker/Aadhaar, ERP/LMS/Alumni integration, agent comms, document verification  
-**Target Completion:** July 2026
+**Status: ✅ COMPLETED**
 
 | Req ID | Feature | Files |
 |--------|---------|-------|
@@ -111,11 +111,11 @@
 | DM-007 | Aadhaar eKYC | `AadhaarService`, `aadhaar-ekyc.blade.php` |
 | EI-008 | Alumni module bridge | `AlumniBridgeService`, `alumni-bridge.blade.php` |
 | EI-010 | LMS enrolment trigger | `LmsEnrolmentService`, `lms-enrolment.blade.php` |
-| AG-006 | Agent commission workflow | `AgentCommissionService`, `agent-commission.blade.php` |
-| AG-008 | Agent bulk comms tools | `AgentCommsService`, `agent-comms.blade.php` |
+| AG-006 | Agent commission workflow | `AgentCommissionService`, `commission.blade.php` |
+| AG-008 | Agent bulk comms tools | `AgentCommsService`, `comms.blade.php` |
 
-**Tests:** 8+ planned  
-**Security/DPDP:** All integrations DPDP-compliant, audit logs
+**Tests:** `DigiLockerTest`, `AadhaarEkycTest`, `AlumniBridgeTest`, `LmsEnrolmentTest`, `AgentCommissionTest`, `AgentCommsTest` — 24 tests  
+**Security/DPDP:** Aadhaar numbers never stored; opt-out respected; consent_record_id required for DigiLocker
 
 ---
 
@@ -138,12 +138,12 @@
 | AR-020 | Should Have | K | ⏳ |
 | SA-007 | Should Have | K | ⏳ |
 | SA-011 | Should Have | K | ⏳ |
-| DM-006 | Should Have | L | ⏳ |
-| DM-007 | Should Have | L | ⏳ |
-| EI-008 | Should Have | L | ⏳ |
-| EI-010 | Should Have | L | ⏳ |
-| AG-006 | Should Have | L | ⏳ |
-| AG-008 | Should Have | L | ⏳ |
+| DM-006 | Should Have | L | ✅ Completed |
+| DM-007 | Should Have | L | ✅ Completed |
+| EI-008 | Should Have | L | ✅ Completed |
+| EI-010 | Should Have | L | ✅ Completed |
+| AG-006 | Should Have | L | ✅ Completed |
+| AG-008 | Should Have | L | ✅ Completed |
 | MB-004 | Should Have | J | ⏳ |
 | MB-006 | Should Have | J | ⏳ |
 | MB-007 | Should Have | J | ⏳ |
@@ -188,3 +188,10 @@
 - Group J has completed TC-004 end-to-end with disposition-driven follow-up prompt routing and a working counselling session scheduling form for immediate post-call booking.
 - Group J has completed TC-005 end-to-end with call_monitor_logs persistence, consent-aware monitor session controls (listen/whisper/barge-in), web/API monitor dashboards, and passing feature/API tests.
 - Group J has completed TC-006 end-to-end with telecalling_campaigns + assignment tables, web/API campaign management endpoints, dedicated web edit screen, dialler session campaign linkage, time-window/tenant-safe assignment validation, campaign progress tracking, and passing web/API tests.
+- Group L has completed DM-006 with digilocker_documents persistence, DigiLockerService (initiateRequest → VerifyDigiLockerDocumentJob on crm-integrations, markVerified, markFailed), DigiLockerVerifiedEvent, web/API controllers, DigiLocker Blade view with initiate modal, DPDP-safe consent_record_id requirement, InstitutionScope tenant isolation, and passing service/isolation tests.
+- Group L has completed DM-007 with aadhaar_ekyc_logs persistence (Aadhaar number NEVER stored — UIDAI/DPDP compliance), AadhaarService (initiate → ProcessAadhaarKycJob, verifyOtp, markFailed), AadhaarKycCompletedEvent, web/API controllers, Aadhaar eKYC Blade view with OTP verify modal, and passing DPDP + service tests.
+- Group L has completed EI-008 with alumni_bridge_logs persistence, AlumniBridgeService (trigger → TriggerAlumniBridgeJob + AlumniBridgeTriggeredEvent, markSuccess with erp_alumni_id, incrementReferrals), web/API controllers, Alumni Bridge Blade view, and passing service/event tests.
+- Group L has completed EI-010 with lms_enrolment_logs persistence (camplus/moodle providers), LmsEnrolmentService (trigger → TriggerLmsEnrolmentJob, markEnrolled with lms_user_id, incrementAttempts, markFailed), web/API controllers, LMS Enrolment Blade view with provider filter, and passing service tests.
+- Group L has completed AG-006 with agent_commissions persistence (fixed/percentage types, approval workflow), AgentCommissionService (create → ProcessAgentCommissionJob, approve → AgentCommissionApprovedEvent, reject, markPaid with payout_reference), web/API controllers, Commission Blade view with approve/reject/pay action buttons, and passing full workflow tests.
+- Group L has completed AG-008 with agent_comms_logs persistence, AgentCommsService (send → SendAgentBulkCommsJob, recordDelivery → AgentBulkCommsSentEvent), DPDP opt_out_respected flag always true, web/API controllers, Comms Blade view with channel/message compose modal, InstitutionScope isolation, and passing DPDP + scope tests.
+- Group L: CrmIntegrationServiceProvider registered in bootstrap/providers.php; all 6 repository interface bindings (DigiLocker, Aadhaar, AlumniBridge, LmsEnrolment, AgentCommission, AgentComms) wired.

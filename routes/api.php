@@ -2,8 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\CRM\ErpMatchController;
+use App\Http\Controllers\Api\CRM\AadhaarController;
+use App\Http\Controllers\Api\CRM\AgentCommissionController;
+use App\Http\Controllers\Api\CRM\AgentCommsController;
+use App\Http\Controllers\Api\CRM\AlumniBridgeController;
 use App\Http\Controllers\Api\CRM\AttributionController;
+use App\Http\Controllers\Api\CRM\DigiLockerController;
+use App\Http\Controllers\Api\CRM\ErpMatchController;
+use App\Http\Controllers\Api\CRM\LmsEnrolmentController;
 use App\Http\Controllers\Api\CRM\CampaignSpendController;
 use App\Http\Controllers\Api\CRM\ChatWidgetController;
 use App\Http\Controllers\Api\CRM\CustomFieldController;
@@ -243,6 +249,61 @@ Route::prefix('v1/crm')
             ->name('admin.system-health.index');
         Route::get('admin/system-health/{component}/history', [SystemHealthController::class, 'history'])
             ->name('admin.system-health.history');
+
+        // -----------------------------------------------------------------------
+        // Group L — Integrations & Document Management
+        // BRD: DM-006, DM-007, EI-008, EI-010, AG-006, AG-008
+        // -----------------------------------------------------------------------
+
+        // BRD: DM-006 — DigiLocker document retrieval API (mobile app / ERP consumers)
+        Route::get('integrations/digilocker', [DigiLockerController::class, 'index'])
+            ->name('integrations.digilocker.index');
+        Route::post('integrations/digilocker', [DigiLockerController::class, 'store'])
+            ->name('integrations.digilocker.store');
+        Route::get('integrations/digilocker/{digiLockerDocument:uuid}', [DigiLockerController::class, 'show'])
+            ->name('integrations.digilocker.show');
+
+        // BRD: DM-007 — Aadhaar eKYC API (mobile app consumers)
+        Route::get('integrations/aadhaar', [AadhaarController::class, 'index'])
+            ->name('integrations.aadhaar.index');
+        Route::post('integrations/aadhaar', [AadhaarController::class, 'store'])
+            ->name('integrations.aadhaar.store');
+        Route::get('integrations/aadhaar/{aadhaarEkycLog:uuid}', [AadhaarController::class, 'show'])
+            ->name('integrations.aadhaar.show');
+
+        // BRD: EI-008 — Alumni Bridge API (ERP server-to-server consumers)
+        Route::get('integrations/alumni-bridge', [AlumniBridgeController::class, 'index'])
+            ->name('integrations.alumni-bridge.index');
+        Route::post('integrations/alumni-bridge', [AlumniBridgeController::class, 'store'])
+            ->name('integrations.alumni-bridge.store');
+        Route::get('integrations/alumni-bridge/{alumniBridgeLog:uuid}', [AlumniBridgeController::class, 'show'])
+            ->name('integrations.alumni-bridge.show');
+
+        // BRD: EI-010 — LMS Enrolment API (ERP / LMS server-to-server consumers)
+        Route::get('integrations/lms-enrolments', [LmsEnrolmentController::class, 'index'])
+            ->name('integrations.lms-enrolments.index');
+        Route::post('integrations/lms-enrolments', [LmsEnrolmentController::class, 'store'])
+            ->name('integrations.lms-enrolments.store');
+        Route::get('integrations/lms-enrolments/{lmsEnrolmentLog:uuid}', [LmsEnrolmentController::class, 'show'])
+            ->name('integrations.lms-enrolments.show');
+
+        // BRD: AG-006 — Agent Commission API (mobile app consumers)
+        Route::get('agents/commissions', [AgentCommissionController::class, 'index'])
+            ->name('agents.commissions.index');
+        Route::post('agents/commissions', [AgentCommissionController::class, 'store'])
+            ->name('agents.commissions.store');
+        Route::get('agents/commissions/{agentCommission:uuid}', [AgentCommissionController::class, 'show'])
+            ->name('agents.commissions.show');
+        Route::patch('agents/commissions/{agentCommission:uuid}', [AgentCommissionController::class, 'update'])
+            ->name('agents.commissions.update');
+
+        // BRD: AG-008 — Agent Bulk Comms API (mobile app consumers)
+        Route::get('agents/comms', [AgentCommsController::class, 'index'])
+            ->name('agents.comms.index');
+        Route::post('agents/comms', [AgentCommsController::class, 'store'])
+            ->name('agents.comms.store');
+        Route::get('agents/comms/{agentCommsLog:uuid}', [AgentCommsController::class, 'show'])
+            ->name('agents.comms.show');
     });
 
 // -----------------------------------------------------------------------
