@@ -137,4 +137,27 @@ final class EloquentLeadRepository implements LeadRepositoryInterface
 
         $lead->programmeInterests()->sync($syncData);
     }
+
+    // BRD: CRM-EC-002 — Update pivot columns on an existing programme interest record
+    /** @param array<string, mixed> $pivotData */
+    public function updateProgrammeInterest(Lead $lead, int $programmeId, array $pivotData): void
+    {
+        $lead->programmeInterests()->updateExistingPivot($programmeId, $pivotData);
+    }
+
+    // BRD: CRM-EC-002 — Attach a single programme interest with optional pivot data
+    /** @param array<string, mixed> $pivotData */
+    public function attachProgrammeInterest(Lead $lead, int $programmeId, array $pivotData): void
+    {
+        // Prevent duplicate attach — use sync without detaching
+        $lead->programmeInterests()->syncWithoutDetaching([
+            $programmeId => $pivotData,
+        ]);
+    }
+
+    // BRD: CRM-EC-002 — Remove a single programme interest from a lead
+    public function detachProgrammeInterest(Lead $lead, int $programmeId): void
+    {
+        $lead->programmeInterests()->detach($programmeId);
+    }
 }

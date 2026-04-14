@@ -34,4 +34,15 @@ interface LeadRepositoryInterface
 
     /** @param list<int> $programmeIds */
     public function syncProgrammeInterests(Lead $lead, array $programmeIds): void;
+
+    // BRD: CRM-EC-002 — Update pilot columns on an existing programme interest record
+    /** @param array<string, mixed> $pivotData */
+    public function updateProgrammeInterest(Lead $lead, int $programmeId, array $pivotData): void;
+
+    // BRD: CRM-EC-002 — Attach a single programme interest with optional pivot data
+    /** @param array<string, mixed> $pivotData */
+    public function attachProgrammeInterest(Lead $lead, int $programmeId, array $pivotData): void;
+
+    // BRD: CRM-EC-002 — Remove a single programme interest from a lead
+    public function detachProgrammeInterest(Lead $lead, int $programmeId): void;
 }

@@ -1,4 +1,4 @@
-                    {{-- ── Contact Info tab ── --}}
+{{-- ── Contact Info tab ── --}}
                     <div x-show="tab === 'info'"
                          x-transition:enter="transition-opacity duration-150"
                          x-transition:enter-start="opacity-0"
@@ -42,19 +42,33 @@
                             </dl>
                         </div>
 
-                        {{-- Programme interests --}}
+                        {{-- Programme interests with status (EC-002) --}}
                         @if($lead->programmeInterests->isNotEmpty())
                         <div>
                             <h3 class="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Programme Interests</h3>
                             <ul class="space-y-2">
                                 @foreach($lead->programmeInterests as $prog)
-                                <li class="flex items-center gap-2 text-sm">
-                                    @if($prog->pivot->is_primary)
-                                        <span class="badge badge-indigo">Primary</span>
-                                    @else
-                                        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-gray-300" aria-hidden="true"></span>
+                                <li class="flex flex-col gap-1 rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+                                    <div class="flex items-center gap-2">
+                                        @if($prog->pivot->is_primary)
+                                            <span class="badge badge-indigo">Primary</span>
+                                        @endif
+                                        <span class="text-gray-800 font-semibold">{{ $prog->name }}</span>
+                                        <span class="ml-2 inline-block rounded px-2 py-0.5 text-xs font-bold {{ $prog->pivot->status?->badgeClass() ?? 'bg-gray-100 text-gray-600' }}">
+                                            {{ $prog->pivot->status?->label() ?? ucfirst($prog->pivot->status) }}
+                                        </span>
+                                        <a href="{{ route('crm.leads.programme-interests.edit', [$lead->uuid, $prog->uuid]) }}"
+                                           class="ml-2 text-indigo-500 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium"
+                                           aria-label="Edit programme interest">
+                                            Edit
+                                        </a>
+                                    </div>
+                                    @if($prog->pivot->preferred_intake)
+                                        <div class="text-xs text-gray-500">Preferred Intake: {{ $prog->pivot->preferred_intake }}</div>
                                     @endif
-                                    <span class="text-gray-800">{{ $prog->name }}</span>
+                                    @if($prog->pivot->notes)
+                                        <div class="mt-1 text-xs text-gray-600">Notes: {{ $prog->pivot->notes }}</div>
+                                    @endif
                                 </li>
                                 @endforeach
                             </ul>

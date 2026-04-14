@@ -96,6 +96,16 @@ class PermissionSeeder extends Seeder
             'crm.campaigns.send',                 // create + launch bulk email/SMS campaigns
             // Do-Not-Call list management (BRD: CRM-TC-009)
             'crm.dnc.manage',                     // view DNC list, add/remove leads from DNC
+            // Group K — Custom Fields (BRD: CRM-EC-005)
+            'crm.settings.custom-fields.view',
+            'crm.settings.custom-fields.manage',
+            // Group K — Custom Reports + Scheduler (BRD: CRM-AR-018, CRM-AR-020)
+            'crm.reports.manage',
+            // Group K — Workflow Templates (BRD: CRM-SA-007)
+            'crm.settings.workflow-templates.view',
+            'crm.settings.workflow-templates.manage',
+            // Group K — System Health (BRD: CRM-SA-011)
+            'crm.admin.system-health.view',
         ];
     }
 

@@ -36,6 +36,9 @@ class CrmProgramme extends Model
             'lead_programme_interests',
             'crm_programme_id',
             'lead_id',
-        )->withPivot('is_primary')->withTimestamps();
+        )
+        ->using(LeadProgrammeInterest::class)
+        ->withPivot(['is_primary', 'status', 'notes', 'preferred_intake'])
+        ->withTimestamps();
     }
 }

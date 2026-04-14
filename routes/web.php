@@ -7,6 +7,11 @@ use App\Http\Controllers\Public\PublicLandingPageController;
 use App\Http\Controllers\Public\PublicChatWidgetController;
 use App\Http\Controllers\Public\PublicKioskController;
 use App\Http\Controllers\Web\CRM\AttributionWebController;
+use App\Http\Controllers\Web\CRM\CustomFieldWebController;
+use App\Http\Controllers\Web\CRM\CustomReportWebController;
+use App\Http\Controllers\Web\CRM\ReportSchedulerWebController;
+use App\Http\Controllers\Web\CRM\SystemHealthWebController;
+use App\Http\Controllers\Web\CRM\WorkflowTemplateWebController;
 use App\Http\Controllers\Web\CRM\CallLogWebController;
 use App\Http\Controllers\Web\CRM\CallDispositionWebController;
 use App\Http\Controllers\Web\CRM\CallMonitorWebController;
@@ -595,6 +600,11 @@ Route::middleware('auth')->group(function (): void {
                 ->middleware('can:crm.communication.send');
         });
 
+        // BRD: CRM-EC-010 — Counsellor performance gamification dashboard
+        Route::get('/gamification', [\App\Http\Controllers\CRM\Web\GamificationController::class, 'index'])
+            ->name('gamification.index')
+            ->middleware('can:crm.leads.view');
+
         // F1 + F4 + IVR: Settings
         Route::prefix('settings')->name('settings.')->group(function (): void {
             // Sender domain management (F1)
@@ -612,6 +622,109 @@ Route::middleware('auth')->group(function (): void {
             Route::post('ivr/{ivrConfig:uuid}/toggle', [IvrConfigWebController::class, 'toggleActive'])
                 ->name('ivr.toggle')
                 ->middleware('can:crm.settings.manage');
+
+            // BRD: CRM-EC-005 — Custom field definitions per entity (leads, applications)
+            Route::get('custom-fields', [CustomFieldWebController::class, 'index'])
+                ->name('custom-fields.index')
+                ->middleware('can:crm.settings.custom-fields.view');
+            Route::post('custom-fields', [CustomFieldWebController::class, 'store'])
+                ->name('custom-fields.store')
+                ->middleware('can:crm.settings.custom-fields.manage');
+            Route::put('custom-fields/{customField:uuid}', [CustomFieldWebController::class, 'update'])
+                ->name('custom-fields.update')
+                ->middleware('can:crm.settings.custom-fields.manage');
+            Route::delete('custom-fields/{customField:uuid}', [CustomFieldWebController::class, 'destroy'])
+                ->name('custom-fields.destroy')
+                ->middleware('can:crm.settings.custom-fields.manage');
+
+            // BRD: CRM-SA-007 — Workflow template library
+            Route::get('workflow-templates', [WorkflowTemplateWebController::class, 'index'])
+                ->name('workflow-templates.index')
+                ->middleware('can:crm.settings.custom-fields.view');
+            Route::get('workflow-templates/create', [WorkflowTemplateWebController::class, 'create'])
+                ->name('workflow-templates.create')
+                ->middleware('can:crm.settings.custom-fields.manage');
+            Route::post('workflow-templates', [WorkflowTemplateWebController::class, 'store'])
+                ->name('workflow-templates.store')
+                ->middleware('can:crm.settings.custom-fields.manage');
+            Route::get('workflow-templates/{workflowTemplate:uuid}/edit', [WorkflowTemplateWebController::class, 'edit'])
+                ->name('workflow-templates.edit')
+                ->middleware('can:crm.settings.custom-fields.manage');
+            Route::put('workflow-templates/{workflowTemplate:uuid}', [WorkflowTemplateWebController::class, 'update'])
+                ->name('workflow-templates.update')
+                ->middleware('can:crm.settings.custom-fields.manage');
+            Route::delete('workflow-templates/{workflowTemplate:uuid}', [WorkflowTemplateWebController::class, 'destroy'])
+                ->name('workflow-templates.destroy')
+                ->middleware('can:crm.settings.custom-fields.manage');
+            Route::post('workflow-templates/{workflowTemplate:uuid}/import', [WorkflowTemplateWebController::class, 'import'])
+                ->name('workflow-templates.import')
+                ->middleware('can:crm.settings.custom-fields.manage');
+        });
+
+        // BRD: CRM-AR-018 — Custom report builder
+        Route::prefix('reports/custom')->name('reports.custom.')->group(function (): void {
+            Route::get('/', [CustomReportWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.reports.view');
+            Route::get('/create', [CustomReportWebController::class, 'create'])
+                ->name('create')
+                ->middleware('can:crm.reports.manage');
+            Route::post('/', [CustomReportWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.reports.manage');
+            Route::get('/{customReport:uuid}', [CustomReportWebController::class, 'show'])
+                ->name('show')
+                ->middleware('can:crm.reports.view');
+            Route::get('/{customReport:uuid}/edit', [CustomReportWebController::class, 'edit'])
+                ->name('edit')
+                ->middleware('can:crm.reports.manage');
+            Route::put('/{customReport:uuid}', [CustomReportWebController::class, 'update'])
+                ->name('update')
+                ->middleware('can:crm.reports.manage');
+            Route::delete('/{customReport:uuid}', [CustomReportWebController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('can:crm.reports.manage');
+            Route::post('/{customReport:uuid}/run', [CustomReportWebController::class, 'run'])
+                ->name('run')
+                ->middleware('can:crm.reports.view');
+        });
+
+        // BRD: CRM-AR-020 — Scheduled report delivery
+        Route::prefix('reports/scheduler')->name('reports.scheduler.')->group(function (): void {
+            Route::get('/', [ReportSchedulerWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.reports.view');
+            Route::get('/create', [ReportSchedulerWebController::class, 'create'])
+                ->name('create')
+                ->middleware('can:crm.reports.manage');
+            Route::post('/', [ReportSchedulerWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.reports.manage');
+            Route::get('/{reportSchedule:uuid}/edit', [ReportSchedulerWebController::class, 'edit'])
+                ->name('edit')
+                ->middleware('can:crm.reports.manage');
+            Route::put('/{reportSchedule:uuid}', [ReportSchedulerWebController::class, 'update'])
+                ->name('update')
+                ->middleware('can:crm.reports.manage');
+            Route::delete('/{reportSchedule:uuid}', [ReportSchedulerWebController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('can:crm.reports.manage');
+            Route::post('/{reportSchedule:uuid}/dispatch', [ReportSchedulerWebController::class, 'dispatch'])
+                ->name('dispatch')
+                ->middleware('can:crm.reports.manage');
+        });
+
+        // BRD: CRM-SA-011 — System health monitoring dashboard
+        Route::prefix('admin/system-health')->name('admin.system-health.')->group(function (): void {
+            Route::get('/', [SystemHealthWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.admin.system-health.view');
+            Route::get('/poll', [SystemHealthWebController::class, 'poll'])
+                ->name('poll')
+                ->middleware('can:crm.admin.system-health.view');
+            Route::get('/history/{component}', [SystemHealthWebController::class, 'history'])
+                ->name('history')
+                ->middleware('can:crm.admin.system-health.view');
         });
     });
 

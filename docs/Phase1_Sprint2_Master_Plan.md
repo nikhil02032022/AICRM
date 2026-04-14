@@ -79,21 +79,26 @@
 
 ---
 
-## Group K — Customisation & Advanced Analytics
+## Group K — Customisation & Advanced Analytics ✅ COMPLETE
 
 **Theme:** Custom fields, custom reports, scheduled reports, workflow templates, system health  
-**Target Completion:** July 2026
+**Completed:** Sprint 2 · Full production-ready implementation  
 
-| Req ID | Feature | Files |
-|--------|---------|-------|
-| EC-005 | Custom fields per institution | `CustomField`, `CustomFieldController`, `custom-field.blade.php` |
-| AR-018 | Custom report builder | `CustomReport`, `CustomReportController`, `custom-report.blade.php` |
-| AR-020 | Scheduled report delivery | `ReportScheduler`, `report-scheduler.blade.php` |
-| SA-007 | Workflow/automation template library | `WorkflowTemplate`, `workflow-template.blade.php` |
-| SA-011 | System health monitoring dashboard | `SystemHealthService`, `system-health.blade.php` |
+| Req ID | Feature | Status | Key Files |
+|--------|---------|--------|-----------|
+| EC-005 | Custom fields per institution | ✅ Done | `CustomField`, `CustomFieldValue`, `CustomFieldService`, `EloquentCustomFieldRepository`, `CustomFieldWebController`, `CustomFieldController` (API), `crm/settings/custom-fields/index.blade.php` |
+| AR-018 | Custom report builder | ✅ Done | `CustomReport`, `ReportExport`, `CustomReportService`, `EloquentCustomReportRepository`, `CustomReportWebController`, `CustomReportController` (API), `crm/analytics/custom-reports/{index,create,show}.blade.php` |
+| AR-020 | Scheduled report delivery | ✅ Done | `ReportSchedule`, `ReportDelivery`, `ReportSchedulerService`, `ReportDeliveryJob` (queue: crm-analytics), `ReportSchedulerWebController`, `ReportSchedulerController` (API), `crm/analytics/report-scheduler/{index,create}.blade.php` |
+| SA-007 | Workflow/automation template library | ✅ Done | `WorkflowTemplate`, `WorkflowTemplateService`, `WorkflowTemplateWebController`, `WorkflowTemplateController` (API), `crm/settings/workflow-templates/{index,create}.blade.php` |
+| SA-011 | System health monitoring dashboard | ✅ Done | `SystemHealthLog`, `SystemHealthService`, `SystemHealthWebController`, `SystemHealthController` (API), `crm/admin/system-health/index.blade.php` (Alpine.js polling + Chart.js) |
 
-**Tests:** 10+ planned  
-**Security/DPDP:** Field-level RBAC, audit logs, DPDP for exports
+**Migrations:** 5 migrations · 7 tables · All applied  
+**Enums:** 9 new enums (`CustomFieldType`, `CustomFieldEntity`, `ReportEntity`, `ReportFrequency`, `ReportFormat`, `ReportDeliveryStatus`, `WorkflowTemplateCategory`, `SystemHealthComponent`, `SystemHealthStatus`)  
+**Routes:** Web (`crm/settings/custom-fields`, `crm/reports/custom`, `crm/reports/scheduler`, `crm/settings/workflow-templates`, `crm/admin/system-health`) + API (`/api/v1/crm/...`)  
+**Scheduler:** `ReportSchedulerService::processDueSchedules()` bound every 5 minutes in `routes/console.php`  
+**Service Provider:** `CrmCustomisationServiceProvider` registered in `bootstrap/providers.php`  
+**Tests:** Pending (see sprint2_group_K_customisation_analytics.md for test plan)  
+**Security/DPDP:** Field-level RBAC via `CustomFieldPolicy` + `CustomReportPolicy`, audit observer on all mutating models, no PII in health logs, DPDP export audit via `ReportExport` table
 
 ---
 

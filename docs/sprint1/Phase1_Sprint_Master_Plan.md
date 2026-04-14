@@ -107,6 +107,7 @@
 | Req ID | Feature | Files |
 |--------|---------|-------|
 | EC-001 | Activity timeline with 10 types (NOTE, STATUS_CHANGE, ASSIGNMENT, CALL_LOGGED, EMAIL_SENT, WHATSAPP_SENT, SMS_SENT, DOCUMENT_UPLOADED, PAYMENT_RECEIVED, SYSTEM) | `ActivityType` enum, `Activity` model, `activities` migration, `ActivityRepositoryInterface`, `EloquentActivityRepository`, `CreateActivityDTO` |
+| EC-002 | Per-programme interest status, notes, intake (pivot fields, editable UI) | `2026_04_13_133326_add_status_notes_intake_to_lead_programme_interests_table` migration, `ProgrammeInterestStatus` enum, `LeadProgrammeInterest` pivot model, `ProgrammeInterestWebController`, tab-info.blade.php, programme-interest-edit.blade.php |
 | EC-003 | Academic background fields on Lead (qualification, marks, boards, graduation %) | `add_academic_fields_to_leads` migration, Lead model + fillable/casts, StoreLeadRequest/UpdateLeadRequest, tab-info.blade.php section |
 | EC-004 | 360° activity timeline on lead show page (Livewire reactive, paginated 20/page, Add Note form) | `LeadActivityTimeline` Livewire component + view, tab-timeline.blade.php |
 | EC-006 | Auto-assignment configuration (round-robin / load-balanced / manual), max cap, escalation | `AssignmentMode` enum, `CounsellorAssignmentConfig` model + migration, `CounsellorAssignmentConfigRepositoryInterface`, `EloquentCounsellorAssignmentConfigRepository`, `CounsellorAssignmentService`, `UpdateAssignmentConfigDTO`, `CounsellingWebController::assignmentConfig()`, config.blade.php, `UpdateAssignmentConfigRequest` |

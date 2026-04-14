@@ -11,6 +11,7 @@ use App\Jobs\CRM\Automation\EvaluateEventBasedAutomationTriggersJob;
 use App\Jobs\CRM\Automation\EvaluateInactivityAutomationTriggersJob;
 use App\Jobs\CRM\Automation\EvaluateTimedAutomationTriggersJob;
 use App\Jobs\CRM\SendAppointmentReminderJob;
+use App\Services\CRM\Analytics\ReportSchedulerService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -45,3 +46,9 @@ Schedule::job(new RunAnomalyDetectionJob(null, now()->toDateString(), 7, 28, 25)
 
 // BRD: CRM-AI-010 — Generate segment-wise nurture journey suggestions daily for marketing orchestration.
 Schedule::job(new GenerateNbaJourneyJob(null, now()->toDateString(), null), 'ai')->dailyAt('07:00');
+
+// BRD: CRM-AR-020 — Process due scheduled report deliveries every 5 minutes
+Schedule::call(fn () => app(ReportSchedulerService::class)->processDueSchedules())
+    ->everyFiveMinutes()
+    ->name('crm.report-scheduler.process-due')
+    ->withoutOverlapping();

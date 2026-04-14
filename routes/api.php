@@ -6,7 +6,12 @@ use App\Http\Controllers\Api\CRM\ErpMatchController;
 use App\Http\Controllers\Api\CRM\AttributionController;
 use App\Http\Controllers\Api\CRM\CampaignSpendController;
 use App\Http\Controllers\Api\CRM\ChatWidgetController;
+use App\Http\Controllers\Api\CRM\CustomFieldController;
+use App\Http\Controllers\Api\CRM\CustomReportController;
 use App\Http\Controllers\Api\CRM\LandingPageController;
+use App\Http\Controllers\Api\CRM\ReportSchedulerController;
+use App\Http\Controllers\Api\CRM\SystemHealthController;
+use App\Http\Controllers\Api\CRM\WorkflowTemplateController;
 use App\Http\Controllers\Api\CRM\AutomationWorkflowController;
 use App\Http\Controllers\Api\CRM\CallCentrePerformanceController;
 use App\Http\Controllers\Api\CRM\CallMonitorController;
@@ -205,6 +210,39 @@ Route::prefix('v1/crm')
             ->name('leads.check-erp');
         Route::get('leads/{lead:uuid}/erp-match', [ErpMatchController::class, 'show'])
             ->name('leads.erp-match');
+
+        // -----------------------------------------------------------------------
+        // Group K — Customisation & Advanced Analytics
+        // BRD: CRM-EC-005, CRM-AR-018, CRM-AR-020, CRM-SA-007, CRM-SA-011
+        // -----------------------------------------------------------------------
+
+        // BRD: CRM-EC-005 — Custom field management (external integrations)
+        Route::apiResource('custom-fields', CustomFieldController::class)
+            ->parameters(['custom-fields' => 'customField:uuid']);
+
+        // BRD: CRM-AR-018 — Custom report builder API
+        Route::apiResource('reports/custom', CustomReportController::class)
+            ->parameters(['custom' => 'customReport:uuid']);
+        Route::post('reports/custom/{customReport:uuid}/run', [CustomReportController::class, 'run'])
+            ->name('reports.custom.run');
+
+        // BRD: CRM-AR-020 — Scheduled report delivery API
+        Route::apiResource('reports/schedules', ReportSchedulerController::class)
+            ->parameters(['schedules' => 'reportSchedule:uuid']);
+        Route::post('reports/schedules/{reportSchedule:uuid}/dispatch', [ReportSchedulerController::class, 'dispatch'])
+            ->name('reports.schedules.dispatch');
+
+        // BRD: CRM-SA-007 — Workflow template library API
+        Route::apiResource('workflow-templates', WorkflowTemplateController::class)
+            ->parameters(['workflow-templates' => 'workflowTemplate:uuid']);
+        Route::post('workflow-templates/{workflowTemplate:uuid}/import', [WorkflowTemplateController::class, 'import'])
+            ->name('workflow-templates.import');
+
+        // BRD: CRM-SA-011 — System health monitoring API
+        Route::get('admin/system-health', [SystemHealthController::class, 'index'])
+            ->name('admin.system-health.index');
+        Route::get('admin/system-health/{component}/history', [SystemHealthController::class, 'history'])
+            ->name('admin.system-health.history');
     });
 
 // -----------------------------------------------------------------------

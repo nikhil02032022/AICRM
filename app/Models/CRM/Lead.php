@@ -185,7 +185,10 @@ class Lead extends Model
             'lead_programme_interests',
             'lead_id',
             'crm_programme_id',
-        )->withPivot('is_primary')->withTimestamps();
+        )
+        ->using(LeadProgrammeInterest::class)
+        ->withPivot(['is_primary', 'status', 'notes', 'preferred_intake'])
+        ->withTimestamps();
     }
 
     // BRD: CRM-LC-011 — Audit trail for this lead (read-only, append-only)

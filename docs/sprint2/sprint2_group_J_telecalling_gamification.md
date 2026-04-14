@@ -15,10 +15,10 @@ Deliver power/auto-dialler, call scripts, supervisor call monitoring, counsellor
 | TC-007 | Call centre performance dashboard | Must Have | ✅ Completed |
 | TC-008 | Automatic call recording, storage, playback and search | Must Have | ✅ Completed |
 | TC-009 | Do-Not-Call (DNC) list management | Must Have | ✅ Completed |
-| EC-010 | Counsellor performance gamification | Should Have | ⏳ |
-| MB-004 | Business card scanner (OCR) | Should Have | ⏳ |
-| MB-006 | Mobile offline mode | Should Have | ⏳ |
-| MB-007 | Biometric authentication | Should Have | ⏳ |
+| EC-010 | Counsellor performance gamification | Should Have | ✅ Completed |
+| MB-004 | Business card scanner (OCR) | Should Have | ⏸️ Deferred |
+| MB-006 | Mobile offline mode | Should Have | ⏸️ Deferred |
+| MB-007 | Biometric authentication | Should Have | ⏸️ Deferred |
 
 ## 🧩 Features Breakdown
 
@@ -280,6 +280,40 @@ Gamified dashboard for counsellor KPIs, leaderboards, badges, and rewards.
 #### 🧪 Test Cases
 - Score calculation, badge assignment
 
+#### ✅ Implementation Completed (April 2026)
+- Migrations: `2026_04_13_125857_create_gamification_tables.php`
+  - Tables: `crm_badges`, `crm_gamification_scores`, `crm_leaderboards`, `crm_counsellor_badges`
+  - Indexes: `gs_inst_camp_period_idx`, `lb_inst_camp_period_rank_idx` (MySQL 64-char limit compliant)
+- Enums: `BadgeCategory`, `PeriodType` (daily/weekly/monthly/quarterly/yearly), `LeaderboardTrend`
+- Models: `Badge`, `GamificationScore`, `Leaderboard`, `CounsellorBadge`
+  - `Badge::isCriteriaMet()` for automatic badge unlocking
+  - `GamificationScore::calculateConversionRate()` computed attribute
+  - `Leaderboard::determineTrend()` for rank movement indicators
+- Repository: `app/Repositories/CRM/GamificationRepository.php`
+  - `getOrCreateScore()`, `updateMetrics()`, `awardBadge()`, `updateLeaderboardRankings()`, `getPeriodDates()`, `checkAndAwardBadges()` (15+ methods)
+- Service: `app/Services/CRM/GamificationService.php`
+  - `recordLeadHandled()` (+5 pts), `recordLeadConversion()` (+50 pts), `recordCallMade()` (+2 pts), `recordEmailSent()` (+1 pt), `recordMeetingScheduled()` (+10 pts), `recordApplicationSubmitted()` (+25 pts)
+  - Bonus points: `updateResponseTime()` (+10 for <15 min response), `updateSatisfactionScore()` (+20 for 4.5+ rating)
+  - Automatic streak tracking, badge eligibility checking, event dispatching
+- Events: `ScoreUpdatedEvent`, `BadgeEarnedEvent`, `LeaderboardUpdatedEvent`
+- Jobs: `UpdateLeaderboardJob`, `UpdateAllLeaderboardsJob` (queue: `crm-gamification`)
+- Seeder: `BadgeSeeder` — 13 default badges across 5 categories (performance, milestone, consistency, excellence, special)
+  - First Conversion (100 pts), Top Converter (500 pts), Conversion Master (2000 pts), Century Club (300 pts), Call Champion (200 pts), Week Warrior (250 pts), Month Maven (1000 pts), High Rate Achiever (750 pts), Speed Demon (400 pts), 5-Star Counsellor (600 pts), Email Expert (150 pts), Meeting Maestro (300 pts), Application Ace (400 pts)
+- Web Controller: `app/Http/Controllers/CRM/Web/GamificationController.php`
+  - `index()`: period filtering, top-50 leaderboard, top-10 performers, counsellor rank, badges grid
+- Blade View: `resources/views/crm/gamification/index.blade.php`
+  - 4 gradient stat cards (rank, points, conversion rate, streak)
+  - Period selector (daily/weekly/monthly/quarterly/yearly)
+  - Leaderboard table with medal icons (🥇🥈🥉) and trend indicators (↑↓→)
+  - Badges grid with earned/locked states and tooltips
+  - KPI metrics sidebar with earnable points reference guide
+- Livewire Component: `app/Livewire/CRM/Gamification/Leaderboard.php`
+  - Real-time leaderboard with current user row highlighting
+  - View: `resources/views/livewire/crm/gamification/leaderboard.blade.php`
+- Route: `GET /crm/gamification` → `crm.gamification.index` (middleware: `auth`, `can:crm.leads.view`)
+- Sidebar navigation: "Leaderboard & Gamification" added to AI & Qualification section in `resources/views/components/layouts/crm.blade.php`
+  - Trophy icon (Heroicon v2), active state on `crm.gamification.*`, permission-gated with `@can('crm.leads.view')`
+
 ---
 
 ### Feature: Calling Campaign Management (TC-006)
@@ -439,62 +473,16 @@ Automatic capture of telephony recording links for consented calls, searchable r
 ---
 
 ### Feature: Business Card Scanner (OCR) (MB-004)
-#### 📌 Description
-Mobile OCR to scan business cards and auto-create leads.
-#### 👤 User Stories
-- As a counsellor, I scan a card and a lead is created.
-#### ✅ Acceptance Criteria
-- Given a card scan, when OCR is successful, then lead is created with extracted data.
-#### ⚙️ Backend Design
-- Services: OcrService
-- DB Schema: ocr_uploads
-#### 🎨 UI/UX
-- ocr-upload.blade.php (mobile UI)
-#### 🔗 Dependencies
-- Mobile app, Lead foundation (A)
-#### 🔐 Security / DPDP
-- Consent, no PII in logs
-#### 🧪 Test Cases
-- OCR accuracy, lead creation
+> **Deferred:** This mobile app feature will be implemented in a future sprint. No backend or UI work planned in this phase.
 
 ---
 
 ### Feature: Mobile Offline Mode (MB-006)
-#### 📌 Description
-Allow mobile users to view, add notes, and scan cards offline, with sync on reconnect.
-#### 👤 User Stories
-- As a counsellor, I work offline and sync later.
-#### ✅ Acceptance Criteria
-- Given offline mode, when reconnected, then data syncs to CRM.
-#### ⚙️ Backend Design
-- Mobile app update, sync logic
-#### 🎨 UI/UX
-- Mobile UI (offline indicators)
-#### 🔗 Dependencies
-- Mobile app
-#### 🔐 Security / DPDP
-- Local encryption, DPDP for sync
-#### 🧪 Test Cases
-- Offline actions, sync
+> **Deferred:** This mobile app feature will be implemented in a future sprint. No backend or UI work planned in this phase.
 
 ---
 
 ### Feature: Biometric Authentication (MB-007)
-#### 📌 Description
-Enable fingerprint/face unlock for mobile app access.
-#### 👤 User Stories
-- As a counsellor, I log in with biometrics.
-#### ✅ Acceptance Criteria
-- Given biometric setup, when enabled, then login uses fingerprint/face.
-#### ⚙️ Backend Design
-- Mobile app update, auth logic
-#### 🎨 UI/UX
-- Mobile UI (biometric prompt)
-#### 🔗 Dependencies
-- Mobile app
-#### 🔐 Security / DPDP
-- Biometric data never leaves device
-#### 🧪 Test Cases
-- Biometric login, fallback
+> **Deferred:** This mobile app feature will be implemented in a future sprint. No backend or UI work planned in this phase.
 
 ---
