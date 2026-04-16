@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories\CRM\Application;
 
 use App\Models\CRM\Application;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class EloquentApplicationRepository implements ApplicationRepositoryInterface
@@ -128,5 +129,23 @@ class EloquentApplicationRepository implements ApplicationRepositoryInterface
 
         return $query->with(['lead:id,uuid,first_name,email,mobile'])
             ->get();
+    }
+
+    public function findManyByUuids(array $uuids): Collection
+    {
+        return Application::query()
+            ->whereIn('uuid', $uuids)
+            ->with(['lead', 'assignedCounsellor'])
+            ->get();
+    }
+
+    public function bulkAssignCounsellorByUuids(array $uuids, int $counsellorId): int
+    {
+        return Application::query()
+            ->whereIn('uuid', $uuids)
+            ->update([
+                'assigned_counsellor_id' => $counsellorId,
+                'updated_at' => now(),
+            ]);
     }
 }

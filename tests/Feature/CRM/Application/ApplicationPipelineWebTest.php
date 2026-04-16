@@ -14,6 +14,7 @@ use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
 
@@ -41,6 +42,7 @@ function makeInstitutionAndApplicationWebUserForPipeline(string $code): array
         'crm.applications.create',
         'crm.applications.edit',
         'crm.applications.delete',
+        'crm.communication.send',
     ]);
 
     return [$institution, $user];
@@ -262,4 +264,79 @@ test('enforces tenant isolation on application detail page', function (): void {
     $this->actingAs($userB)
         ->get(route('crm.applications.show', ['application' => $applicationA->uuid]))
         ->assertNotFound();
+});
+
+test('executes bulk status update from web list for AP-010', function (): void {
+    [$institution, $user] = makeInstitutionAndApplicationWebUserForPipeline('AP010W01');
+
+    $application = makePipelineApplication($institution->id, $user->id, 'BulkStatus');
+
+    $this->actingAs($user)
+        ->post(route('crm.applications.bulk.status'), [
+            'application_uuids' => [$application->uuid],
+            'status' => ApplicationStatus::SHORTLISTED->value,
+            'reason' => 'Bulk status update',
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('applications', [
+        'uuid' => $application->uuid,
+        'status' => ApplicationStatus::SHORTLISTED->value,
+    ]);
+});
+
+test('executes bulk counsellor assignment from web list for AP-010', function (): void {
+    [$institution, $user] = makeInstitutionAndApplicationWebUserForPipeline('AP010W02');
+
+    $newCounsellor = User::create([
+        'name' => 'Web Bulk Counsellor',
+        'email' => 'ap010-web-bulk-counsellor@example.test',
+        'password' => bcrypt('password'),
+        'institution_id' => $institution->id,
+    ]);
+
+    $application = makePipelineApplication($institution->id, null, 'BulkAssign', '9876500022', 'bulk-assign@example.test');
+
+    $this->actingAs($user)
+        ->post(route('crm.applications.bulk.assign'), [
+            'application_uuids' => [$application->uuid],
+            'counsellor_id' => $newCounsellor->id,
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('applications', [
+        'uuid' => $application->uuid,
+        'assigned_counsellor_id' => $newCounsellor->id,
+    ]);
+});
+
+test('executes bulk communication from web list for AP-010', function (): void {
+    Mail::fake();
+
+    [$institution, $user] = makeInstitutionAndApplicationWebUserForPipeline('AP010W03');
+    $application = makePipelineApplication($institution->id, $user->id, 'BulkComms', '9876500023', 'bulk-comms@example.test');
+
+    $this->actingAs($user)
+        ->post(route('crm.applications.bulk.communication'), [
+            'application_uuids' => [$application->uuid],
+            'channel' => 'EMAIL',
+            'from_name' => 'Admissions Team',
+            'from_email' => 'no-reply@example.test',
+            'subject' => 'Application update',
+            'custom_body_html' => '<p>Bulk communication</p>',
+        ])
+        ->assertRedirect();
+});
+
+test('exports bulk selected applications in csv from web list for AP-010', function (): void {
+    [$institution, $user] = makeInstitutionAndApplicationWebUserForPipeline('AP010W04');
+    $application = makePipelineApplication($institution->id, $user->id, 'BulkExport', '9876500024', 'bulk-export@example.test');
+
+    $this->actingAs($user)
+        ->post(route('crm.applications.bulk.export'), [
+            'application_uuids' => [$application->uuid],
+            'format' => 'csv',
+        ])
+        ->assertOk()
+        ->assertHeader('content-type', 'text/csv; charset=UTF-8');
 });

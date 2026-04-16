@@ -219,6 +219,20 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/{application:uuid}/transition/apply', [ApplicationPipelineWebController::class, 'transition'])
                 ->name('transition.apply')
                 ->middleware('can:crm.applications.edit');
+
+            // BRD: CRM-AP-010 — Bulk actions from list view
+            Route::post('/bulk/status', [ApplicationPipelineWebController::class, 'bulkStatus'])
+                ->name('bulk.status')
+                ->middleware('can:crm.applications.edit');
+            Route::post('/bulk/assign', [ApplicationPipelineWebController::class, 'bulkAssign'])
+                ->name('bulk.assign')
+                ->middleware('can:crm.applications.edit');
+            Route::post('/bulk/communication', [ApplicationPipelineWebController::class, 'bulkCommunication'])
+                ->name('bulk.communication')
+                ->middleware('can:crm.communication.send');
+            Route::post('/bulk/export', [ApplicationPipelineWebController::class, 'bulkExport'])
+                ->name('bulk.export')
+                ->middleware('can:crm.applications.view');
         });
 
         // BRD: CRM-LC-001 — Web form management routes (auth)

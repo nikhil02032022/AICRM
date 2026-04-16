@@ -14,6 +14,7 @@ use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
 
@@ -41,6 +42,7 @@ function makeInstitutionAndApplicationApiUser(string $code): array
         'crm.applications.create',
         'crm.applications.edit',
         'crm.applications.delete',
+        'crm.communication.send',
     ]);
 
     return [$institution, $user];
@@ -316,4 +318,91 @@ test('returns conversion funnel analytics payload for AP-018 and AP-019', functi
         ->assertOk()
         ->assertJsonPath('success', true)
         ->assertJsonStructure(['success', 'data']);
+});
+
+test('bulk updates status for AP-010', function (): void {
+    [$institution, $user] = makeInstitutionAndApplicationApiUser('AP010A01');
+
+    $applicationA = makeApplication($institution->id, 'under_review', $user->id, '91');
+    $applicationB = makeApplication($institution->id, 'under_review', $user->id, '92');
+
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/v1/crm/applications/bulk/status', [
+            'application_uuids' => [$applicationA->uuid, $applicationB->uuid],
+            'status' => ApplicationStatus::SHORTLISTED->value,
+            'reason' => 'Bulk progression',
+        ])
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.updated', 2);
+
+    $this->assertDatabaseHas('applications', [
+        'uuid' => $applicationA->uuid,
+        'status' => ApplicationStatus::SHORTLISTED->value,
+    ]);
+});
+
+test('bulk assigns counsellor for AP-010', function (): void {
+    [$institution, $user] = makeInstitutionAndApplicationApiUser('AP010A02');
+
+    $newCounsellor = User::create([
+        'name' => 'Bulk Assigned Counsellor',
+        'email' => 'ap010-bulk-assign@example.test',
+        'password' => bcrypt('password'),
+        'institution_id' => $institution->id,
+    ]);
+
+    $application = makeApplication($institution->id, 'under_review', null, '93');
+
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/v1/crm/applications/bulk/assign', [
+            'application_uuids' => [$application->uuid],
+            'counsellor_id' => $newCounsellor->id,
+        ])
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.updated', 1);
+
+    $this->assertDatabaseHas('applications', [
+        'uuid' => $application->uuid,
+        'assigned_counsellor_id' => $newCounsellor->id,
+    ]);
+});
+
+test('bulk sends email communication for AP-010', function (): void {
+    Mail::fake();
+
+    [$institution, $user] = makeInstitutionAndApplicationApiUser('AP010A03');
+    $application = makeApplication($institution->id, 'under_review', $user->id, '94');
+
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/v1/crm/applications/bulk/communication', [
+            'application_uuids' => [$application->uuid],
+            'channel' => 'EMAIL',
+            'from_name' => 'Admissions Team',
+            'from_email' => 'no-reply@example.test',
+            'subject' => 'Admission Update',
+            'custom_body_html' => '<p>Your application is in progress.</p>',
+        ])
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonStructure([
+            'success',
+            'data' => ['sent', 'skipped'],
+            'message',
+        ]);
+});
+
+test('bulk exports selected applications as json for AP-010', function (): void {
+    [$institution, $user] = makeInstitutionAndApplicationApiUser('AP010A04');
+    $application = makeApplication($institution->id, 'under_review', $user->id, '95');
+
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/v1/crm/applications/bulk/export', [
+            'application_uuids' => [$application->uuid],
+            'format' => 'json',
+        ])
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.0.application_uuid', $application->uuid);
 });

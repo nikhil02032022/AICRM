@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories\CRM\Application;
 
 use App\Models\CRM\Application;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ApplicationRepositoryInterface
@@ -25,4 +26,10 @@ interface ApplicationRepositoryInterface
 
     /** @param array<string, mixed> $filters */
     public function all(array $filters = []): \Illuminate\Database\Eloquent\Collection;
+
+    /** @param array<int, string> $uuids */
+    public function findManyByUuids(array $uuids): Collection;
+
+    /** @param array<int, string> $uuids */
+    public function bulkAssignCounsellorByUuids(array $uuids, int $counsellorId): int;
 }

@@ -4,7 +4,7 @@
 **Group:** N  
 **Module:** Application and Admission Pipeline  
 **Req IDs:** CRM-AP-008 to CRM-AP-019  
-**Status:** In Progress (AP-008 and AP-009 completed)
+**Status:** In Progress (AP-008, AP-009, and AP-010 completed)
 
 ---
 
@@ -110,6 +110,37 @@ Mitigation: enforce status transition rules in service layer.
 	- API test verifies filtering by programme + batch + source + score range.
 	- Web test verifies list filtering returns matching applicant and excludes non-matching applicant.
 
+### 2026-04-16 - AP-010 End-to-End Completion (Bulk Actions)
+
+1. Implemented AP-010 API bulk actions in `ApplicationPipelineController` with dedicated endpoints:
+	- `POST /api/v1/crm/applications/bulk/status`
+	- `POST /api/v1/crm/applications/bulk/assign`
+	- `POST /api/v1/crm/applications/bulk/communication`
+	- `POST /api/v1/crm/applications/bulk/export`
+2. Implemented AP-010 web bulk actions in `ApplicationPipelineWebController` and routes:
+	- `POST /crm/applications/bulk/status`
+	- `POST /crm/applications/bulk/assign`
+	- `POST /crm/applications/bulk/communication`
+	- `POST /crm/applications/bulk/export`
+3. Added service-layer AP-010 orchestration in `ApplicationPipelineService`:
+	- `bulkUpdateStatus()` with status transition rules and history integrity
+	- `bulkAssignCounsellor()`
+	- `bulkSendCommunication()` for EMAIL/SMS/WHATSAPP channel fan-out
+	- `buildExportRows()` for CSV/JSON export payload generation
+4. Added repository primitives for AP-010 selection/update by UUID in `EloquentApplicationRepository`:
+	- `findManyByUuids()`
+	- `bulkAssignCounsellorByUuids()`
+5. Added AP-010 bulk action validation requests for API and web flows.
+6. Extended application list UI (`resources/views/crm/applications/pipeline/list.blade.php`) with:
+	- row selection controls
+	- bulk status update action
+	- bulk assign counsellor action
+	- bulk communication action
+	- bulk export action
+7. Added AP-010 test coverage:
+	- API: bulk status, bulk assign, bulk communication, bulk export
+	- Web: bulk status, bulk assign, bulk communication, bulk export
+
 ### Verification Evidence
 
 1. `php artisan test tests/Feature/CRM/Api/ApplicationPipelineApiTest.php --no-coverage`
@@ -117,11 +148,12 @@ Mitigation: enforce status transition rules in service layer.
 2. `php artisan test tests/Feature/CRM/Application/ApplicationPipelineWebTest.php --no-coverage`
 	- Result: PASS (7 tests, 18 assertions)
 3. `php artisan test tests/Feature/CRM/Api/ApplicationPipelineApiTest.php tests/Feature/CRM/Application/ApplicationPipelineWebTest.php`
-	- Result: PASS (16 tests, 63 assertions)
+	- Result: PASS (24 tests, 89 assertions)
 
 ### Scope Status
 
 1. AP-008: Completed and verified.
 2. AP-009: API and web filtering requirements implemented and verified; transition state-machine flow also implemented and verified.
-3. AP-011/AP-018/AP-019: Covered in API suite and currently passing for implemented endpoints.
-4. AP-010/AP-012/AP-013/AP-014/AP-015/AP-016/AP-017: Pending full Group N implementation.
+3. AP-010: Completed end-to-end across API + web + tests.
+4. AP-011/AP-018/AP-019: Covered in API suite and currently passing for implemented endpoints.
+5. AP-012/AP-013/AP-014/AP-015/AP-016/AP-017: Pending full Group N implementation.

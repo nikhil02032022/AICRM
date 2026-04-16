@@ -88,6 +88,15 @@ Route::prefix('v1/crm')
             ->only(['index', 'show']);
         Route::post('applications/{application:uuid}/transition', [ApplicationPipelineController::class, 'transition'])
             ->name('applications.transition');
+        // BRD: CRM-AP-010 — Bulk actions: communication, status, counsellor assignment, export
+        Route::post('applications/bulk/status', [ApplicationPipelineController::class, 'bulkStatus'])
+            ->name('applications.bulk.status');
+        Route::post('applications/bulk/assign', [ApplicationPipelineController::class, 'bulkAssign'])
+            ->name('applications.bulk.assign');
+        Route::post('applications/bulk/communication', [ApplicationPipelineController::class, 'bulkCommunication'])
+            ->name('applications.bulk.communication');
+        Route::post('applications/bulk/export', [ApplicationPipelineController::class, 'bulkExport'])
+            ->name('applications.bulk.export');
         Route::get('programmes/{programme:uuid}/seat-availability', [ApplicationPipelineController::class, 'seatAvailability'])
             ->name('programmes.seat-availability');
         // BRD: CRM-AP-018 & AP-019 — Conversion analytics and funnel

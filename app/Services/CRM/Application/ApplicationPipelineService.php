@@ -4,11 +4,19 @@ declare(strict_types=1);
 
 namespace App\Services\CRM\Application;
 
+use App\DTOs\CRM\SendEmailDTO;
 use App\Enums\CRM\ApplicationStatus;
+use App\Enums\CRM\CommunicationChannel;
 use App\Events\CRM\ApplicationStatusChangedEvent;
 use App\Models\CRM\Application;
 use App\Models\CRM\ApplicationStatusHistory;
+use App\Models\CRM\CommunicationTemplate;
+use App\Models\CRM\DltTemplate;
 use App\Repositories\CRM\Application\ApplicationRepositoryInterface;
+use App\Services\CRM\Communication\EmailService;
+use App\Services\CRM\Communication\SmsService;
+use App\Services\CRM\Communication\WhatsAppService;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
 // BRD: CRM-AP-008, CRM-AP-009, CRM-AP-011 — Application pipeline state management and seat availability
@@ -16,6 +24,9 @@ final class ApplicationPipelineService
 {
     public function __construct(
         private readonly ApplicationRepositoryInterface $repository,
+        private readonly EmailService $emailService,
+        private readonly SmsService $smsService,
+        private readonly WhatsAppService $whatsAppService,
     ) {}
 
     /**
@@ -126,5 +137,161 @@ final class ApplicationPipelineService
         }
 
         return $counts;
+    }
+
+    /**
+     * BRD: CRM-AP-010 — Bulk status update for selected applications.
+     *
+     * @param array<int, string> $applicationUuids
+     * @return array{updated:int, skipped:int}
+     */
+    public function bulkUpdateStatus(array $applicationUuids, ApplicationStatus $targetStatus, ?int $changedByUserId = null, ?string $reason = null): array
+    {
+        $applications = $this->repository->findManyByUuids($applicationUuids);
+
+        $updated = 0;
+        $skipped = 0;
+
+        foreach ($applications as $application) {
+            try {
+                $this->transition($application, $targetStatus, $changedByUserId, $reason);
+                $updated++;
+            } catch (ValidationException) {
+                $skipped++;
+            }
+        }
+
+        return [
+            'updated' => $updated,
+            'skipped' => $skipped,
+        ];
+    }
+
+    /**
+     * BRD: CRM-AP-010 — Bulk counsellor assignment for selected applications.
+     *
+     * @param array<int, string> $applicationUuids
+     */
+    public function bulkAssignCounsellor(array $applicationUuids, int $counsellorId): int
+    {
+        return $this->repository->bulkAssignCounsellorByUuids($applicationUuids, $counsellorId);
+    }
+
+    /**
+     * BRD: CRM-AP-010 — Bulk communication dispatch for selected applications.
+     *
+     * @param array<int, string> $applicationUuids
+     * @param array<string, mixed> $payload
+     * @return array{sent:int, skipped:int}
+     */
+    public function bulkSendCommunication(array $applicationUuids, array $payload): array
+    {
+        $applications = $this->repository->findManyByUuids($applicationUuids);
+        $channel = CommunicationChannel::from((string) $payload['channel']);
+
+        $sent = 0;
+        $skipped = 0;
+
+        foreach ($applications as $application) {
+            $lead = $application->lead;
+
+            if ($lead === null) {
+                $skipped++;
+                continue;
+            }
+
+            try {
+                match ($channel) {
+                    CommunicationChannel::EMAIL => $this->sendBulkEmail($lead, $payload),
+                    CommunicationChannel::SMS => $this->sendBulkSms($lead, $payload),
+                    CommunicationChannel::WHATSAPP => $this->sendBulkWhatsApp($lead, $payload),
+                    default => throw new \RuntimeException('Unsupported communication channel for AP-010 bulk action.'),
+                };
+
+                $sent++;
+            } catch (\Throwable) {
+                // Continue processing remaining leads; caller receives sent vs skipped metrics.
+                $skipped++;
+            }
+        }
+
+        return [
+            'sent' => $sent,
+            'skipped' => $skipped,
+        ];
+    }
+
+    /**
+     * BRD: CRM-AP-010 — Build export rows for selected applications.
+     *
+     * @param array<int, string> $applicationUuids
+     * @return array<int, array<string, string>>
+     */
+    public function buildExportRows(array $applicationUuids): array
+    {
+        $applications = $this->repository->findManyByUuids($applicationUuids);
+
+        return $applications->map(static function (Application $application): array {
+            $lead = $application->lead;
+
+            return [
+                'application_uuid' => (string) $application->uuid,
+                'lead_uuid' => (string) $application->lead_uuid,
+                'applicant_name' => trim((string) (($lead?->first_name ?? '').' '.($lead?->last_name ?? ''))),
+                'applicant_email' => (string) ($lead?->email ?? ''),
+                'source' => (string) ($lead?->source?->value ?? ''),
+                'lead_score' => (string) ($lead?->lead_score ?? ''),
+                'status' => (string) $application->status->value,
+                'assigned_counsellor' => (string) ($application->assignedCounsellor?->name ?? ''),
+                'submitted_at' => (string) optional($application->submitted_at)->toDateTimeString(),
+            ];
+        })->all();
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function sendBulkEmail(\App\Models\CRM\Lead $lead, array $payload): void
+    {
+        $dto = new SendEmailDTO(
+            templateId: (int) Arr::get($payload, 'template_id', 0),
+            fromName: (string) Arr::get($payload, 'from_name', 'Admissions Team'),
+            fromEmail: (string) Arr::get($payload, 'from_email', 'no-reply@example.test'),
+            subject: Arr::get($payload, 'subject'),
+            customBodyHtml: Arr::get($payload, 'custom_body_html'),
+            channel: CommunicationChannel::EMAIL,
+        );
+
+        $this->emailService->sendToLead($lead, $dto);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function sendBulkSms(\App\Models\CRM\Lead $lead, array $payload): void
+    {
+        $template = DltTemplate::query()->findOrFail((int) $payload['dlt_template_id']);
+        $message = (string) Arr::get($payload, 'message', $template->template_body);
+
+        $this->smsService->sendToLead($lead, $message, $template);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function sendBulkWhatsApp(\App\Models\CRM\Lead $lead, array $payload): void
+    {
+        $templateName = (string) Arr::get($payload, 'whatsapp_template_name', '');
+
+        if ($templateName === '' && Arr::has($payload, 'template_id')) {
+            $template = CommunicationTemplate::query()->findOrFail((int) $payload['template_id']);
+            $templateName = $template->name;
+        }
+
+        if ($templateName === '') {
+            throw new \RuntimeException('WhatsApp template is required for bulk communication.');
+        }
+
+        $this->whatsAppService->sendTemplate($lead, $templateName, []);
     }
 }

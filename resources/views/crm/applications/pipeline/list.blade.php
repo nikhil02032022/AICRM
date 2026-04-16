@@ -1,7 +1,28 @@
 <x-layouts.crm>
     <x-slot:header>Application List</x-slot:header>
 
-    <div class="space-y-6">
+    <div
+        class="space-y-6"
+        x-data="{
+            selected: [],
+            toggleAll(event) {
+                const checked = event.target.checked;
+                const boxes = Array.from(document.querySelectorAll('.js-app-select'));
+                boxes.forEach((box) => {
+                    box.checked = checked;
+                });
+                this.selected = checked ? boxes.map((box) => box.value) : [];
+            },
+            sync(uuid, checked) {
+                if (checked && !this.selected.includes(uuid)) {
+                    this.selected.push(uuid);
+                }
+                if (!checked) {
+                    this.selected = this.selected.filter((item) => item !== uuid);
+                }
+            }
+        }"
+    >
         <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 class="text-lg font-semibold text-gray-900">Application Filters</h2>
             <p class="mt-2 text-sm text-gray-600">Filter by programme, batch, counsellor, source, status, date range, and score.</p>
@@ -99,10 +120,135 @@
         <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 class="text-lg font-semibold text-gray-900">Applications</h2>
 
+            <div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-sm font-medium text-gray-700">
+                        AP-010 Bulk Actions
+                        <span class="ml-2 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700" x-text="selected.length + ' selected'"></span>
+                    </p>
+                    <p class="text-xs text-gray-500">Select rows below and run an action.</p>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <form method="POST" action="{{ route('crm.applications.bulk.status') }}" class="rounded-md border border-gray-200 bg-white p-3">
+                        @csrf
+                        <div class="flex flex-wrap items-end gap-2">
+                            <div class="flex-1 min-w-[180px]">
+                                <label for="bulk_status" class="block text-xs font-medium text-gray-700">Bulk Status</label>
+                                <select id="bulk_status" name="status" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" required>
+                                    <option value="">Select status</option>
+                                    @foreach ($statuses as $status)
+                                        <option value="{{ $status->value }}">{{ $status->label() }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="flex-1 min-w-[180px]">
+                                <label for="bulk_reason" class="block text-xs font-medium text-gray-700">Reason</label>
+                                <input id="bulk_reason" name="reason" type="text" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="Optional note" />
+                            </div>
+                            <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700" :disabled="selected.length === 0">Update Status</button>
+                        </div>
+                        <template x-for="uuid in selected" :key="'status-' + uuid">
+                            <input type="hidden" name="application_uuids[]" :value="uuid" />
+                        </template>
+                    </form>
+
+                    <form method="POST" action="{{ route('crm.applications.bulk.assign') }}" class="rounded-md border border-gray-200 bg-white p-3">
+                        @csrf
+                        <div class="flex flex-wrap items-end gap-2">
+                            <div class="flex-1 min-w-[180px]">
+                                <label for="bulk_counsellor" class="block text-xs font-medium text-gray-700">Assign Counsellor</label>
+                                <select id="bulk_counsellor" name="counsellor_id" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" required>
+                                    <option value="">Select counsellor</option>
+                                    @foreach ($counsellors as $counsellor)
+                                        <option value="{{ $counsellor->id }}">{{ $counsellor->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="submit" class="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700" :disabled="selected.length === 0">Assign</button>
+                        </div>
+                        <template x-for="uuid in selected" :key="'assign-' + uuid">
+                            <input type="hidden" name="application_uuids[]" :value="uuid" />
+                        </template>
+                    </form>
+
+                    <form method="POST" action="{{ route('crm.applications.bulk.communication') }}" class="rounded-md border border-gray-200 bg-white p-3 lg:col-span-2">
+                        @csrf
+                        <div class="grid grid-cols-1 gap-2 md:grid-cols-6">
+                            <div class="md:col-span-2">
+                                <label for="bulk_channel" class="block text-xs font-medium text-gray-700">Channel</label>
+                                <select id="bulk_channel" name="channel" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" required>
+                                    <option value="EMAIL">Email</option>
+                                    <option value="SMS">SMS</option>
+                                    <option value="WHATSAPP">WhatsApp</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="bulk_subject" class="block text-xs font-medium text-gray-700">Subject / Message Label</label>
+                                <input id="bulk_subject" name="subject" type="text" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="For email" />
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="bulk_message" class="block text-xs font-medium text-gray-700">Message</label>
+                                <input id="bulk_message" name="message" type="text" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="For SMS" />
+                            </div>
+                            <div>
+                                <label for="bulk_from_name" class="block text-xs font-medium text-gray-700">From Name</label>
+                                <input id="bulk_from_name" name="from_name" type="text" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value="Admissions Team" />
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="bulk_from_email" class="block text-xs font-medium text-gray-700">From Email</label>
+                                <input id="bulk_from_email" name="from_email" type="email" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value="no-reply@example.test" />
+                            </div>
+                            <div>
+                                <label for="bulk_dlt_template" class="block text-xs font-medium text-gray-700">DLT Template ID</label>
+                                <input id="bulk_dlt_template" name="dlt_template_id" type="number" min="1" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="bulk_whatsapp_template_name" class="block text-xs font-medium text-gray-700">WhatsApp Template Name</label>
+                                <input id="bulk_whatsapp_template_name" name="whatsapp_template_name" type="text" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="md:col-span-6 flex justify-end">
+                                <button type="submit" class="rounded-md bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700" :disabled="selected.length === 0">Send Communication</button>
+                            </div>
+                        </div>
+                        <template x-for="uuid in selected" :key="'comm-' + uuid">
+                            <input type="hidden" name="application_uuids[]" :value="uuid" />
+                        </template>
+                    </form>
+
+                    <form method="POST" action="{{ route('crm.applications.bulk.export') }}" class="rounded-md border border-gray-200 bg-white p-3 lg:col-span-2">
+                        @csrf
+                        <div class="flex flex-wrap items-end gap-2">
+                            <div>
+                                <label for="bulk_export_format" class="block text-xs font-medium text-gray-700">Export Format</label>
+                                <select id="bulk_export_format" name="format" class="mt-1 rounded-md border border-gray-300 px-3 py-2 text-sm">
+                                    <option value="csv">CSV</option>
+                                    <option value="json">JSON (flash)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="rounded-md bg-slate-700 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800" :disabled="selected.length === 0">Export Selected</button>
+                        </div>
+                        <template x-for="uuid in selected" :key="'export-' + uuid">
+                            <input type="hidden" name="application_uuids[]" :value="uuid" />
+                        </template>
+                    </form>
+                </div>
+
+                @if (session('bulk_export_json'))
+                    <div class="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+                        <p class="mb-2 text-xs font-semibold text-slate-700">Last JSON Export</p>
+                        <pre class="max-h-64 overflow-auto text-xs text-slate-700">{{ session('bulk_export_json') }}</pre>
+                    </div>
+                @endif
+            </div>
+
             <div class="mt-4 overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                                <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600" @change="toggleAll($event)" />
+                            </th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Applicant</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Source</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Score</th>
@@ -115,6 +261,14 @@
                     <tbody class="divide-y divide-gray-100 bg-white">
                         @forelse ($applications as $application)
                             <tr>
+                                <td class="px-4 py-3 text-sm text-gray-700">
+                                    <input
+                                        type="checkbox"
+                                        class="js-app-select h-4 w-4 rounded border-gray-300 text-indigo-600"
+                                        value="{{ $application->uuid }}"
+                                        @change="sync('{{ $application->uuid }}', $event.target.checked)"
+                                    />
+                                </td>
                                 <td class="px-4 py-3 text-sm text-gray-900">
                                     {{ trim(($application->lead?->first_name ?? '').' '.($application->lead?->last_name ?? '')) ?: 'N/A' }}
                                     <div class="text-xs text-gray-500">{{ $application->lead?->email ?? 'N/A' }}</div>
@@ -130,7 +284,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">No applications found for current filters.</td>
+                                <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500">No applications found for current filters.</td>
                             </tr>
                         @endforelse
                     </tbody>

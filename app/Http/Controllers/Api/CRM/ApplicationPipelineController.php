@@ -5,18 +5,26 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\CRM;
 
 use App\Enums\CRM\ApplicationStatus;
+use App\Http\Requests\Api\CRM\BulkApplicationAssignRequest;
+use App\Http\Requests\Api\CRM\BulkApplicationCommunicationRequest;
+use App\Http\Requests\Api\CRM\BulkApplicationExportRequest;
+use App\Http\Requests\Api\CRM\BulkApplicationStatusRequest;
 use App\Http\Resources\CRM\ApplicationResource;
 use App\Models\CRM\Application;
 use App\Repositories\CRM\Application\ApplicationRepositoryInterface;
 use App\Services\CRM\Application\ApplicationPipelineService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 // BRD: CRM-AP-008, CRM-AP-009 — RESTful API for application pipeline (mobile, third-party)
 final class ApplicationPipelineController
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly ApplicationRepositoryInterface $repository,
         private readonly ApplicationPipelineService $pipelineService,
@@ -171,6 +179,123 @@ final class ApplicationPipelineController
         return response()->json([
             'success' => true,
             'data' => $funnel,
+        ]);
+    }
+
+    /**
+     * BRD: CRM-AP-010 — Bulk status update for applications.
+     */
+    public function bulkStatus(BulkApplicationStatusRequest $request): JsonResponse
+    {
+        Gate::authorize('crm.applications.edit');
+
+        $validated = $request->validated();
+        $result = $this->pipelineService->bulkUpdateStatus(
+            $validated['application_uuids'],
+            ApplicationStatus::from($validated['status']),
+            Auth::id(),
+            $validated['reason'] ?? null,
+        );
+
+        return $this->success(
+            data: $result,
+            message: 'Bulk status update completed.',
+        );
+    }
+
+    /**
+     * BRD: CRM-AP-010 — Bulk counsellor assignment.
+     */
+    public function bulkAssign(BulkApplicationAssignRequest $request): JsonResponse
+    {
+        Gate::authorize('crm.applications.edit');
+
+        $validated = $request->validated();
+        $updated = $this->pipelineService->bulkAssignCounsellor(
+            $validated['application_uuids'],
+            (int) $validated['counsellor_id'],
+        );
+
+        return $this->success(
+            data: ['updated' => $updated],
+            message: 'Bulk counsellor assignment completed.',
+        );
+    }
+
+    /**
+     * BRD: CRM-AP-010 — Bulk communication dispatch.
+     */
+    public function bulkCommunication(BulkApplicationCommunicationRequest $request): JsonResponse
+    {
+        Gate::authorize('crm.communication.send');
+
+        $result = $this->pipelineService->bulkSendCommunication(
+            $request->validated()['application_uuids'],
+            $request->validated(),
+        );
+
+        return $this->success(
+            data: $result,
+            message: 'Bulk communication dispatch completed.',
+        );
+    }
+
+    /**
+     * BRD: CRM-AP-010 — Bulk export selected applications.
+     */
+    public function bulkExport(BulkApplicationExportRequest $request): JsonResponse|StreamedResponse
+    {
+        Gate::authorize('crm.applications.view');
+
+        $validated = $request->validated();
+        $rows = $this->pipelineService->buildExportRows($validated['application_uuids']);
+        $format = $validated['format'] ?? 'csv';
+
+        if ($format === 'json') {
+            return $this->success(
+                data: $rows,
+                message: 'Bulk export data prepared.',
+            );
+        }
+
+        $filename = 'applications-export-'.now()->format('Ymd_His').'.csv';
+
+        return response()->streamDownload(static function () use ($rows): void {
+            $stream = fopen('php://output', 'wb');
+
+            if ($stream === false) {
+                return;
+            }
+
+            fputcsv($stream, [
+                'application_uuid',
+                'lead_uuid',
+                'applicant_name',
+                'applicant_email',
+                'source',
+                'lead_score',
+                'status',
+                'assigned_counsellor',
+                'submitted_at',
+            ]);
+
+            foreach ($rows as $row) {
+                fputcsv($stream, [
+                    $row['application_uuid'],
+                    $row['lead_uuid'],
+                    $row['applicant_name'],
+                    $row['applicant_email'],
+                    $row['source'],
+                    $row['lead_score'],
+                    $row['status'],
+                    $row['assigned_counsellor'],
+                    $row['submitted_at'],
+                ]);
+            }
+
+            fclose($stream);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 }
