@@ -9,6 +9,7 @@ use App\Enums\CRM\ApplicationStatus;
 use App\Enums\CRM\CommunicationChannel;
 use App\Events\CRM\ApplicationStatusChangedEvent;
 use App\Models\CRM\Application;
+use App\Models\CRM\CrmProgramme;
 use App\Models\CRM\ApplicationStatusHistory;
 use App\Models\CRM\CommunicationTemplate;
 use App\Models\CRM\DltTemplate;
@@ -17,6 +18,7 @@ use App\Services\CRM\Communication\EmailService;
 use App\Services\CRM\Communication\SmsService;
 use App\Services\CRM\Communication\WhatsAppService;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 // BRD: CRM-AP-008, CRM-AP-009, CRM-AP-011 — Application pipeline state management and seat availability
@@ -106,18 +108,44 @@ final class ApplicationPipelineService
     /**
      * Check seat availability for a programme.
      * BRD: CRM-AP-011 — Seat availability visibility
-     * Returns: total_seats, allocated_seats, available_seats
+     * Returns: total_seats, application_count, allocated_seats, available_seats
      */
     public function checkSeatAvailability(string $programmeUuid): array
     {
-        // TODO: Fetch from CrmProgramme or ERP integration
-        // For now, return stub that can be mocked in tests
-        return [
-            'programme_uuid' => $programmeUuid,
-            'total_seats' => 100,
-            'allocated_seats' => 45,
-            'available_seats' => 55,
-        ];
+        $programme = CrmProgramme::query()
+            ->where('erp_programme_uuid', $programmeUuid)
+            ->firstOrFail();
+
+        $applicationCounts = $this->applicationCountsByProgramme((int) $programme->institution_id);
+
+        return $this->buildSeatAvailabilityRecord(
+            $programme,
+            (int) ($applicationCounts[$programme->id] ?? 0),
+        );
+    }
+
+    /**
+     * Get seat availability across active programmes for the current institution.
+     * BRD: CRM-AP-011 — Programme-wise seat availability vs application count
+     *
+     * @return array<int, array<string, int|float|string|null>>
+     */
+    public function seatAvailabilityOverview(int $institutionId): array
+    {
+        $programmes = CrmProgramme::query()
+            ->where('institution_id', $institutionId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'code', 'institution_id', 'erp_programme_uuid', 'intake_capacity']);
+
+        $applicationCounts = $this->applicationCountsByProgramme($institutionId);
+
+        return $programmes
+            ->map(fn (CrmProgramme $programme): array => $this->buildSeatAvailabilityRecord(
+                $programme,
+                (int) ($applicationCounts[$programme->id] ?? 0),
+            ))
+            ->all();
     }
 
     /**
@@ -293,5 +321,65 @@ final class ApplicationPipelineService
         }
 
         $this->whatsAppService->sendTemplate($lead, $templateName, []);
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function applicationCountsByProgramme(int $institutionId): array
+    {
+        return Application::query()
+            ->selectRaw('lead_programme_interests.crm_programme_id, COUNT(DISTINCT applications.uuid) as application_count')
+            ->join('leads', 'leads.uuid', '=', 'applications.lead_uuid')
+            ->join('lead_programme_interests', function ($join): void {
+                $join->on('lead_programme_interests.lead_id', '=', 'leads.id')
+                    ->where('lead_programme_interests.is_primary', '=', true);
+            })
+            ->where('applications.institution_id', $institutionId)
+            ->groupBy('lead_programme_interests.crm_programme_id')
+            ->pluck('application_count', 'lead_programme_interests.crm_programme_id')
+            ->map(static fn (mixed $count): int => (int) $count)
+            ->all();
+    }
+
+    /**
+     * @return array<string, int|float|string|null>
+     */
+    private function buildSeatAvailabilityRecord(CrmProgramme $programme, int $applicationCount): array
+    {
+        $totalSeats = max(0, (int) ($programme->intake_capacity ?? 0));
+        $availableSeats = max(0, $totalSeats - $applicationCount);
+        $utilisationPercentage = $totalSeats > 0
+            ? round(($applicationCount / $totalSeats) * 100, 2)
+            : 0.0;
+
+        $capacityStatus = match (true) {
+            $totalSeats === 0 => 'not_configured',
+            $applicationCount >= $totalSeats => 'full',
+            $utilisationPercentage >= 80 => 'critical',
+            $utilisationPercentage >= 50 => 'warning',
+            default => 'healthy',
+        };
+
+        $capacityStatusLabel = match ($capacityStatus) {
+            'full' => 'Full',
+            'critical' => 'Critical',
+            'warning' => 'Watch',
+            'not_configured' => 'Not Configured',
+            default => 'Healthy',
+        };
+
+        return [
+            'programme_uuid' => $programme->erp_programme_uuid,
+            'programme_name' => $programme->name,
+            'programme_code' => $programme->code,
+            'total_seats' => $totalSeats,
+            'application_count' => $applicationCount,
+            'allocated_seats' => $applicationCount,
+            'available_seats' => $availableSeats,
+            'utilisation_percentage' => $utilisationPercentage,
+            'capacity_status' => $capacityStatus,
+            'capacity_status_label' => $capacityStatusLabel,
+        ];
     }
 }

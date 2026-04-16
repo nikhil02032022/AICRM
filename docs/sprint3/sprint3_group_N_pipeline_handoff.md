@@ -4,7 +4,7 @@
 **Group:** N  
 **Module:** Application and Admission Pipeline  
 **Req IDs:** CRM-AP-008 to CRM-AP-019  
-**Status:** In Progress (AP-008, AP-009, and AP-010 completed)
+**Status:** In Progress (AP-008, AP-009, AP-010, and AP-011 completed)
 
 ---
 
@@ -141,19 +141,33 @@ Mitigation: enforce status transition rules in service layer.
 	- API: bulk status, bulk assign, bulk communication, bulk export
 	- Web: bulk status, bulk assign, bulk communication, bulk export
 
+### 2026-04-16 - AP-011 Seat Availability Visibility Completion
+
+1. Replaced the AP-011 seat availability stub in `ApplicationPipelineService` with programme-level aggregation driven by active CRM programme capacity and live primary-programme application counts.
+2. Extended CRM programme persistence for AP-011 capacity tracking:
+	- Added `intake_capacity` to `crm_programmes` for local programme catalogue capacity storage pending full ERP refresh automation.
+3. Upgraded the pipeline board web experience for AP-011:
+	- Replaced the placeholder board page with the Livewire pipeline board component.
+	- Added seat availability summary tiles and programme-wise seat cards showing capacity, application count, available seats, and utilisation state.
+	- Wired counsellor filter options into the board component.
+4. Expanded AP-011 verification coverage:
+	- API test now verifies real computed seat metrics for a configured programme.
+	- Web test verifies programme seat cards render on the pipeline board.
+
 ### Verification Evidence
 
 1. `php artisan test tests/Feature/CRM/Api/ApplicationPipelineApiTest.php --no-coverage`
-	- Result: PASS (9 tests, 45 assertions)
+	- Result: PASS (13 tests)
 2. `php artisan test tests/Feature/CRM/Application/ApplicationPipelineWebTest.php --no-coverage`
-	- Result: PASS (7 tests, 18 assertions)
+	- Result: PASS (12 tests)
 3. `php artisan test tests/Feature/CRM/Api/ApplicationPipelineApiTest.php tests/Feature/CRM/Application/ApplicationPipelineWebTest.php`
-	- Result: PASS (24 tests, 89 assertions)
+	- Result: PASS (25 tests, 104 assertions)
 
 ### Scope Status
 
 1. AP-008: Completed and verified.
 2. AP-009: API and web filtering requirements implemented and verified; transition state-machine flow also implemented and verified.
 3. AP-010: Completed end-to-end across API + web + tests.
-4. AP-011/AP-018/AP-019: Covered in API suite and currently passing for implemented endpoints.
-5. AP-012/AP-013/AP-014/AP-015/AP-016/AP-017: Pending full Group N implementation.
+4. AP-011: Completed across service + web board + API + tests.
+5. AP-018/AP-019: Covered in API suite and currently passing for implemented endpoints.
+6. AP-012/AP-013/AP-014/AP-015/AP-016/AP-017: Pending full Group N implementation.

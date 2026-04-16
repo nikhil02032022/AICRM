@@ -7,7 +7,9 @@ namespace App\Livewire\CRM\Application;
 use App\Enums\CRM\ApplicationStatus;
 use App\Models\CRM\Application;
 use App\Services\CRM\Application\ApplicationPipelineService;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Models\User;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -40,7 +42,7 @@ final class ApplicationPipelineBoard extends Component
     #[Computed]
     public function applicationsByStatus(): array
     {
-        $institutionId = auth()->user()->institution_id;
+        $institutionId = (int) Auth::user()?->institution_id;
         $columns = [];
 
         foreach (ApplicationStatus::cases() as $status) {
@@ -77,6 +79,45 @@ final class ApplicationPipelineBoard extends Component
     }
 
     /**
+     * BRD: CRM-AP-011 — Programme-wise seat availability vs application count.
+     *
+     * @return array<int, array<string, int|float|string|null>>
+     */
+    #[Computed]
+    public function seatAvailabilityOverview(): array
+    {
+        return $this->pipelineService->seatAvailabilityOverview((int) Auth::user()?->institution_id);
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    #[Computed]
+    public function seatCapacityTotals(): array
+    {
+        $overview = collect($this->seatAvailabilityOverview);
+
+        return [
+            'programme_count' => $overview->count(),
+            'total_seats' => (int) $overview->sum('total_seats'),
+            'application_count' => (int) $overview->sum('application_count'),
+            'available_seats' => (int) $overview->sum('available_seats'),
+            'critical_programmes' => (int) $overview
+                ->whereIn('capacity_status', ['critical', 'full'])
+                ->count(),
+        ];
+    }
+
+    #[Computed]
+    public function counsellors(): Collection
+    {
+        return User::query()
+            ->where('institution_id', (int) Auth::user()?->institution_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    /**
      * Handle drag-and-drop transition to new column.
      * BRD: CRM-AP-009 — Validate state transition before updating
      */
@@ -91,12 +132,14 @@ final class ApplicationPipelineBoard extends Component
             $this->pipelineService->transition(
                 $application,
                 $newStatus,
-                auth()->id(),
+                Auth::id(),
                 'Moved via Kanban board'
             );
 
             $this->dispatch('success', message: 'Application status updated successfully');
             unset($this->applicationsByStatus);
+            unset($this->seatAvailabilityOverview);
+            unset($this->seatCapacityTotals);
         } catch (\ValueError $e) {
             $this->dispatch('error', message: 'Invalid status');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -123,6 +166,9 @@ final class ApplicationPipelineBoard extends Component
     {
         return view('livewire.crm.application.pipeline-board', [
             'columnsByStatus' => $this->applicationsByStatus,
+            'seatAvailabilityOverview' => $this->seatAvailabilityOverview,
+            'seatCapacityTotals' => $this->seatCapacityTotals,
+            'counsellors' => $this->counsellors,
         ]);
     }
 }

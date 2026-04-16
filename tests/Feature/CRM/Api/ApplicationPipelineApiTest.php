@@ -71,13 +71,15 @@ function makeLead(
     ]);
 }
 
-function makeProgramme(int $institutionId, string $name): CrmProgramme
+function makeProgramme(int $institutionId, string $name, ?int $intakeCapacity = null): CrmProgramme
 {
     return CrmProgramme::withoutGlobalScopes()->create([
         'institution_id' => $institutionId,
         'name' => $name,
         'code' => strtoupper(str_replace(' ', '-', $name)),
+        'intake_capacity' => $intakeCapacity,
         'is_active' => true,
+        'erp_programme_uuid' => (string) fake()->uuid(),
     ]);
 }
 
@@ -295,15 +297,29 @@ test('rejects invalid transition for AP-009 state machine', function (): void {
 });
 
 test('returns seat availability payload for AP-011', function (): void {
-    [, $user] = makeInstitutionAndApplicationApiUser('AP008A08');
+    [$institution, $user] = makeInstitutionAndApplicationApiUser('AP008A08');
+
+    $programme = makeProgramme($institution->id, 'BBA', 60);
+    $applicationA = makeApplication($institution->id, 'under_review', $user->id, '83');
+    $applicationB = makeApplication($institution->id, 'shortlisted', $user->id, '84');
+
+    attachProgrammeInterest($applicationA->lead, $programme, '26FALL');
+    attachProgrammeInterest($applicationB->lead, $programme, '26FALL');
 
     $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v1/crm/programmes/'.fake()->uuid().'/seat-availability')
+        ->getJson('/api/v1/crm/programmes/'.$programme->erp_programme_uuid.'/seat-availability')
         ->assertOk()
         ->assertJsonPath('success', true)
+        ->assertJsonPath('data.programme_uuid', $programme->erp_programme_uuid)
+        ->assertJsonPath('data.programme_name', 'BBA')
+        ->assertJsonPath('data.total_seats', 60)
+        ->assertJsonPath('data.application_count', 2)
+        ->assertJsonPath('data.allocated_seats', 2)
+        ->assertJsonPath('data.available_seats', 58)
+        ->assertJsonPath('data.capacity_status', 'healthy')
         ->assertJsonStructure([
             'success',
-            'data' => ['programme_uuid', 'total_seats', 'allocated_seats', 'available_seats'],
+            'data' => ['programme_uuid', 'programme_name', 'total_seats', 'application_count', 'allocated_seats', 'available_seats'],
         ]);
 });
 

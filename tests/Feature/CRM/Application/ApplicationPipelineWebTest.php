@@ -115,13 +115,15 @@ function makePipelineApplication(
     ]);
 }
 
-function makeProgrammeForPipelineWeb(int $institutionId, string $name): CrmProgramme
+function makeProgrammeForPipelineWeb(int $institutionId, string $name, ?int $intakeCapacity = null): CrmProgramme
 {
     return CrmProgramme::withoutGlobalScopes()->create([
         'institution_id' => $institutionId,
         'name' => $name,
         'code' => strtoupper(str_replace(' ', '-', $name)),
+        'intake_capacity' => $intakeCapacity,
         'is_active' => true,
+        'erp_programme_uuid' => (string) fake()->uuid(),
     ]);
 }
 
@@ -147,6 +149,33 @@ test('renders pipeline board page for AP-008 web flow', function (): void {
         ->assertOk()
         ->assertViewIs('crm.applications.pipeline.board')
         ->assertSeeText('Application Pipeline');
+});
+
+test('displays programme seat availability cards on board for AP-011', function (): void {
+    [$institution, $user] = makeInstitutionAndApplicationWebUserForPipeline('AP011W01');
+
+    $programme = makeProgrammeForPipelineWeb($institution->id, 'B.Com', 50);
+    $application = makePipelineApplication(
+        $institution->id,
+        $user->id,
+        'SeatAware',
+        '9876500041',
+        'seat-aware@example.test',
+        LeadSource::FACEBOOK,
+        74,
+        '26FALL',
+    );
+
+    attachProgrammeForPipelineWeb($application->lead, $programme, '26FALL');
+
+    $this->actingAs($user)
+        ->get(route('crm.applications.pipeline.board'))
+        ->assertOk()
+        ->assertSeeText('Programme Seat Availability')
+        ->assertSeeText('B.Com')
+        ->assertSeeText('50')
+        ->assertSeeText('49')
+        ->assertSeeText('SeatAware');
 });
 
 test('renders pipeline list page for AP-008 web flow', function (): void {

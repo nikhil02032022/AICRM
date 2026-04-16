@@ -20,8 +20,14 @@ class CrmProgramme extends Model
         'code',
         'level',
         'department',
+        'intake_capacity',
         'is_active',
         'erp_programme_uuid',
+    ];
+
+    protected $casts = [
+        'intake_capacity' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     protected static function booted(): void
