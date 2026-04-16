@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ sidebarOpen: false }">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ sidebarOpen: false, applicationsMenuOpen: {{ request()->routeIs('crm.applications.pipeline.board') || request()->routeIs('crm.applications.list') || request()->routeIs('crm.applications.show') || request()->routeIs('crm.applications.transition') || request()->routeIs('crm.applications.forms.*') || request()->routeIs('crm.applications.drafts.*') || request()->routeIs('crm.applications.programmes.*') ? 'true' : 'false' }} }">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -94,6 +94,73 @@
                     </svg>
                     Leads
                 </a>
+                @endcan
+
+                {{-- Applications — BRD: CRM-AP-008 (Sprint 3 Group N) --}}
+                @can('crm.applications.view')
+                @php
+                    $applicationsMenuActive = request()->routeIs('crm.applications.pipeline.board')
+                        || request()->routeIs('crm.applications.list')
+                        || request()->routeIs('crm.applications.show')
+                        || request()->routeIs('crm.applications.transition')
+                        || request()->routeIs('crm.applications.forms.*')
+                        || request()->routeIs('crm.applications.drafts.*')
+                        || request()->routeIs('crm.applications.programmes.*');
+                @endphp
+                <div class="mb-0.5" x-data>
+                    <button
+                        type="button"
+                        @click="applicationsMenuOpen = !applicationsMenuOpen"
+                        class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/70
+                               {{ $applicationsMenuActive ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}"
+                        :aria-expanded="applicationsMenuOpen ? 'true' : 'false'"
+                        aria-controls="applications-sidebar-submenu"
+                    >
+                        <span class="flex items-center gap-3">
+                            <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5.25h6.75v5.25H4.5V5.25Zm8.25 0h6.75v5.25h-6.75V5.25Zm-8.25 8.25h6.75v5.25H4.5V13.5Zm8.25 0h6.75v5.25h-6.75V13.5Z" />
+                            </svg>
+                            Applications
+                        </span>
+                        <svg class="h-4 w-4 flex-shrink-0 transition-transform duration-150" :class="applicationsMenuOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+
+                    <div
+                        id="applications-sidebar-submenu"
+                        x-show="applicationsMenuOpen"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-1"
+                        class="mt-1 space-y-0.5"
+                        style="display:none"
+                    >
+                        <a href="{{ route('crm.applications.pipeline.board') }}"
+                           aria-current="{{ request()->routeIs('crm.applications.pipeline.board') ? 'page' : 'false' }}"
+                           class="flex items-center gap-3 rounded-lg px-3 py-2.5 pl-10 text-sm font-medium transition-colors duration-150
+                                  {{ request()->routeIs('crm.applications.pipeline.board') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                            Pipeline Board
+                        </a>
+
+                        <a href="{{ route('crm.applications.list') }}"
+                           aria-current="{{ request()->routeIs('crm.applications.list') ? 'page' : 'false' }}"
+                           class="flex items-center gap-3 rounded-lg px-3 py-2.5 pl-10 text-sm font-medium transition-colors duration-150
+                                  {{ request()->routeIs('crm.applications.list') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                            Applications List
+                        </a>
+
+                        <a href="{{ route('crm.applications.forms.index') }}"
+                           aria-current="{{ request()->routeIs('crm.applications.forms.*') ? 'page' : 'false' }}"
+                           class="flex items-center gap-3 rounded-lg px-3 py-2.5 pl-10 text-sm font-medium transition-colors duration-150
+                                  {{ request()->routeIs('crm.applications.forms.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                            Application Forms
+                        </a>
+                    </div>
+                </div>
                 @endcan
 
                 {{-- Web Forms — Sprint Group B --}}
@@ -667,8 +734,7 @@
 
                 {{-- Modules not yet built — Phase 1+ --}}
                 @foreach([
-                    ['Applications', 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z'],
-                    ['Tasks',        'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
+                    ['Tasks', 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
                 ] as [$label, $iconPath])
                     <div class="mb-0.5 flex cursor-not-allowed select-none items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-indigo-500"
                          title="{{ $label }} — Coming soon" aria-disabled="true">

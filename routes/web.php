@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Public\PublicFormController;
+use App\Http\Controllers\Public\PublicApplicationFormController;
 use App\Http\Controllers\Public\PublicLandingPageController;
 use App\Http\Controllers\Public\PublicChatWidgetController;
 use App\Http\Controllers\Public\PublicKioskController;
@@ -43,6 +44,10 @@ use App\Http\Controllers\Web\CRM\IvrConfigWebController;
 use App\Http\Controllers\Web\CRM\LeadImportWebController;
 use App\Http\Controllers\Web\CRM\LeadScoringWebController;
 use App\Http\Controllers\Web\CRM\LeadWebController;
+use App\Http\Controllers\Web\CRM\ApplicationProgrammeWebController;
+use App\Http\Controllers\Web\CRM\ApplicationFormDraftWebController;
+use App\Http\Controllers\Web\CRM\ApplicationFormTemplateWebController;
+use App\Http\Controllers\CRM\Web\ApplicationPipelineWebController;
 use App\Http\Controllers\Web\CRM\PublicBookingController;
 use App\Http\Controllers\Web\CRM\SenderDomainWebController;
 use App\Http\Controllers\Web\CRM\SessionWebController;
@@ -63,6 +68,13 @@ Route::middleware(['throttle:60,1'])->group(function (): void {
     Route::get('/f/{slug}', [PublicFormController::class, 'show'])->name('public.form.show');
     Route::get('/f/{slug}/embed', [PublicFormController::class, 'embed'])->name('public.form.embed');
     Route::post('/f/{slug}', [PublicFormController::class, 'submit'])->name('public.form.submit');
+    // BRD: CRM-AP-003 — Public application save-and-resume routes
+    Route::get('/apply/{slug}', [PublicApplicationFormController::class, 'show'])->name('public.application.show');
+    Route::post('/apply/{slug}/save', [PublicApplicationFormController::class, 'save'])->name('public.application.save');
+    Route::get('/apply/resume/{resumeToken}', [PublicApplicationFormController::class, 'resume'])->name('public.application.resume');
+    Route::post('/apply/resume/{resumeToken}/save', [PublicApplicationFormController::class, 'saveExisting'])->name('public.application.resume.save');
+    Route::post('/apply/resume/{resumeToken}/pay-fee', [PublicApplicationFormController::class, 'payFee'])->name('public.application.resume.pay-fee');
+    Route::post('/apply/resume/{resumeToken}/submit', [PublicApplicationFormController::class, 'submit'])->name('public.application.resume.submit');
     Route::get('/lp/{slug}', [PublicLandingPageController::class, 'show'])->name('public.landing-pages.show');
     Route::get('/chat/widget/{institution:uuid}', [PublicChatWidgetController::class, 'show'])->name('public.chat-widget.show');
     Route::post('/chat/widget/{institution:uuid}/submit', [PublicChatWidgetController::class, 'submit'])->name('public.chat-widget.submit');
@@ -126,6 +138,88 @@ Route::middleware('auth')->group(function (): void {
         Route::delete('/leads/{lead:uuid}', [LeadWebController::class, 'destroy'])
             ->name('leads.destroy')
             ->middleware('can:crm.leads.delete');
+
+        // BRD: CRM-AP-001 — Configurable multi-step application form builder (web)
+        Route::prefix('applications/forms')->name('applications.forms.')->group(function (): void {
+            Route::get('/', [ApplicationFormTemplateWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.applications.view');
+            Route::get('/{applicationFormTemplate:uuid}/fill', [ApplicationFormDraftWebController::class, 'fillTemplate'])
+                ->name('fill')
+                ->middleware('can:crm.applications.create');
+            Route::post('/{applicationFormTemplate:uuid}/fill/save', [ApplicationFormDraftWebController::class, 'saveTemplateDraft'])
+                ->name('fill.save')
+                ->middleware('can:crm.applications.create');
+            Route::get('/create', [ApplicationFormTemplateWebController::class, 'create'])
+                ->name('create')
+                ->middleware('can:crm.applications.create');
+            Route::post('/', [ApplicationFormTemplateWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.applications.create');
+            Route::get('/{applicationFormTemplate:uuid}/edit', [ApplicationFormTemplateWebController::class, 'edit'])
+                ->name('edit')
+                ->middleware('can:crm.applications.edit');
+            Route::put('/{applicationFormTemplate:uuid}', [ApplicationFormTemplateWebController::class, 'update'])
+                ->name('update')
+                ->middleware('can:crm.applications.edit');
+            Route::delete('/{applicationFormTemplate:uuid}', [ApplicationFormTemplateWebController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('can:crm.applications.delete');
+        });
+
+        // BRD: CRM-AP-003 — Authenticated draft resume/save/submit routes
+        Route::prefix('applications/drafts')->name('applications.drafts.')->group(function (): void {
+            Route::get('/{applicationFormDraft:uuid}/resume', [ApplicationFormDraftWebController::class, 'resume'])
+                ->name('resume')
+                ->middleware('can:crm.applications.view');
+            Route::post('/{applicationFormDraft:uuid}/save', [ApplicationFormDraftWebController::class, 'save'])
+                ->name('save')
+                ->middleware('can:crm.applications.edit');
+            Route::post('/{applicationFormDraft:uuid}/pay-fee', [ApplicationFormDraftWebController::class, 'payFee'])
+                ->name('pay-fee')
+                ->middleware('can:crm.applications.edit');
+            Route::post('/{applicationFormDraft:uuid}/submit', [ApplicationFormDraftWebController::class, 'submit'])
+                ->name('submit')
+                ->middleware('can:crm.applications.edit');
+        });
+
+        // BRD: CRM-AP-005 — Institution programme catalogue setup for multi-programme applications
+        Route::prefix('applications/programmes')->name('applications.programmes.')->group(function (): void {
+            Route::get('/', [ApplicationProgrammeWebController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.applications.view');
+            Route::post('/', [ApplicationProgrammeWebController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.applications.edit');
+        });
+
+        // BRD: CRM-AP-008 — Application pipeline management (Kanban board, list, detail views)
+        Route::prefix('applications')->name('applications.')->group(function (): void {
+            // Kanban board view for pipeline stages
+            Route::get('/pipeline', [ApplicationPipelineWebController::class, 'boardView'])
+                ->name('pipeline.board')
+                ->middleware('can:crm.applications.view');
+
+            // List table view with filters, sort, bulk actions
+            Route::get('/list', [ApplicationPipelineWebController::class, 'listView'])
+                ->name('list')
+                ->middleware('can:crm.applications.view');
+
+            // Application detail view with full history and offer status
+            Route::get('/{application:uuid}', [ApplicationPipelineWebController::class, 'show'])
+                ->name('show')
+                ->middleware('can:crm.applications.view');
+
+            // Transition form handler (POST for pipeline state change)
+            Route::post('/{application:uuid}/transition', [ApplicationPipelineWebController::class, 'transitionForm'])
+                ->name('transition')
+                ->middleware('can:crm.applications.edit');
+
+            // Execute transition action (AP-009)
+            Route::post('/{application:uuid}/transition/apply', [ApplicationPipelineWebController::class, 'transition'])
+                ->name('transition.apply')
+                ->middleware('can:crm.applications.edit');
+        });
 
         // BRD: CRM-LC-001 — Web form management routes (auth)
         Route::get('/forms', [WebFormWebController::class, 'index'])

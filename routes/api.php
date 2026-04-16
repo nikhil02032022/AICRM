@@ -24,6 +24,9 @@ use App\Http\Controllers\Api\CRM\CallMonitorController;
 use App\Http\Controllers\Api\CRM\CallDispositionController;
 use App\Http\Controllers\Api\CRM\CallScriptController;
 use App\Http\Controllers\Api\CRM\DiallerController;
+use App\Http\Controllers\Api\CRM\ApplicationFormDraftController;
+use App\Http\Controllers\Api\CRM\ApplicationFormTemplateController;
+use App\Http\Controllers\Api\CRM\ApplicationPipelineController;
 use App\Http\Controllers\Api\CRM\LeadController;
 use App\Http\Controllers\Api\CRM\LeadMergeController;
 use App\Http\Controllers\Api\CRM\LeadScoringController;
@@ -60,6 +63,36 @@ Route::prefix('v1/crm')
         // BRD: CRM-LC-011 — Lead management endpoints
         Route::apiResource('leads', LeadController::class)
             ->parameters(['leads' => 'lead:uuid']);
+
+        // BRD: CRM-AP-001 — Configurable multi-step application form builder templates
+        Route::apiResource('application-form-templates', ApplicationFormTemplateController::class)
+            ->parameters(['application-form-templates' => 'applicationFormTemplate:uuid']);
+
+        // BRD: CRM-AP-003 — Save and resume application drafts
+        Route::post('application-form-templates/{applicationFormTemplate:uuid}/drafts', [ApplicationFormDraftController::class, 'store'])
+            ->name('application-form-drafts.store');
+        Route::get('application-form-drafts/{applicationFormDraft:uuid}', [ApplicationFormDraftController::class, 'show'])
+            ->name('application-form-drafts.show');
+        Route::put('application-form-drafts/{applicationFormDraft:uuid}', [ApplicationFormDraftController::class, 'update'])
+            ->name('application-form-drafts.update');
+        Route::post('application-form-drafts/{applicationFormDraft:uuid}/fee/pay', [ApplicationFormDraftController::class, 'payFee'])
+            ->name('application-form-drafts.pay-fee');
+        Route::post('application-form-drafts/{applicationFormDraft:uuid}/submit', [ApplicationFormDraftController::class, 'submit'])
+            ->name('application-form-drafts.submit');
+        Route::get('application-form-drafts/resume/{resumeToken}', [ApplicationFormDraftController::class, 'resume'])
+            ->name('application-form-drafts.resume');
+
+        // BRD: CRM-AP-008 & AP-009 — Application pipeline management and transitions
+        Route::apiResource('applications', ApplicationPipelineController::class)
+            ->parameters(['applications' => 'application:uuid'])
+            ->only(['index', 'show']);
+        Route::post('applications/{application:uuid}/transition', [ApplicationPipelineController::class, 'transition'])
+            ->name('applications.transition');
+        Route::get('programmes/{programme:uuid}/seat-availability', [ApplicationPipelineController::class, 'seatAvailability'])
+            ->name('programmes.seat-availability');
+        // BRD: CRM-AP-018 & AP-019 — Conversion analytics and funnel
+        Route::get('applications/analytics/funnel', [ApplicationPipelineController::class, 'conversionFunnel'])
+            ->name('applications.analytics.funnel');
 
         // BRD: CRM-LC-001 — WebForm management endpoints (external consumers only)
         Route::apiResource('forms', WebFormController::class)
