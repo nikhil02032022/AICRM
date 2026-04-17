@@ -46,7 +46,7 @@ it('shows programme catalogue page', function (): void {
         ->assertSeeText('Programme Catalogue');
 });
 
-it('creates programme from catalogue setup page', function (): void {
+it('creates programme from catalogue setup page with intake capacity', function (): void {
     $user = makeProgrammeAdmin('APPRG02');
 
     $this->actingAs($user)
@@ -55,6 +55,7 @@ it('creates programme from catalogue setup page', function (): void {
             'code' => 'BTCS',
             'level' => 'UG',
             'department' => 'Engineering',
+            'intake_capacity' => 120,
             'is_active' => true,
         ])
         ->assertRedirect(route('crm.applications.programmes.index'));
@@ -63,9 +64,11 @@ it('creates programme from catalogue setup page', function (): void {
         'institution_id' => $user->institution_id,
         'name' => 'B.Tech Computer Science',
         'code' => 'BTCS',
+        'intake_capacity' => 120,
         'is_active' => true,
     ]);
 
     $record = CrmProgramme::withoutGlobalScopes()->where('institution_id', $user->institution_id)->first();
     expect($record?->erp_programme_uuid)->not->toBeNull();
+    expect($record?->intake_capacity)->toBe(120);
 });

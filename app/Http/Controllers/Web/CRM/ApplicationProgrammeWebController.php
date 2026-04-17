@@ -47,6 +47,7 @@ final class ApplicationProgrammeWebController extends Controller
             'code' => $validated['code'] ?? null,
             'level' => $validated['level'] ?? null,
             'department' => $validated['department'] ?? null,
+            'intake_capacity' => $validated['intake_capacity'] ?? null,
             'is_active' => (bool) ($validated['is_active'] ?? true),
             'erp_programme_uuid' => $validated['erp_programme_uuid'] ?? (string) Str::uuid(),
         ]);

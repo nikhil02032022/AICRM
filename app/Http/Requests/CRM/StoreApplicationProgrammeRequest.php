@@ -22,6 +22,7 @@ final class StoreApplicationProgrammeRequest extends FormRequest
             'code' => ['nullable', 'string', 'max:30'],
             'level' => ['nullable', 'string', 'max:30'],
             'department' => ['nullable', 'string', 'max:100'],
+            'intake_capacity' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
             'erp_programme_uuid' => ['nullable', 'uuid'],
         ];

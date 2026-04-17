@@ -31,7 +31,16 @@
             <h2 class="text-base font-semibold text-gray-900">Add Programme</h2>
             <p class="mt-1 text-xs text-gray-600">These programmes appear in AP-005 multi-programme selection.</p>
 
-            <form method="POST" action="{{ route('crm.applications.programmes.store') }}" class="mt-4 space-y-3">
+            <form method="POST" action="{{ route('crm.applications.programmes.store') }}" class="mt-4 space-y-3" novalidate>
+                                <div>
+                                    <label for="intake_capacity" class="mb-1 block text-xs font-medium text-gray-600">Intake Capacity</label>
+                                    <input id="intake_capacity" name="intake_capacity" type="number" min="0" step="1" value="{{ old('intake_capacity') }}"
+                                           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm @error('intake_capacity') border-red-500 @enderror"
+                                           placeholder="e.g. 120">
+                                    @error('intake_capacity')
+                                        <span class="text-xs text-red-600">{{ $message }}</span>
+                                    @enderror
+                                </div>
                 @csrf
 
                 <div>
@@ -84,6 +93,7 @@
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Name</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Code</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Level</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Intake</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status</th>
                         </tr>
                     </thead>
@@ -93,6 +103,7 @@
                                 <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ $programme->name }}</td>
                                 <td class="px-5 py-3 text-sm text-gray-700">{{ $programme->code ?? '-' }}</td>
                                 <td class="px-5 py-3 text-sm text-gray-700">{{ $programme->level ?? '-' }}</td>
+                                <td class="px-5 py-3 text-sm text-gray-700">{{ $programme->intake_capacity !== null ? $programme->intake_capacity : '-' }}</td>
                                 <td class="px-5 py-3">
                                     <span @class([
                                         'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
