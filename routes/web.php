@@ -48,6 +48,9 @@ use App\Http\Controllers\Web\CRM\ApplicationProgrammeWebController;
 use App\Http\Controllers\Web\CRM\ApplicationFormDraftWebController;
 use App\Http\Controllers\Web\CRM\ApplicationFormTemplateWebController;
 use App\Http\Controllers\CRM\Web\ApplicationPipelineWebController;
+use App\Http\Controllers\CRM\Web\ErpConversionController as WebErpConversionController;
+use App\Http\Controllers\CRM\Web\OfferLetterController;
+use App\Http\Controllers\CRM\Portal\OfferLetterPortalController;
 use App\Http\Controllers\Web\CRM\PublicBookingController;
 use App\Http\Controllers\Web\CRM\SenderDomainWebController;
 use App\Http\Controllers\Web\CRM\SessionWebController;
@@ -85,6 +88,13 @@ Route::middleware(['throttle:60,1'])->group(function (): void {
     Route::get('/book/{slug}', [PublicBookingController::class, 'show'])->name('public.booking.show');
     Route::post('/book/{slug}', [PublicBookingController::class, 'submit'])->name('public.booking.submit');
     Route::get('/book/{slug}/confirmation', [PublicBookingController::class, 'confirmation'])->name('public.booking.confirmation');
+
+    // BRD: CRM-AP-015 — Student portal offer acceptance (public, token-authenticated)
+    Route::prefix('portal/offers')->name('portal.offers.')->group(function (): void {
+        Route::get('/{token}', [OfferLetterPortalController::class, 'show'])->name('show');
+        Route::post('/{token}/accept', [OfferLetterPortalController::class, 'accept'])->name('accept');
+        Route::post('/{token}/decline', [OfferLetterPortalController::class, 'decline'])->name('decline');
+    });
 });
 
 // -----------------------------------------------------------------------
@@ -233,6 +243,77 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/bulk/export', [ApplicationPipelineWebController::class, 'bulkExport'])
                 ->name('bulk.export')
                 ->middleware('can:crm.applications.view');
+
+            // BRD: CRM-AP-012, CRM-AP-013, CRM-AP-015 — Offer letter routes
+            Route::prefix('{application:uuid}/offers')->name('offers.')->group(function (): void {
+                Route::get('/', [OfferLetterController::class, 'index'])
+                    ->name('index')
+                    ->middleware('can:view,application');
+                Route::get('/create', [OfferLetterController::class, 'create'])
+                    ->name('create')
+                    ->middleware('can:create,App\\Models\\CRM\\OfferLetter');
+                Route::post('/', [OfferLetterController::class, 'store'])
+                    ->name('store')
+                    ->middleware('can:create,App\\Models\\CRM\\OfferLetter');
+            });
+        });
+
+        // BRD: CRM-AP-012, CRM-AP-013, CRM-AP-015 — Offer letter detail and action routes
+        Route::prefix('offers')->name('offer_letters.')->group(function (): void {
+            Route::get('/{offer:uuid}', [OfferLetterController::class, 'show'])
+                ->name('show')
+                ->middleware('can:view,offer');
+            Route::get('/{offer:uuid}/accept', [OfferLetterController::class, 'acceptForm'])
+                ->name('accept.form')
+                ->middleware('can:update,offer');
+            Route::post('/{offer:uuid}/accept', [OfferLetterController::class, 'accept'])
+                ->name('accept')
+                ->middleware('can:update,offer');
+            Route::get('/{offer:uuid}/decline', [OfferLetterController::class, 'declineForm'])
+                ->name('decline.form')
+                ->middleware('can:update,offer');
+            Route::post('/{offer:uuid}/decline', [OfferLetterController::class, 'decline'])
+                ->name('decline')
+                ->middleware('can:update,offer');
+            Route::post('/{offer:uuid}/send', [OfferLetterController::class, 'send'])
+                ->name('send')
+                ->middleware('can:send,offer');
+            Route::get('/{offer:uuid}/download', [OfferLetterController::class, 'download'])
+                ->name('download')
+                ->middleware('can:view,offer');
+            // BRD: CRM-AP-014 — Document verification for conditional offers
+            Route::post('/{offer:uuid}/documents/{docType}/verify', [OfferLetterController::class, 'verifyDocument'])
+                ->name('documents.verify')
+                ->middleware('can:update,offer');
+            // BRD: CRM-AP-015 — Generate student portal link
+            Route::post('/{offer:uuid}/portal-link', [OfferLetterController::class, 'generatePortalLink'])
+                ->name('portal_link')
+                ->middleware('can:update,offer');
+        });
+
+        // BRD: CRM-AP-012 — Offer letter template management
+        Route::prefix('settings/offer-templates')->name('offer_templates.')->group(function (): void {
+            Route::get('/', [OfferLetterController::class, 'manageTemplates'])
+                ->name('manage')
+                ->middleware('can:manage-institution-settings');
+            Route::get('/{template:uuid}/edit', [OfferLetterController::class, 'editTemplate'])
+                ->name('edit')
+                ->middleware('can:manage-institution-settings');
+            Route::put('/{template:uuid}', [OfferLetterController::class, 'updateTemplate'])
+                ->name('update')
+                ->middleware('can:manage-institution-settings');
+        });
+
+        // BRD: CRM-AP-016 — ERP conversion trigger, log listing, and retry routes (web)
+        Route::post('/applications/{application:uuid}/convert', [WebErpConversionController::class, 'trigger'])
+            ->name('applications.conversion.trigger');
+        Route::prefix('conversions')->name('conversions.')->group(function (): void {
+            Route::get('/', [WebErpConversionController::class, 'index'])
+                ->name('index');
+            Route::get('/{log:uuid}', [WebErpConversionController::class, 'show'])
+                ->name('show');
+            Route::post('/{log:uuid}/retry', [WebErpConversionController::class, 'retry'])
+                ->name('retry');
         });
 
         // BRD: CRM-LC-001 — Web form management routes (auth)

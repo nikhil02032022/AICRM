@@ -36,6 +36,8 @@ final class OfferLetterResource extends JsonResource
             'is_expired' => $this->isExpired(),
             'is_valid_for_acceptance' => $this->isValidForAcceptance(),
             'created_at' => $this->created_at?->toIso8601String(),
+            'delivery_status' => $this->delivery_status,
+            'delivery_message_id' => $this->delivery_message_id,
         ];
     }
 }

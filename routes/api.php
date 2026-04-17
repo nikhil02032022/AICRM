@@ -27,6 +27,8 @@ use App\Http\Controllers\Api\CRM\DiallerController;
 use App\Http\Controllers\Api\CRM\ApplicationFormDraftController;
 use App\Http\Controllers\Api\CRM\ApplicationFormTemplateController;
 use App\Http\Controllers\Api\CRM\ApplicationPipelineController;
+use App\Http\Controllers\CRM\Api\ErpConversionController;
+use App\Http\Controllers\CRM\Api\OfferLetterController;
 use App\Http\Controllers\Api\CRM\LeadController;
 use App\Http\Controllers\Api\CRM\LeadMergeController;
 use App\Http\Controllers\Api\CRM\LeadScoringController;
@@ -102,6 +104,41 @@ Route::prefix('v1/crm')
         // BRD: CRM-AP-018 & AP-019 — Conversion analytics and funnel
         Route::get('applications/analytics/funnel', [ApplicationPipelineController::class, 'conversionFunnel'])
             ->name('applications.analytics.funnel');
+
+        // BRD: CRM-AP-012, CRM-AP-013, CRM-AP-015 — Offer letter operations (API)
+        Route::prefix('applications/{application:uuid}/offers')->name('applications.offers.')->group(function (): void {
+            Route::get('/', [OfferLetterController::class, 'index'])
+                ->name('index');
+            Route::post('/', [OfferLetterController::class, 'store'])
+                ->name('store');
+        });
+        Route::prefix('offers')->name('offers.')->group(function (): void {
+            Route::get('/{offer:uuid}', [OfferLetterController::class, 'show'])
+                ->name('show');
+            Route::post('/{offer:uuid}/accept', [OfferLetterController::class, 'accept'])
+                ->name('accept');
+            Route::post('/{offer:uuid}/decline', [OfferLetterController::class, 'decline'])
+                ->name('decline');
+            Route::post('/{offer:uuid}/send', [OfferLetterController::class, 'send'])
+                ->name('send');
+            Route::get('/{offer:uuid}/download', [OfferLetterController::class, 'download'])
+                ->name('download');
+            // BRD: CRM-AP-014 — Document verification for conditional offers
+            Route::patch('/{offer:uuid}/documents/{docType}/verify', [OfferLetterController::class, 'verifyDocument'])
+                ->name('documents.verify');
+            // BRD: CRM-AP-015 — Generate student portal link
+            Route::post('/{offer:uuid}/portal-link', [OfferLetterController::class, 'generatePortalLink'])
+                ->name('portal_link');
+        });
+        // BRD: CRM-AP-016 — ERP conversion trigger, status, retry, and listing
+        Route::post('applications/{application:uuid}/convert', [ErpConversionController::class, 'trigger'])
+            ->name('applications.conversion.trigger');
+        Route::get('applications/{application:uuid}/conversion', [ErpConversionController::class, 'showForApplication'])
+            ->name('applications.conversion.show');
+        Route::get('conversions', [ErpConversionController::class, 'index'])
+            ->name('conversions.index');
+        Route::post('conversions/{log:uuid}/retry', [ErpConversionController::class, 'retry'])
+            ->name('conversions.retry');
 
         // BRD: CRM-LC-001 — WebForm management endpoints (external consumers only)
         Route::apiResource('forms', WebFormController::class)

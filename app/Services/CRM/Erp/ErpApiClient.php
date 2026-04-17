@@ -49,6 +49,47 @@ final class ErpApiClient implements ErpApiClientInterface
     }
 
     /**
+     * Register a new student in the ERP Student Master.
+     *
+     * BRD: CRM-AP-016 — Conversion write; returns ERP-assigned student ID on success.
+     * DPDP: mobile/email are sent over HTTPS only; never logged.
+     *
+     * @param array<string, mixed> $payload
+     */
+    public function registerStudent(array $payload): ?string
+    {
+        if ($this->baseUrl === '') {
+            Log::warning('ERP API: base_url not configured — skipping registerStudent.');
+            return null;
+        }
+
+        try {
+            $response = Http::withToken($this->apiKey)
+                ->timeout((int) config('services.a2a_erp.timeout', 10))
+                ->retry(self::RETRY_TIMES, self::RETRY_SLEEP_MS, throw: false)
+                ->post("{$this->baseUrl}/api/v1/students", $payload);
+
+            if ($response->successful()) {
+                return (string) ($response->json('data.student_id') ?? $response->json('data.id') ?? '');
+            }
+
+            Log::warning('ERP API: unexpected status on registerStudent.', [
+                'status' => $response->status(),
+                // DPDP: payload intentionally omitted from log
+            ]);
+
+            return null;
+
+        } catch (\Throwable $e) {
+            Log::warning('ERP API: exception during registerStudent.', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
      * Look up a student/alumni in the ERP Student Master by mobile number.
      *
      * - Returns an ErpStudentDTO on a successful match (HTTP 200).

@@ -51,6 +51,15 @@ class OfferLetter extends Model
         'decline_reason',
         'expires_at',
         'pdf_path',
+        'delivery_status',
+        'delivery_message_id',
+        // AP-014 conditional offer fields
+        'conditional',
+        'required_documents',
+        'document_verification_status',
+        // AP-015 student portal token
+        'acceptance_token',
+        'acceptance_token_expires_at',
     ];
 
     /** @return array<string, mixed> */
@@ -62,7 +71,59 @@ class OfferLetter extends Model
             'acceptance_recorded_at' => 'datetime',
             'declined_at' => 'datetime',
             'expires_at' => 'datetime',
+            'delivery_status' => 'string',
+            'delivery_message_id' => 'string',
+            // AP-014 conditional offer fields
+            'conditional' => 'boolean',
+            'required_documents' => 'array',
+            'document_verification_status' => 'array',
+            // AP-015 student portal token
+            'acceptance_token_expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * AP-014: Is this a conditional offer?
+     */
+    public function isConditional(): bool
+    {
+        return (bool) $this->conditional;
+    }
+
+    /**
+     * AP-014: Get required documents for this offer.
+     * @return array<string>
+     */
+    public function getRequiredDocuments(): array
+    {
+        return $this->required_documents ?? [];
+    }
+
+    /**
+     * AP-014: Get document verification status (doc_type => bool).
+     * @return array<string,bool>
+     */
+    public function getDocumentVerificationStatus(): array
+    {
+        return $this->document_verification_status ?? [];
+    }
+
+    /**
+     * AP-014: Are all required documents verified?
+     */
+    public function allDocumentsVerified(): bool
+    {
+        $required = $this->getRequiredDocuments();
+        $status = $this->getDocumentVerificationStatus();
+        if (empty($required)) {
+            return true;
+        }
+        foreach ($required as $docType) {
+            if (empty($status[$docType])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public function application(): BelongsTo
@@ -104,6 +165,9 @@ class OfferLetter extends Model
      */
     public function isValidForAcceptance(): bool
     {
+        if ($this->isConditional() && ! $this->allDocumentsVerified()) {
+            return false;
+        }
         return ! $this->isAccepted() && ! $this->isDeclined() && ! $this->isExpired();
     }
 }

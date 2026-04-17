@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint 3 Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0
 **Phase:** 1 - Sprint 3 (AP/FM/DM Delivery)
-**Last Updated:** April 16, 2026
+**Last Updated:** April 17, 2026
 
 ---
 
@@ -22,7 +22,7 @@ Mobile scope (MB-004, MB-006, MB-007) is explicitly deferred to the final sprint
 | Group | Theme | BRD Req IDs | Dependency | Status |
 |-------|-------|-------------|------------|--------|
 | **M** | Application Core Foundation | AP-001 to AP-007 | None (start here) | Completed (AP-001 to AP-007 complete) |
-| **N** | Pipeline, Offer, ERP Handoff | AP-008 to AP-019 | Depends on Group M | In Progress (AP-008, AP-009, AP-010 complete) |
+| **N** | Pipeline, Offer, ERP Handoff | AP-008 to AP-019 | Depends on Group M | In Progress (AP-008 to AP-016 complete; AP-017 pending conversion reporting) |
 | **O** | Fee Collection and Payments Core | FM-001 to FM-005, FM-010 to FM-013 | Depends on Group M and AP states from Group N | Planned |
 | **P** | Scholarships and Document Core | FM-006 to FM-009, DM-001 to DM-005, DM-008 to DM-010 | Depends on Group M; partial dependency on Group O | Planned |
 | **Q** | Document Integrations Validation and Sprint Closure | DM-006, DM-007 validation/hardening + AP/FM/DM closure | Depends on M, N, O, P | Planned |

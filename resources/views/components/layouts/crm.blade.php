@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ sidebarOpen: false, applicationsMenuOpen: {{ request()->routeIs('crm.applications.pipeline.board') || request()->routeIs('crm.applications.list') || request()->routeIs('crm.applications.show') || request()->routeIs('crm.applications.transition') || request()->routeIs('crm.applications.forms.*') || request()->routeIs('crm.applications.drafts.*') || request()->routeIs('crm.applications.programmes.*') ? 'true' : 'false' }} }">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ sidebarOpen: false, applicationsMenuOpen: {{ request()->routeIs('crm.applications.pipeline.board') || request()->routeIs('crm.applications.list') || request()->routeIs('crm.applications.show') || request()->routeIs('crm.applications.transition') || request()->routeIs('crm.applications.forms.*') || request()->routeIs('crm.applications.drafts.*') || request()->routeIs('crm.applications.programmes.*') || request()->routeIs('crm.conversions.*') ? 'true' : 'false' }} }">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -105,7 +105,8 @@
                         || request()->routeIs('crm.applications.transition')
                         || request()->routeIs('crm.applications.forms.*')
                         || request()->routeIs('crm.applications.drafts.*')
-                        || request()->routeIs('crm.applications.programmes.*');
+                        || request()->routeIs('crm.applications.programmes.*')
+                        || request()->routeIs('crm.conversions.*');
                 @endphp
                 <div class="mb-0.5" x-data>
                     <button
@@ -159,6 +160,16 @@
                                   {{ request()->routeIs('crm.applications.forms.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
                             Application Forms
                         </a>
+
+                        {{-- BRD: CRM-AP-016 — ERP conversion log and retry --}}
+                        @can('crm.applications.view')
+                        <a href="{{ route('crm.conversions.index') }}"
+                           aria-current="{{ request()->routeIs('crm.conversions.*') ? 'page' : 'false' }}"
+                           class="flex items-center gap-3 rounded-lg px-3 py-2.5 pl-10 text-sm font-medium transition-colors duration-150
+                                  {{ request()->routeIs('crm.conversions.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                            ERP Conversions
+                        </a>
+                        @endcan
                     </div>
                 </div>
                 @endcan

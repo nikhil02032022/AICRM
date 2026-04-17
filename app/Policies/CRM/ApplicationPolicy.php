@@ -27,4 +27,12 @@ class ApplicationPolicy
     {
         return $user->can('crm.applications.edit');
     }
+
+    // BRD: CRM-AP-016 — Only admissions staff / admins may trigger ERP conversion
+    public function convert(User $user, Application $application): bool
+    {
+        return $user->institution_id === $application->institution_id
+            && ($user->can('crm.applications.convert')
+                || $user->hasRole(['admin', 'institution-admin', 'admissions-staff']));
+    }
 }
