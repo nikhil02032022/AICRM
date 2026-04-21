@@ -22,6 +22,7 @@ use App\Events\CRM\CounsellingSessionBookedEvent;
 use App\Events\CRM\CounsellingSessionCancelledEvent;
 use App\Events\CRM\CounsellingSessionCompletedEvent;
 use App\Events\CRM\DigitalLeadImportedEvent;
+use App\Events\CRM\ErpConversionSucceededEvent;
 use App\Events\CRM\ErpStudentMatchedEvent;
 use App\Events\CRM\LeadAssignedEvent;
 use App\Events\CRM\LeadAiMessageDraftedEvent;
@@ -60,6 +61,12 @@ use App\Listeners\CRM\LogStatusChangeActivity;
 use App\Listeners\CRM\NotifyImportCompleted;
 use App\Listeners\CRM\RecalculateScoreOnFormSubmit;
 use App\Listeners\CRM\TriggerDuplicateDetectionOnImport;
+use App\Events\CRM\Payments\PaymentConfirmed;
+use App\Events\CRM\Payments\PaymentFailed;
+use App\Listeners\CRM\Payments\AdvanceApplicationOnPaymentConfirmed;
+use App\Listeners\CRM\Payments\MigrateFeesOnApplicationConverted;
+use App\Listeners\CRM\Payments\NotifyCounsellorOnPaymentFailed;
+use App\Listeners\CRM\HandleErpConversionSucceeded;
 use App\Listeners\CRM\LogErpMatchActivity;
 use App\Listeners\CRM\LogMergeActivity;
 use App\Listeners\CRM\TriggerScoringWorkflowListener;
@@ -164,6 +171,17 @@ class AppServiceProvider extends ServiceProvider
 
         // BRD: CRM-LC-020 — Log ERP student/alumni match to lead activity timeline
         Event::listen(ErpStudentMatchedEvent::class, LogErpMatchActivity::class);
+
+        // BRD: CRM-AP-018 — Trigger onboarding workflows (ID card, LMS, hostel) after ERP conversion success
+        Event::listen(ErpConversionSucceededEvent::class, HandleErpConversionSucceeded::class);
+
+        // BRD: CRM-FM-013 — Push CRM fee ledger to ERP after enrolment conversion
+        Event::listen(ErpConversionSucceededEvent::class, MigrateFeesOnApplicationConverted::class);
+
+        // BRD: CRM-FM-005 — Auto-update application status on confirmed payment
+        Event::listen(PaymentConfirmed::class, AdvanceApplicationOnPaymentConfirmed::class);
+        // BRD: CRM-FM-005 — Notify counsellor on payment failure
+        Event::listen(PaymentFailed::class, NotifyCounsellorOnPaymentFailed::class);
 
         // BRD: CRM-AI-012 — Persist immutable usage logs for all AI generation/decision events.
         Event::listen(LeadAiScoreCalculatedEvent::class, RecordAiUsageLogFromEvent::class);

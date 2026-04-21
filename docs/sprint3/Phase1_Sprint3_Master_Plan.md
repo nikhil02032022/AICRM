@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint 3 Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0
 **Phase:** 1 - Sprint 3 (AP/FM/DM Delivery)
-**Last Updated:** April 17, 2026
+**Last Updated:** April 21, 2026 (Group O implementation landed — FM-001 to FM-005 + FM-010 to FM-013 complete; UI rebuilt per `ui-ux-pro-max`; awaiting QA + finance sign-off and gateway live credentials)
 
 ---
 
@@ -22,8 +22,8 @@ Mobile scope (MB-004, MB-006, MB-007) is explicitly deferred to the final sprint
 | Group | Theme | BRD Req IDs | Dependency | Status |
 |-------|-------|-------------|------------|--------|
 | **M** | Application Core Foundation | AP-001 to AP-007 | None (start here) | Completed (AP-001 to AP-007 complete) |
-| **N** | Pipeline, Offer, ERP Handoff | AP-008 to AP-019 | Depends on Group M | In Progress (AP-008 to AP-016 complete; AP-017 pending conversion reporting) |
-| **O** | Fee Collection and Payments Core | FM-001 to FM-005, FM-010 to FM-013 | Depends on Group M and AP states from Group N | Planned |
+| **N** | Pipeline, Offer, ERP Handoff | AP-008 to AP-019 | Depends on Group M | Completed (AP-008 to AP-019 complete) |
+| **O** | Fee Collection and Payments Core | FM-001 to FM-005, FM-010 to FM-013 | Depends on Group M and AP states from Group N | Implementation Complete (2026-04-21) — 9/9 tests passing; UI rebuilt per `ui-ux-pro-max`; PayU/CCAvenue adapters stubbed (handover doc); QA + finance sign-off + Razorpay live credentials pending |
 | **P** | Scholarships and Document Core | FM-006 to FM-009, DM-001 to DM-005, DM-008 to DM-010 | Depends on Group M; partial dependency on Group O | Planned |
 | **Q** | Document Integrations Validation and Sprint Closure | DM-006, DM-007 validation/hardening + AP/FM/DM closure | Depends on M, N, O, P | Planned |
 
@@ -162,6 +162,7 @@ Sprint 3 documents should be maintained under the sprint3 folder using consisten
 - sprint3_group_M_application_core.md
 - sprint3_group_N_pipeline_handoff.md
 - sprint3_group_O_fee_payments_core.md
+- group_O_payment_gateway_integration_handover.md  ← Group O gateway hand-off (Razorpay live + PayU/CCAvenue full adapter implementation guide)
 - sprint3_group_P_scholarship_document_core.md
 - sprint3_group_Q_document_validation_closure.md
 - test-cases/sprint3_group_M_test_cases.md
@@ -189,3 +190,27 @@ After each group completion:
 - Source-of-truth conflict handling: where Sprint 2 master tracker conflicts with group-level docs, use group-level completion evidence.
 - DPDP controls are mandatory across AP/FM/DM implementations.
 - Web app must use web routes/controllers only; integration consumers use versioned API routes only.
+
+---
+
+## Sprint 3 Status Snapshot (2026-04-21)
+
+| Module | Group | Status | Open Items |
+|---|---|---|---|
+| Application & Admission Pipeline (AP-001 to AP-019) | M, N | ✅ Complete | — |
+| Fee, Scholarship & Payment Management (FM-001 to FM-005, FM-010 to FM-013) | O | ✅ Implementation complete; QA pending | Razorpay live credentials, PayU/CCAvenue full adapters (see Group O handover doc), reconciliation job, scholarship-impact tile (depends on Group P) |
+| Fee, Scholarship & Payment Management (FM-006 to FM-009) | P | ⏳ Planned | — |
+| Document Management (DM-001 to DM-010) | P, Q | ⏳ Planned | — |
+
+### Group O Sign-off Checklist
+
+- [x] Migrations applied (7) and seeders chained (`CrmFeePaymentRolePermissionSeeder`).
+- [x] All in-scope Req IDs implemented (FM-001/002/004/005/010/011/012/013) with code under `App\{Models,Services,Http,Jobs,Listeners,Events}\CRM\Payments\`.
+- [x] FM-003 — Razorpay adapter functionally complete (tested via `Http::fake`); PayU/CCAvenue stubs documented for follow-up.
+- [x] 9/9 automated tests passing (`tests/Feature/CRM/Payments` + `tests/Unit/CRM/Payments`).
+- [x] UI rebuilt against `ui-ux-pro-max` design system across all 5 Group O screens.
+- [x] Test cases document published.
+- [x] Gateway integration handover document published.
+- [ ] Razorpay live keys provisioned + ₹1 smoke transaction recorded.
+- [ ] Finance team sign-off on fee dashboard accuracy.
+- [ ] QA regression sign-off across AP → FM flow.

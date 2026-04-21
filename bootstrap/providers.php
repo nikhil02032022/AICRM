@@ -13,6 +13,7 @@ use App\Providers\CRM\CrmAiServiceProvider;
 use App\Providers\CRM\CrmImportServiceProvider;
 use App\Providers\CRM\CrmLeadServiceProvider;
 use App\Providers\CRM\CrmMarketingServiceProvider;
+use App\Providers\CRM\CrmPaymentServiceProvider;
 use App\Providers\CRM\CrmScoringServiceProvider;
 use App\Providers\CRM\CrmWebFormServiceProvider;
 use App\Providers\HorizonServiceProvider;
@@ -32,4 +33,5 @@ return [
     CrmCustomisationServiceProvider::class,
     CrmErpServiceProvider::class,
     CrmIntegrationServiceProvider::class,
+    CrmPaymentServiceProvider::class,
 ];

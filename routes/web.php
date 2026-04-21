@@ -149,6 +149,64 @@ Route::middleware('auth')->group(function (): void {
             ->name('leads.destroy')
             ->middleware('can:crm.leads.delete');
 
+        // BRD: CRM-AP-017, CRM-AP-019 — Conversion reporting and rate reporting
+        Route::prefix('analytics')->name('analytics.')->group(function (): void {
+            Route::get('conversion-report', [\App\Http\Controllers\CRM\Web\ConversionReportController::class, 'index'])
+                ->name('conversion-report')
+                ->middleware('can:crm.analytics.view');
+            Route::get('conversion-rates', [\App\Http\Controllers\CRM\Web\ConversionReportController::class, 'rates'])
+                ->name('conversion-rates')
+                ->middleware('can:crm.analytics.view');
+        });
+
+        // BRD: CRM-FM-001 to CRM-FM-013 — Fee/payment web routes
+        Route::prefix('payments')->name('payments.')->group(function (): void {
+            Route::get('fee-structures', [\App\Http\Controllers\CRM\Web\Payments\FeeStructureController::class, 'index'])
+                ->name('fee-structures.index')
+                ->middleware('can:fee_structure.manage');
+            Route::post('fee-structures', [\App\Http\Controllers\CRM\Web\Payments\FeeStructureController::class, 'store'])
+                ->name('fee-structures.store')
+                ->middleware('can:fee_structure.manage');
+            Route::put('fee-structures/{feeStructure}', [\App\Http\Controllers\CRM\Web\Payments\FeeStructureController::class, 'update'])
+                ->name('fee-structures.update')
+                ->middleware('can:fee_structure.manage');
+            Route::post('fee-structures/{feeStructure}/toggle', [\App\Http\Controllers\CRM\Web\Payments\FeeStructureController::class, 'toggle'])
+                ->name('fee-structures.toggle')
+                ->middleware('can:fee_structure.manage');
+
+            Route::get('applications/{application:uuid}', [\App\Http\Controllers\CRM\Web\Payments\PaymentController::class, 'show'])
+                ->name('applications.show')
+                ->middleware('can:payments.view');
+            Route::post('applications/{application:uuid}/initiate', [\App\Http\Controllers\CRM\Web\Payments\PaymentController::class, 'initiate'])
+                ->name('applications.initiate')
+                ->middleware('can:payments.collect');
+
+            Route::get('pay/{token}', [\App\Http\Controllers\CRM\Web\Payments\PaymentRedirectController::class, 'show'])
+                ->name('pay');
+            Route::get('checkout/{transaction}', [\App\Http\Controllers\CRM\Web\Payments\PaymentRedirectController::class, 'checkout'])
+                ->name('checkout');
+
+            Route::get('refunds', [\App\Http\Controllers\CRM\Web\Payments\RefundController::class, 'index'])
+                ->name('refunds.index')
+                ->middleware('can:payments.view');
+            Route::post('refunds/transaction/{transaction}', [\App\Http\Controllers\CRM\Web\Payments\RefundController::class, 'store'])
+                ->name('refunds.store')
+                ->middleware('can:payments.refund.request');
+            Route::post('refunds/{refundRequest}/manager-approve', [\App\Http\Controllers\CRM\Web\Payments\RefundController::class, 'managerApprove'])
+                ->name('refunds.manager-approve')
+                ->middleware('can:payments.refund.approve');
+            Route::post('refunds/{refundRequest}/finance-approve', [\App\Http\Controllers\CRM\Web\Payments\RefundController::class, 'financeApprove'])
+                ->name('refunds.finance-approve')
+                ->middleware('can:payments.refund.approve');
+            Route::post('refunds/{refundRequest}/reject', [\App\Http\Controllers\CRM\Web\Payments\RefundController::class, 'reject'])
+                ->name('refunds.reject')
+                ->middleware('can:payments.refund.approve');
+
+            Route::get('fee-dashboard', [\App\Http\Controllers\CRM\Web\Payments\FeeDashboardController::class, 'index'])
+                ->name('fee-dashboard.index')
+                ->middleware('can:fee_dashboard.view');
+        });
+
         // BRD: CRM-AP-001 — Configurable multi-step application form builder (web)
         Route::prefix('applications/forms')->name('applications.forms.')->group(function (): void {
             Route::get('/', [ApplicationFormTemplateWebController::class, 'index'])

@@ -581,10 +581,38 @@
                 </a>
                 @endcan
 
+
                 {{-- ── Analytics — Group K ── --}}
-                @canany(['crm.reports.view', 'crm.reports.manage'])
+                @if(auth()->user()->can('crm.analytics.view') || auth()->user()->can('crm.reports.view') || auth()->user()->can('crm.reports.manage'))
                 <div class="my-4 border-t" style="border-color: rgba(99,102,241,0.2)"></div>
                 <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">Analytics</p>
+                @endif
+
+                {{-- Conversion Report — BRD: CRM-AP-017 (Analytics) --}}
+                @can('crm.analytics.view')
+                <a href="{{ route('crm.analytics.conversion-report') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.conversion-report') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.conversion-report') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    Conversion Report
+                </a>
+                @endcan
+
+                {{-- Conversion Rates — BRD: CRM-AP-019 --}}
+                @can('crm.analytics.view')
+                <a href="{{ route('crm.analytics.conversion-rates') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.conversion-rates') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.conversion-rates') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
+                    </svg>
+                    Conversion Rates
+                </a>
+                @endcan
 
                 {{-- Custom Reports — BRD: CRM-AR-018 (Group K) --}}
                 @can('crm.reports.view')
@@ -609,6 +637,38 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                     </svg>
                     Report Scheduler
+                </a>
+                @endcan
+
+                {{-- ── Finance — Group O (BRD: CRM-FM-001 to CRM-FM-013) ── --}}
+                @canany(['fee_dashboard.view', 'payments.view', 'fee_structure.manage'])
+                <div class="my-4 border-t" style="border-color: rgba(99,102,241,0.2)"></div>
+                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">Finance</p>
+
+                @can('fee_dashboard.view')
+                <a href="{{ route('crm.payments.fee-dashboard.index') }}"
+                   aria-current="{{ request()->routeIs('crm.payments.fee-dashboard.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.payments.fee-dashboard.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    Fee Dashboard
+                </a>
+                @endcan
+
+                @can('fee_structure.manage')
+                <a href="{{ route('crm.payments.fee-structures.index') }}"
+                   aria-current="{{ request()->routeIs('crm.payments.fee-structures.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.payments.fee-structures.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    Fee Structures
+                </a>
+                @endcan
+
+                @can('payments.view')
+                <a href="{{ route('crm.payments.refunds.index') }}"
+                   aria-current="{{ request()->routeIs('crm.payments.refunds.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.payments.refunds.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    Refund Requests
                 </a>
                 @endcan
                 @endcanany

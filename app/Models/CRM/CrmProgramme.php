@@ -5,14 +5,24 @@ declare(strict_types=1);
 namespace App\Models\CRM;
 
 use App\Models\CRM\Scopes\InstitutionScope;
+use Database\Factories\CRM\CrmProgrammeFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 // BRD: CRM-EI-001 — Local cache of Programme catalogue synced from A2A ERP
 // Stub: full ERP sync service implemented in Phase 1 Sprint 3
 class CrmProgramme extends Model
 {
+    use HasFactory;
+
     protected $table = 'crm_programmes';
+
+    protected static function newFactory(): CrmProgrammeFactory
+    {
+        return CrmProgrammeFactory::new();
+    }
 
     protected $fillable = [
         'institution_id',
@@ -33,6 +43,11 @@ class CrmProgramme extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new InstitutionScope);
+    }
+
+    public function institution(): BelongsTo
+    {
+        return $this->belongsTo(Institution::class);
     }
 
     public function leads(): BelongsToMany

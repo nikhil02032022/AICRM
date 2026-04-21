@@ -8,6 +8,7 @@ use App\DTOs\CRM\ErpStudentDTO;
 
 // BRD: CRM-LC-020 — Contract for ERP Student Master outbound lookup
 // BRD: CRM-AP-016 — Contract for ERP Student Master outbound registration
+// BRD: CRM-AP-018 — Contract for ERP onboarding workflow triggers
 interface ErpApiClientInterface
 {
     /**
@@ -32,4 +33,32 @@ interface ErpApiClientInterface
      * @param array<string, mixed> $payload
      */
     public function registerStudent(array $payload): ?string;
+
+    /**
+     * Trigger ID card generation for a newly enrolled ERP student (AP-018).
+     * Returns true on success, false on any failure (never throws).
+     */
+    public function triggerIdCardGeneration(string $erpStudentId): bool;
+
+    /**
+     * Trigger LMS enrolment for a newly enrolled ERP student (AP-018).
+     * Returns true on success, false on any failure (never throws).
+     */
+    public function triggerLmsEnrolment(string $erpStudentId, string $programmeCode): bool;
+
+    /**
+     * Trigger hostel allocation prompt for a newly enrolled ERP student (AP-018).
+     * Returns true on success, false on any failure (never throws).
+     */
+    public function triggerHostelAllocationPrompt(string $erpStudentId): bool;
+
+    /**
+     * Push CRM-collected fee ledger to ERP Fee module on enrolment conversion.
+     * Returns the ERP-side ledger ID on success, null on failure (never throws).
+     *
+     * BRD: CRM-FM-013
+     *
+     * @param array<string, mixed> $payload
+     */
+    public function pushFeeLedger(string $erpStudentId, array $payload): ?string;
 }

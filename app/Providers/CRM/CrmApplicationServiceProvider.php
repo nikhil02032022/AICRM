@@ -41,6 +41,7 @@ final class CrmApplicationServiceProvider extends ServiceProvider
         OfferLetterRepositoryInterface::class => EloquentOfferLetterRepository::class,
         OfferLetterTemplateRepositoryInterface::class => EloquentOfferLetterTemplateRepository::class,
         ApplicationConversionLogRepositoryInterface::class => EloquentApplicationConversionLogRepository::class,
+        \App\Repositories\CRM\Application\ApplicationConversionReportRepositoryInterface::class => \App\Repositories\CRM\Application\EloquentApplicationConversionReportRepository::class,
     ];
 
     public function register(): void

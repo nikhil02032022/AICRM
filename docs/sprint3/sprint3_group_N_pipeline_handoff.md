@@ -4,7 +4,7 @@
 **Group:** N  
 **Module:** Application and Admission Pipeline  
 **Req IDs:** CRM-AP-008 to CRM-AP-019  
-**Status:** In Progress (AP-008 to AP-016 completed; AP-017 pending)
+**Status:** Completed (AP-008 to AP-019 completed)
 
 ---
 
@@ -169,10 +169,11 @@ Mitigation: enforce status transition rules in service layer.
 2. AP-009: API and web filtering requirements implemented and verified; transition state-machine flow also implemented and verified.
 3. AP-010: Completed end-to-end across API + web + tests.
 4. AP-011: Completed across service + web board + API + tests.
-5. AP-018/AP-019: Covered in API suite and currently passing for implemented endpoints.
+5. AP-018: Completed end-to-end (ERP onboarding workflow service, job, listener, migration, tests — 5/5 passing).
 6. AP-012/AP-013/AP-014/AP-015: Completed end-to-end.
 7. AP-016: Completed end-to-end (ERP conversion service, job, events, controllers, views, routes, tests).
-8. AP-017: Pending (conversion reporting by programme/source/counsellor).
+8. AP-017: Completed end-to-end (conversion reporting by programme/source/counsellor).
+9. AP-019: Completed end-to-end (conversion rate reporting with batch dimension, rates endpoint, Livewire UI, CSV/XLSX export, tests — 8/8 passing).
 
 ### 2026-05-01 - AP-012, AP-013 Offer Letter Generation and Delivery Completion
 
@@ -357,6 +358,169 @@ Expected: 9 tests, all passing.
 |-----|---|---|---|
 | CRM-AP-016 | ERP conversion mapping and event trigger workflows | ✓ Complete | Async job, payload mapping, ENROLLED transition, events, retry mechanism, full audit log |
 
-### Next Steps
+### 2026-04-17 — AP-017 Conversion Reporting Completion
 
-1. AP-017 — Conversion reporting by programme, source, and counsellor
+1. Created `ApplicationConversionReportRepositoryInterface` and `EloquentApplicationConversionReportRepository`:
+	- Queries `ApplicationConversionLog` where `status = 'success'`
+	- Filters: `from_date`, `to_date`, `programme_id`, `source`, `counsellor_id`
+	- Groups results by programme × source × counsellor
+	- Fixed enum-to-string handling for `LeadSource` in groupBy key
+2. Created `ConversionReportService` delegating to repository.
+3. Created `ConversionReportRequest` with date, programme_id, source, counsellor_id validation.
+4. Created `ConversionReportResource` for consistent JSON output.
+5. Created `ConversionReportExport` (`app/Exports/CRM/ConversionReportExport.php`):
+	- Implements `FromCollection + WithHeadings`
+	- Columns: Programme, Source, Counsellor, Conversions, From, To
+6. Created API controller (`app/Http/Controllers/CRM/Api/ConversionReportController.php`):
+	- `GET /api/v1/crm/reports/conversion` — JSON grouped stats
+	- `GET /api/v1/crm/reports/conversion?export=csv` — CSV download
+	- `GET /api/v1/crm/reports/conversion?export=xlsx` — XLSX download
+	- Gate: `crm.analytics.view`
+7. Created Web controller (`app/Http/Controllers/CRM/Web/ConversionReportController.php`):
+	- `GET /crm/analytics/conversion-report` — Livewire-powered HTML view
+	- Supports `?export=csv` and `?export=xlsx` same as API
+8. Created Livewire component (`app/Livewire/CRM/Analytics/ConversionReport.php`):
+	- Filters: `from_date`, `to_date`, `source`, `programme_id`, `counsellor_id`
+	- Loads programme and counsellor dropdown data in `mount()`
+	- Query string binding for shareable filter URLs
+9. Built Blade view (`resources/views/livewire/crm/analytics/conversion-report.blade.php`):
+	- Filter form with Programme dropdown, Counsellor dropdown, Source text, From/To date pickers
+	- Apply/Clear filter buttons
+	- Results table: Programme, Source, Counsellor, Conversions, From, To
+	- Empty state for no-data
+10. Added routes:
+	- Web: `GET /crm/analytics/conversion-report` gated by `crm.analytics.view`
+	- API: `GET /api/v1/crm/reports/conversion` gated by `crm.analytics.view`
+11. Added navigation link in `resources/views/components/layouts/crm.blade.php`
+12. Created `CrmAnalyticsRolePermissionSeeder`:
+	- Creates `crm.analytics.view` and `crm.reports.view` permissions
+	- Assigns to: `admin`, `counsellor`, `institution-admin` roles
+13. Registered repository binding in `CrmApplicationServiceProvider`
+14. Added `programme_id` column to `applications` table (migration: `2026_05_01_300000`)
+15. Added `programme()` and `institution()` BelongsTo relationships to `Application` model
+16. Added `HasFactory` and `institution()` relationship to `CrmProgramme` and `ApplicationConversionLog` models
+17. Created CRM factory files: `InstitutionFactory`, `CrmProgrammeFactory`, `LeadFactory`, `ApplicationFactory`, `ApplicationConversionLogFactory`
+18. Added `withRole()` state to `UserFactory` — creates role, assigns it, and seeds CRM analytics permissions
+19. Created Pest test suite (`tests/Feature/CRM/Analytics/`):
+	- `ConversionReportApiTest.php` — 3 scenarios: grouped stats JSON, CSV export, XLSX export
+	- `ConversionReportWebTest.php` — 3 scenarios: HTML page, CSV export, XLSX export
+
+### Test Execution
+
+```
+php artisan test tests/Feature/CRM/Analytics/ --no-coverage
+```
+Expected: 6 tests, all passing.
+
+### AP-017 Scope Coverage
+
+| Req | Requirement | Status | Notes |
+|-----|---|---|---|
+| CRM-AP-017 | Conversion analytics by programme, source, and counsellor | ✓ Complete | Web UI + API, CSV/XLSX export, Livewire filters, gated by crm.analytics.view |
+
+### Group N Scope Summary
+
+| Req | Requirement | Status |
+|-----|---|---|
+| CRM-AP-008 | Pipeline listing, board view, list view, detail | ✓ Complete |
+| CRM-AP-009 | Pipeline state transitions, filters | ✓ Complete |
+| CRM-AP-010 | Bulk actions | ✓ Complete |
+| CRM-AP-011 | Seat availability visibility | ✓ Complete |
+| CRM-AP-012 | Offer letter generation | ✓ Complete |
+| CRM-AP-013 | Offer delivery tracking | ✓ Complete |
+| CRM-AP-014 | Conditional offer management | ✓ Complete |
+| CRM-AP-015 | Student portal offer acceptance | ✓ Complete |
+| CRM-AP-016 | ERP conversion mapping and events | ✓ Complete |
+| CRM-AP-017 | Conversion reporting | ✓ Complete |
+| CRM-AP-018 | ERP onboarding workflow trigger | ✓ Complete |
+| CRM-AP-019 | Conversion rate reporting (applications → enrolled) | ✓ Complete |
+
+### 2026-04-21 — AP-018 ERP Onboarding Workflow Trigger Completion
+
+1. Extended `ErpApiClientInterface` + `ErpApiClient` with three onboarding endpoints (graceful, never throws):
+	- `triggerIdCardGeneration(string $erpStudentId): bool` → `POST /api/v1/students/{id}/id-card`
+	- `triggerLmsEnrolment(string $erpStudentId, string $programmeCode): bool` → `POST /api/v1/students/{id}/lms-enrol`
+	- `triggerHostelAllocationPrompt(string $erpStudentId): bool` → `POST /api/v1/students/{id}/hostel-prompt`
+	- Shared `postOnboardingAction()` helper handles retry (3×) + DPDP-safe logging.
+2. Created `ErpOnboardingWorkflowService` (`app/Services/CRM/Erp/ErpOnboardingWorkflowService.php`):
+	- `triggerAll(string $erpStudentId, Application $application)` calls all three ERP endpoints.
+	- Returns structured results array `['id_card' => bool, 'lms_enrolment' => bool, 'hostel_prompt' => bool]`.
+	- Resolves programme code from application draft; logs warnings per-action on failure.
+3. Created `TriggerErpOnboardingWorkflowsJob` (`app/Jobs/CRM/TriggerErpOnboardingWorkflowsJob.php`):
+	- Async `ShouldQueue`, `$tries = 1`, `$timeout = 30`.
+	- Loads conversion log + application (both `withoutGlobalScopes()` for multi-tenant job safety).
+	- Calls `ErpOnboardingWorkflowService::triggerAll()`.
+	- Persists `onboarding_triggered_at` + `onboarding_status` (JSON results) on the conversion log.
+4. Created `HandleErpConversionSucceeded` listener (`app/Listeners/CRM/HandleErpConversionSucceeded.php`):
+	- Implements `ShouldQueue`.
+	- Looks up the success conversion log for the application; returns early if none.
+	- Dispatches `TriggerErpOnboardingWorkflowsJob`.
+5. Registered listener in `AppServiceProvider`:
+	- `Event::listen(ErpConversionSucceededEvent::class, HandleErpConversionSucceeded::class);`
+6. Created migration `2026_05_02_000001_add_onboarding_fields_to_application_conversion_logs.php`:
+	- Adds `onboarding_triggered_at` (nullable timestamp) and `onboarding_status` (nullable json) to `application_conversion_logs`.
+7. Updated `ApplicationConversionLog` model (`$fillable`, `$casts`) for the new columns.
+8. Created Pest test suite `tests/Feature/CRM/Application/ErpOnboardingWorkflowTest.php`:
+	- Event listener dispatches onboarding job with correct `erpStudentId` + `institutionId`.
+	- Listener does not dispatch when no success log exists.
+	- Job calls all three ERP endpoints (via `Http::fake` + `Http::assertSentCount(3)`).
+	- Job persists `onboarding_triggered_at` and `onboarding_status` on the log.
+	- Job stores partial results (e.g. `lms_enrolment=false`) when some endpoints fail.
+
+### AP-018 Scope Coverage
+
+| Req | Requirement | Status | Notes |
+|-----|---|---|---|
+| CRM-AP-018 | Conversion event triggers ERP onboarding workflows (ID card, LMS, hostel) | ✓ Complete | Event-driven: `ErpConversionSucceededEvent` → queued listener → async job → per-workflow ERP calls with graceful degradation; full audit trail on `application_conversion_logs.onboarding_status`. |
+
+### Test Execution
+
+```
+php artisan test tests/Feature/CRM/Application/ErpOnboardingWorkflowTest.php --no-coverage
+```
+Expected: 5 tests, all passing.
+
+### 2026-04-21 — AP-019 Conversion Rate Reporting Completion
+
+1. Extended `ApplicationConversionReportRepositoryInterface` and `EloquentApplicationConversionReportRepository`:
+	- Added `batch` filter to existing `getGroupedConversionStats()` (via `leads.preferred_intake`).
+	- New method `getConversionRates(array $filters)`:
+		- Joins `applications` + `leads` + `crm_programmes` + `users`.
+		- Groups by programme × batch × source × counsellor.
+		- Aggregates `total_applications`, `enrolled_count`, and computed `conversion_rate` %.
+		- Supports filters: `from_date`, `to_date`, `programme_id`, `source`, `counsellor_id`, `batch`.
+2. Extended `ConversionReportService::getConversionRates()` delegating to repository.
+3. Extended `ConversionReportRequest` with `batch` (nullable, string, max:64).
+4. Created `ConversionRateResource` (`app/Http/Resources/CRM/ConversionRateResource.php`).
+5. Created `ConversionRateExport` (`app/Exports/CRM/ConversionRateExport.php`) — CSV/XLSX with columns: Programme, Batch, Source, Counsellor, Total Applications, Enrolled, Conversion Rate %.
+6. Added `rates()` action to API controller:
+	- `GET /api/v1/crm/reports/conversion/rates` — JSON rate stats (name: `api.v1.crm.reports.conversion.rates`).
+	- `?export=csv` and `?export=xlsx` supported via Accept header or query param.
+	- Gated by `crm.analytics.view`.
+7. Added `rates()` action to Web controller:
+	- `GET /crm/analytics/conversion-rates` — Livewire-powered HTML view (name: `crm.analytics.conversion-rates`).
+	- Same CSV/XLSX export support.
+8. Created Livewire component `App\Livewire\CRM\Analytics\ConversionRates`:
+	- Filter state bound to query string.
+	- `mount()` pre-loads programmes, counsellors, and distinct batches (`leads.preferred_intake`).
+	- `applyFilters()` / `clearFilters()` / `updated()` re-fetch rate stats.
+9. Built Blade views:
+	- `resources/views/crm/analytics/conversion_rates.blade.php` — layout wrapper.
+	- `resources/views/livewire/crm/analytics/conversion-rates.blade.php` — rate table with programme/batch/source/counsellor filters and conversion-rate color coding (green ≥50%, yellow 20-49%, red <20%).
+10. Added navigation link "Conversion Rates" in `resources/views/components/layouts/crm.blade.php` under Analytics (gated by `crm.analytics.view`).
+11. Created Pest test suites:
+	- `tests/Feature/CRM/Analytics/ConversionRateApiTest.php` — 4 scenarios (grouped stats, batch filter, CSV export, XLSX export).
+	- `tests/Feature/CRM/Analytics/ConversionRateWebTest.php` — 4 scenarios (HTML page, batch filter, CSV export, XLSX export).
+
+### AP-019 Scope Coverage
+
+| Req | Requirement | Status | Notes |
+|-----|---|---|---|
+| CRM-AP-019 | Conversion rate reporting by programme, batch, source, counsellor | ✓ Complete | Rate = enrolled / total × 100; batch dimension added via `leads.preferred_intake`; web UI + API + CSV/XLSX export; gated by `crm.analytics.view`. |
+
+### Test Execution
+
+```
+php artisan test tests/Feature/CRM/Analytics/ConversionRateApiTest.php tests/Feature/CRM/Analytics/ConversionRateWebTest.php --no-coverage
+```
+Expected: 8 tests, all passing.

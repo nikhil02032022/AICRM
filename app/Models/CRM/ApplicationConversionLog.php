@@ -5,14 +5,21 @@ declare(strict_types=1);
 namespace App\Models\CRM;
 
 use App\Models\CRM\Scopes\InstitutionScope;
+use Database\Factories\CRM\ApplicationConversionLogFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-// BRD: CRM-AP-016, CRM-AP-017 — ERP Student Master conversion tracking log
+// BRD: CRM-AP-016, CRM-AP-017, CRM-AP-018 — ERP Student Master conversion tracking log
 class ApplicationConversionLog extends Model
 {
-    use HasUuids;
+    use HasFactory, HasUuids;
+
+    protected static function newFactory(): ApplicationConversionLogFactory
+    {
+        return ApplicationConversionLogFactory::new();
+    }
 
     protected $table = 'application_conversion_logs';
 
@@ -49,6 +56,12 @@ class ApplicationConversionLog extends Model
         'error_message',
         'retry_count',
         'next_retry_at',
+        'onboarding_triggered_at',
+        'onboarding_status',
+        'fee_migration_status',
+        'fee_migration_attempted_at',
+        'fee_migration_completed_at',
+        'fee_migration_error',
     ];
 
     /** @return array<string, mixed> */
@@ -58,9 +71,18 @@ class ApplicationConversionLog extends Model
             'attempted_at' => 'datetime',
             'completed_at' => 'datetime',
             'next_retry_at' => 'datetime',
-            'conversion_payload' => 'json',
-            'erp_response' => 'json',
+            'conversion_payload'      => 'json',
+            'erp_response'            => 'json',
+            'onboarding_triggered_at' => 'datetime',
+            'onboarding_status'       => 'json',
+            'fee_migration_attempted_at' => 'datetime',
+            'fee_migration_completed_at' => 'datetime',
         ];
+    }
+
+    public function institution(): BelongsTo
+    {
+        return $this->belongsTo(Institution::class);
     }
 
     public function application(): BelongsTo

@@ -12,6 +12,7 @@ use App\Enums\CRM\LostReason;
 use App\Models\CRM\Scopes\InstitutionScope;
 use App\Models\User;
 use App\Observers\CRM\AuditObserver;
+use Database\Factories\CRM\LeadFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,6 +30,11 @@ use Illuminate\Notifications\Notifiable;
 class Lead extends Model
 {
     use HasFactory, HasUuids, Notifiable, SoftDeletes;
+
+    protected static function newFactory(): LeadFactory
+    {
+        return LeadFactory::new();
+    }
 
     protected $table = 'leads';
 

@@ -8,8 +8,10 @@ use App\Enums\CRM\ApplicationStatus;
 use App\Models\CRM\Scopes\InstitutionScope;
 use App\Models\User;
 use App\Observers\CRM\AuditObserver;
+use Database\Factories\CRM\ApplicationFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,7 +22,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[ObservedBy(AuditObserver::class)]
 class Application extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
+
+    protected static function newFactory(): ApplicationFactory
+    {
+        return ApplicationFactory::new();
+    }
 
     protected $table = 'applications';
 
@@ -43,6 +50,7 @@ class Application extends Model
         'institution_id',
         'campus_id',
         'lead_uuid',
+        'programme_id',
         'application_form_draft_uuid',
         'admission_cycle_uuid',
         'assigned_counsellor_id',
@@ -59,6 +67,16 @@ class Application extends Model
             'stage_entered_at' => 'datetime',
             'submitted_at' => 'datetime',
         ];
+    }
+
+    public function institution(): BelongsTo
+    {
+        return $this->belongsTo(Institution::class);
+    }
+
+    public function programme(): BelongsTo
+    {
+        return $this->belongsTo(CrmProgramme::class, 'programme_id');
     }
 
     public function lead(): BelongsTo
@@ -89,6 +107,11 @@ class Application extends Model
     public function conversionLog(): HasMany
     {
         return $this->hasMany(ApplicationConversionLog::class, 'application_uuid', 'uuid');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(\App\Models\CRM\Payments\PaymentTransaction::class, 'application_uuid', 'uuid');
     }
 
     /**

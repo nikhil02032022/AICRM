@@ -101,6 +101,13 @@ Route::prefix('v1/crm')
             ->name('applications.bulk.export');
         Route::get('programmes/{programme:uuid}/seat-availability', [ApplicationPipelineController::class, 'seatAvailability'])
             ->name('programmes.seat-availability');
+        // BRD: CRM-AP-017 — Conversion reporting by programme, source, counsellor
+        Route::get('reports/conversion', [\App\Http\Controllers\CRM\Api\ConversionReportController::class, 'index'])
+            ->name('reports.conversion');
+        // BRD: CRM-AP-019 — Conversion rate reporting by programme, batch, source, counsellor
+        Route::get('reports/conversion/rates', [\App\Http\Controllers\CRM\Api\ConversionReportController::class, 'rates'])
+            ->name('reports.conversion.rates');
+
         // BRD: CRM-AP-018 & AP-019 — Conversion analytics and funnel
         Route::get('applications/analytics/funnel', [ApplicationPipelineController::class, 'conversionFunnel'])
             ->name('applications.analytics.funnel');
@@ -383,6 +390,19 @@ Route::prefix('v1/crm')
             ->name('agents.comms.store');
         Route::get('agents/comms/{agentCommsLog:uuid}', [AgentCommsController::class, 'show'])
             ->name('agents.comms.show');
+
+        // BRD: CRM-FM-004 — Generate payment link for an existing transaction
+        Route::post('payments/transactions/{transaction}/links', [\App\Http\Controllers\CRM\Api\Payments\PaymentLinkController::class, 'store'])
+            ->name('payments.links.store');
+    });
+
+// BRD: CRM-FM-005 — Inbound payment gateway webhook (no auth; signature verified by adapter)
+Route::prefix('v1/crm/payments/webhooks')
+    ->name('api.crm.payments.webhooks.')
+    ->middleware(['throttle:120,1'])
+    ->group(function (): void {
+        Route::post('{gateway}', \App\Http\Controllers\CRM\Api\Payments\WebhookController::class)
+            ->name('receive');
     });
 
 // -----------------------------------------------------------------------

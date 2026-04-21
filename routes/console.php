@@ -47,6 +47,11 @@ Schedule::job(new RunAnomalyDetectionJob(null, now()->toDateString(), 7, 28, 25)
 // BRD: CRM-AI-010 — Generate segment-wise nurture journey suggestions daily for marketing orchestration.
 Schedule::job(new GenerateNbaJourneyJob(null, now()->toDateString(), null), 'ai')->dailyAt('07:00');
 
+// BRD: CRM-FM-010 — Dispatch due payment reminders every 15 minutes
+Schedule::command('crm:payments:dispatch-reminders')->everyFifteenMinutes()
+    ->name('crm.payments.dispatch-reminders')
+    ->withoutOverlapping();
+
 // BRD: CRM-AR-020 — Process due scheduled report deliveries every 5 minutes
 Schedule::call(fn () => app(ReportSchedulerService::class)->processDueSchedules())
     ->everyFiveMinutes()

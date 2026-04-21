@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\CRM;
 
 use App\Models\User;
+use Database\Factories\CRM\InstitutionFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,11 @@ class Institution extends Model
     use HasFactory;
     use HasUuids;
     use SoftDeletes;
+
+    protected static function newFactory(): InstitutionFactory
+    {
+        return InstitutionFactory::new();
+    }
 
     protected $table = 'institutions';
 
