@@ -60,6 +60,19 @@ final class AadhaarService
     }
 
     /**
+     * BRD: CRM-DM-007 — Record OTP_SENT status after API Setu sends OTP to Aadhaar-linked mobile.
+     * Stores only the transaction reference — never the Aadhaar number (DPDP).
+     */
+    public function markOtpSent(AadhaarEkycLog $log, string $otpReference, string $transactionId): AadhaarEkycLog
+    {
+        return $this->repository->update($log, [
+            'status'         => AadhaarKycStatus::OTP_SENT,
+            'otp_reference'  => $otpReference,
+            'transaction_id' => $transactionId,
+        ]);
+    }
+
+    /**
      * BRD: CRM-DM-007 — Verify OTP and complete KYC
      * nameMatch: whether applicant's name matches the Aadhaar record (no PII stored)
      */

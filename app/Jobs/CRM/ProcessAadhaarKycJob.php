@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\CRM;
 
+use App\Enums\CRM\AadhaarKycStatus;
 use App\Models\CRM\AadhaarEkycLog;
 use App\Services\CRM\Integration\AadhaarService;
 use Illuminate\Bus\Queueable;
@@ -29,13 +30,19 @@ final class ProcessAadhaarKycJob implements ShouldQueue
     {
         $log = AadhaarEkycLog::withoutGlobalScopes()->findOrFail($this->logId);
 
-        // BRD: CRM-DM-007 — Integration stub: replace with real API Setu Aadhaar OTP request
-        // Actual implementation would call API Setu to send OTP to the Aadhaar-linked mobile.
-        // Aadhaar number is passed as a secured, short-lived token — NEVER stored in DB.
-        $service->repository ?? null; // service injected only — no model PII stored
+        // Idempotency: skip if already past INITIATED (job replayed after success/failure)
+        if ($log->status !== AadhaarKycStatus::INITIATED) {
+            return;
+        }
 
-        // Update log to OTP_SENT status
-        $service->findByUuid($log->uuid)?->update(['status' => 'otp_sent', 'otp_reference' => 'stub_' . $log->uuid]);
+        // BRD: CRM-DM-007 — Stub: replace with real API Setu Aadhaar OTP request.
+        // POST to API Setu /aadhaar/otp — pass Aadhaar number as a short-lived secure token only.
+        // Store only the returned transaction_id and otp_reference — NEVER store the Aadhaar number.
+        $service->markOtpSent(
+            $log,
+            otpReference: 'stub_otp_ref_' . $log->uuid,
+            transactionId: 'stub_txn_' . $log->uuid,
+        );
     }
 
     public function failed(\Throwable $exception): void

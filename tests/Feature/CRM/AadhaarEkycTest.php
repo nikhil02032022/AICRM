@@ -53,7 +53,7 @@ function makeAadhaarContext(): array
     return [$institution, $user, $lead];
 }
 
-// ─── Aadhaar: initiate creates log with otp_sent status ──────────────────
+// ─── Aadhaar: initiate creates log with INITIATED status ─────────────────
 
 test('initiate creates AadhaarEkycLog and dispatches ProcessAadhaarKycJob (DM-007)', function (): void {
     Queue::fake();
@@ -62,13 +62,11 @@ test('initiate creates AadhaarEkycLog and dispatches ProcessAadhaarKycJob (DM-00
 
     $service = app(AadhaarService::class);
 
-    $log = $service->initiate($institution->id, [
-        'lead_id' => $lead->id,
-        'consent_ip' => '127.0.0.1',
-    ]);
+    // Defect fix (DQ): pass Lead model + consentIp string, not institution ID + array
+    $log = $service->initiate($lead, '127.0.0.1');
 
     expect($log)->toBeInstanceOf(AadhaarEkycLog::class)
-        ->and($log->status)->toBe(AadhaarKycStatus::Initiated);
+        ->and($log->status)->toBe(AadhaarKycStatus::INITIATED);
 
     Queue::assertPushed(ProcessAadhaarKycJob::class);
 });
@@ -78,12 +76,10 @@ test('initiate creates AadhaarEkycLog and dispatches ProcessAadhaarKycJob (DM-00
 test('AadhaarEkycLog table has no aadhaar_number column (DM-007 DPDP compliance)', function (): void {
     [$institution, $user, $lead] = makeAadhaarContext();
 
-    $service = app(AadhaarService::class);
-
     $log = AadhaarEkycLog::withoutGlobalScopes()->create([
         'institution_id' => $institution->id,
         'lead_id' => $lead->id,
-        'status' => AadhaarKycStatus::Initiated,
+        'status' => AadhaarKycStatus::INITIATED,
         'consent_ip' => '10.0.0.1',
         'consent_at' => now(),
     ]);
@@ -102,18 +98,19 @@ test('verifyOtp marks AadhaarEkycLog as verified and kyc_complete (DM-007)', fun
     $log = AadhaarEkycLog::withoutGlobalScopes()->create([
         'institution_id' => $institution->id,
         'lead_id' => $lead->id,
-        'status' => AadhaarKycStatus::OtpSent,
+        'status' => AadhaarKycStatus::OTP_SENT,
         'otp_reference' => 'OTP-REF-12345',
         'transaction_id' => 'TXN-999',
         'consent_ip' => '10.0.0.2',
         'consent_at' => now(),
     ]);
 
-    $service->verifyOtp($log, '123456');
+    // Defect fix (DQ): verifyOtp takes bool nameMatch, not an OTP string
+    $service->verifyOtp($log, true);
 
     $log->refresh();
 
-    expect($log->status)->toBe(AadhaarKycStatus::Verified)
+    expect($log->status)->toBe(AadhaarKycStatus::VERIFIED)
         ->and($log->kyc_complete)->toBeTrue();
 });
 
@@ -127,14 +124,15 @@ test('markFailed sets AadhaarEkycLog status to failed (DM-007)', function (): vo
     $log = AadhaarEkycLog::withoutGlobalScopes()->create([
         'institution_id' => $institution->id,
         'lead_id' => $lead->id,
-        'status' => AadhaarKycStatus::OtpSent,
+        'status' => AadhaarKycStatus::OTP_SENT,
         'consent_ip' => '10.0.0.3',
         'consent_at' => now(),
     ]);
 
-    $service->markFailed($log);
+    // Defect fix (DQ): markFailed requires error string param
+    $service->markFailed($log, 'Simulated failure');
 
     $log->refresh();
 
-    expect($log->status)->toBe(AadhaarKycStatus::Failed);
+    expect($log->status)->toBe(AadhaarKycStatus::FAILED);
 });

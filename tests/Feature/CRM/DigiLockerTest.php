@@ -62,16 +62,13 @@ test('initiateRequest creates DigiLockerDocument and dispatches VerifyDigiLocker
 
     $service = app(DigiLockerService::class);
 
-    $document = $service->initiateRequest($institution->id, [
-        'lead_id' => $lead->id,
-        'document_type' => 'marksheet_10',
-        'consent_record_id' => 'CONSENT-ABC-001',
-    ]);
+    // Defect fix (DQ): pass Lead model + individual args, not institution ID + array
+    $document = $service->initiateRequest($lead, 'marksheet_10', 1);
 
     expect($document)->toBeInstanceOf(DigiLockerDocument::class)
-        ->and($document->status)->toBe(DigiLockerStatus::Pending)
+        ->and($document->status)->toBe(DigiLockerStatus::REQUESTED)
         ->and($document->document_type)->toBe('marksheet_10')
-        ->and($document->consent_record_id)->toBe('CONSENT-ABC-001');
+        ->and($document->consent_record_id)->toBe(1);
 
     Queue::assertPushed(VerifyDigiLockerDocumentJob::class);
 });
@@ -87,15 +84,15 @@ test('markVerified updates DigiLockerDocument status to verified (DM-006)', func
         'institution_id' => $institution->id,
         'lead_id' => $lead->id,
         'document_type' => 'aadhaar',
-        'status' => DigiLockerStatus::Requested,
-        'consent_record_id' => 'CONSENT-002',
+        'status' => DigiLockerStatus::REQUESTED,
+        'consent_record_id' => 2,
     ]);
 
     $service->markVerified($document, 'https://digilocker.gov.in/doc/123', '/storage/docs/rahul_aadhaar.pdf');
 
     $document->refresh();
 
-    expect($document->status)->toBe(DigiLockerStatus::Verified)
+    expect($document->status)->toBe(DigiLockerStatus::VERIFIED)
         ->and($document->is_verified)->toBeTrue()
         ->and($document->verified_at)->not->toBeNull();
 });
@@ -111,15 +108,16 @@ test('markFailed sets DigiLockerDocument status to failed (DM-006)', function ()
         'institution_id' => $institution->id,
         'lead_id' => $lead->id,
         'document_type' => 'pan',
-        'status' => DigiLockerStatus::Requested,
-        'consent_record_id' => 'CONSENT-003',
+        'status' => DigiLockerStatus::REQUESTED,
+        'consent_record_id' => 3,
     ]);
 
-    $service->markFailed($document);
+    // Defect fix (DQ): markFailed requires error string param
+    $service->markFailed($document, 'Simulated failure');
 
     $document->refresh();
 
-    expect($document->status)->toBe(DigiLockerStatus::Failed);
+    expect($document->status)->toBe(DigiLockerStatus::FAILED);
 });
 
 // ─── DigiLocker: institution scope enforced ────────────────────────────────
@@ -135,16 +133,16 @@ test('DigiLockerDocument list is scoped to institution (DM-006)', function (): v
         'institution_id' => $institution->id,
         'lead_id' => $lead->id,
         'document_type' => 'degree_certificate',
-        'status' => DigiLockerStatus::Pending,
-        'consent_record_id' => 'C-001',
+        'status' => DigiLockerStatus::PENDING,
+        'consent_record_id' => 4,
     ]);
 
     DigiLockerDocument::withoutGlobalScopes()->create([
         'institution_id' => $otherInstitution->id,
         'lead_id' => $lead->id,
         'document_type' => 'pan',
-        'status' => DigiLockerStatus::Pending,
-        'consent_record_id' => 'C-002',
+        'status' => DigiLockerStatus::PENDING,
+        'consent_record_id' => 5,
     ]);
 
     $service = app(DigiLockerService::class);

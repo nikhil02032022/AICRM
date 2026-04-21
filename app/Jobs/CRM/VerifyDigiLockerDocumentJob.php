@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\CRM;
 
+use App\Enums\CRM\DigiLockerStatus;
 use App\Models\CRM\DigiLockerDocument;
 use App\Services\CRM\Integration\DigiLockerService;
 use Illuminate\Bus\Queueable;
@@ -29,8 +30,13 @@ final class VerifyDigiLockerDocumentJob implements ShouldQueue
     {
         $document = DigiLockerDocument::withoutGlobalScopes()->findOrFail($this->documentId);
 
-        // BRD: CRM-DM-006 — Integration stub: replace with real API Setu DigiLocker call
-        // The actual HTTP call to API Setu would retrieve the document URI and download reference.
+        // Idempotency: skip if already in a terminal state (job replayed after success/failure)
+        if (in_array($document->status, [DigiLockerStatus::VERIFIED, DigiLockerStatus::FAILED], true)) {
+            return;
+        }
+
+        // BRD: CRM-DM-006 — Stub: replace with real API Setu DigiLocker /request/submit call.
+        // Expected response: digilocker_uri (document reference) + storage path after download.
         // For now we simulate a successful verification with a stub URI.
         $stubUri         = 'in.gov.digilocker.doc-' . $document->uuid;
         $stubStoragePath = 'crm/digilocker/' . $document->institution_id . '/' . $document->uuid . '.enc';

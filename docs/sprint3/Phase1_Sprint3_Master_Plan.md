@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint 3 Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0
 **Phase:** 1 - Sprint 3 (AP/FM/DM Delivery)
-**Last Updated:** April 21, 2026 (Group P implementation landed — FM-006 to FM-009 + DM-001 to DM-005, DM-008 to DM-010 complete; 18/18 Group P tests passing; UI built with `ui-ux-pro-max`; S3/KMS migration for encrypted document storage deferred)
+**Last Updated:** April 21, 2026 (Group Q complete — DM-006/DM-007 validated and hardened; 7 defects fixed; 11 new integration tests; 46/46 Group Q tests passing; Sprint 3 closed)
 
 ---
 
@@ -25,7 +25,7 @@ Mobile scope (MB-004, MB-006, MB-007) is explicitly deferred to the final sprint
 | **N** | Pipeline, Offer, ERP Handoff | AP-008 to AP-019 | Depends on Group M | Completed (AP-008 to AP-019 complete) |
 | **O** | Fee Collection and Payments Core | FM-001 to FM-005, FM-010 to FM-013 | Depends on Group M and AP states from Group N | Implementation Complete (2026-04-21) — 9/9 tests passing; UI rebuilt per `ui-ux-pro-max`; PayU/CCAvenue adapters stubbed (handover doc); QA + finance sign-off + Razorpay live credentials pending |
 | **P** | Scholarships and Document Core | FM-006 to FM-009, DM-001 to DM-005, DM-008 to DM-010 | Depends on Group M; partial dependency on Group O | Implementation Complete (2026-04-21) — 18/18 tests passing; 27 new routes; UI built with `ui-ux-pro-max`; local-only encrypted disk (S3/KMS deferred); QA + admissions/finance sign-off pending |
-| **Q** | Document Integrations Validation and Sprint Closure | DM-006, DM-007 validation/hardening + AP/FM/DM closure | Depends on M, N, O, P | Planned |
+| **Q** | Document Integrations Validation and Sprint Closure | DM-006, DM-007 validation/hardening + AP/FM/DM closure | Depends on M, N, O, P | Completed (2026-04-21) — 46/46 tests passing; 7 defects fixed; 11 new integration tests; sprint closed |
 
 ---
 
@@ -201,7 +201,7 @@ After each group completion:
 | Fee, Scholarship & Payment Management (FM-001 to FM-005, FM-010 to FM-013) | O | ✅ Implementation complete; QA pending | Razorpay live credentials, PayU/CCAvenue full adapters (see Group O handover doc), reconciliation job |
 | Fee, Scholarship & Payment Management (FM-006 to FM-009) | P | ✅ Implementation complete; QA pending | Installment editor UI polish |
 | Document Management (DM-001 to DM-005, DM-008 to DM-010) | P | ✅ Implementation complete; QA pending | S3/KMS migration for encrypted disk; richer Livewire editors |
-| Document Management (DM-006, DM-007) | Q | ⏳ Planned | DigiLocker / Aadhaar eKYC hardening |
+| Document Management (DM-006, DM-007) | Q | ✅ Complete | API Setu stubs validated; 7 defects fixed; 11 new integration tests; API Setu live credentials pending deployment |
 
 ### Group O Sign-off Checklist
 
@@ -227,3 +227,18 @@ After each group completion:
 - [x] FM-012 scholarship-impact tile wired into `FeeDashboardController` + `fee_dashboard.blade.php` via `ScholarshipImpactReporter::forInstitution()` (2026-04-21).
 - [ ] Finance + admissions QA regression sign-off (document review, scholarship approval chain, installment recompute on payment confirmation).
 - [ ] S3 + KMS rollout for encrypted document storage (follow-up).
+
+### Group Q Sign-off Checklist
+
+- [x] 7 defects fixed in existing DM-006/DM-007 test files (enum case names, method signatures, missing params).
+- [x] `ProcessAadhaarKycJob` refactored to use `AadhaarService::markOtpSent()` via repository — no direct Eloquent bypass.
+- [x] Idempotency guards added to both `VerifyDigiLockerDocumentJob` and `ProcessAadhaarKycJob`.
+- [x] `AadhaarService::markOtpSent()` added for repository-safe OTP_SENT status update.
+- [x] 11 new integration tests added (`tests/Feature/CRM/Integration/DigiLockerIntegrationTest.php`, `AadhaarIntegrationTest.php`).
+- [x] 46/46 Group Q tests passing (8 fixed base tests + 11 new integration tests + 18 Group P regression + 9 Group O regression).
+- [x] DPDP safeguards verified: no Aadhaar number in DB or API responses (TC-DQ-DM007-002, TC-DQ-AK-005).
+- [x] API Setu integration readiness table published in test cases document.
+- [x] Test cases document published (`test-cases/sprint3_group_Q_test_cases.md`).
+- [x] Group Q implementation log updated (`sprint3_group_Q_document_validation_closure.md`).
+- [ ] API Setu live credentials provisioned + smoke test (DigiLocker fetch + Aadhaar OTP round-trip).
+- [ ] `AadhaarEkycWebController::verifyOtp()` hardcoded `nameMatch: true` replaced with live API Setu response.
