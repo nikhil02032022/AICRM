@@ -1,115 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Offer Letter</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; color: #333; }
-        .card { border: 1px solid #ddd; border-radius: 8px; padding: 24px; margin-bottom: 20px; }
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; }
-        .badge-pending { background: #fef3c7; color: #92400e; }
-        .badge-generated { background: #dbeafe; color: #1e40af; }
-        .badge-sent { background: #d1fae5; color: #065f46; }
-        .badge-accepted { background: #d1fae5; color: #065f46; }
-        .badge-declined { background: #fee2e2; color: #991b1b; }
-        .badge-expired { background: #f3f4f6; color: #6b7280; }
-        .btn { display: inline-block; padding: 10px 20px; border-radius: 6px; font-size: 1em; border: none; cursor: pointer; text-decoration: none; }
-        .btn-accept { background: #059669; color: #fff; }
-        .btn-decline { background: #dc2626; color: #fff; }
-        .alert-success { background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 12px; border-radius: 6px; margin-bottom: 16px; }
-        .alert-info { background: #dbeafe; border: 1px solid #93c5fd; color: #1e40af; padding: 12px; border-radius: 6px; margin-bottom: 16px; }
-        .alert-error { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 16px; }
-        .checklist { margin: 8px 0; }
-        .checklist li { margin: 4px 0; }
-        .verified { color: #059669; }
-        .unverified { color: #dc2626; }
-    </style>
-</head>
-<body>
-    <h1>Your Offer Letter</h1>
+<x-layouts.portal-guest title="Your Offer Letter">
+    <x-slot:heading>Your Offer Letter</x-slot:heading>
 
-    @if (session('success'))
-        <div class="alert-success">{{ session('success') }}</div>
-    @endif
-    @if (session('info'))
-        <div class="alert-info">{{ session('info') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="alert-error">{{ $errors->first('error') }}</div>
-    @endif
+    <div class="space-y-6">
 
-    <div class="card">
-        <p><strong>Dear {{ $lead->full_name }},</strong></p>
-        <p>We are pleased to inform you about your offer for admission.</p>
+        {{-- Application summary --}}
+        <div class="rounded-lg border border-gray-200 p-5 space-y-3">
+            <p class="text-gray-700">
+                <span class="font-semibold">Dear {{ $lead->full_name }},</span><br />
+                We are pleased to inform you about your offer for admission.
+            </p>
 
-        <table style="width:100%; border-collapse: collapse; margin-top: 12px;">
-            <tr><td style="padding: 6px 0; width: 40%;"><strong>Status</strong></td>
-                <td><span class="badge badge-{{ $offer->status }}">{{ ucfirst($offer->status) }}</span></td></tr>
-            <tr><td style="padding: 6px 0;"><strong>Programme</strong></td>
-                <td>{{ $application->programme->name ?? '—' }}</td></tr>
-            <tr><td style="padding: 6px 0;"><strong>Offer Expires</strong></td>
-                <td>{{ $offer->expires_at?->format('d M Y') ?? '—' }}</td></tr>
-            @if ($offer->conditional)
-            <tr><td style="padding: 6px 0;"><strong>Offer Type</strong></td>
-                <td>Conditional Offer</td></tr>
-            @endif
-        </table>
+            <dl class="divide-y divide-gray-100 text-sm">
+                <div class="flex justify-between py-2">
+                    <dt class="font-medium text-gray-600">Status</dt>
+                    <dd>
+                        @php
+                            $badgeClass = match ($offer->status) {
+                                'accepted'  => 'bg-green-100 text-green-800',
+                                'declined'  => 'bg-red-100 text-red-800',
+                                'expired'   => 'bg-gray-100 text-gray-600',
+                                'sent'      => 'bg-green-50 text-green-700',
+                                'generated' => 'bg-blue-100 text-blue-800',
+                                default     => 'bg-yellow-100 text-yellow-800',
+                            };
+                        @endphp
+                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $badgeClass }}">
+                            {{ ucfirst($offer->status) }}
+                        </span>
+                    </dd>
+                </div>
 
+                <div class="flex justify-between py-2">
+                    <dt class="font-medium text-gray-600">Programme</dt>
+                    <dd class="text-gray-900">{{ $application->programme->name ?? '—' }}</dd>
+                </div>
+
+                <div class="flex justify-between py-2">
+                    <dt class="font-medium text-gray-600">Offer Expires</dt>
+                    <dd class="text-gray-900">{{ $offer->expires_at?->format('d M Y') ?? '—' }}</dd>
+                </div>
+
+                @if ($offer->conditional)
+                    <div class="flex justify-between py-2">
+                        <dt class="font-medium text-gray-600">Offer Type</dt>
+                        <dd class="text-gray-900">Conditional Offer</dd>
+                    </div>
+                @endif
+            </dl>
+        </div>
+
+        {{-- Conditional offer document checklist --}}
         @if ($offer->conditional && $offer->getRequiredDocuments())
-            <h3 style="margin-top: 16px;">Required Documents</h3>
-            <ul class="checklist">
-                @foreach ($offer->getRequiredDocuments() as $doc)
-                    @php $verified = $offer->getDocumentVerificationStatus()[$doc] ?? false; @endphp
-                    <li class="{{ $verified ? 'verified' : 'unverified' }}">
-                        {{ $verified ? '✓' : '✗' }} {{ ucwords(str_replace('_', ' ', $doc)) }}
-                    </li>
-                @endforeach
-            </ul>
-            @if (! $offer->allDocumentsVerified())
-                <p style="color: #92400e; background: #fef3c7; padding: 10px; border-radius: 4px;">
-                    Your offer acceptance is pending verification of the above documents by our admissions team.
-                </p>
-            @endif
+            <div class="rounded-lg border border-gray-200 p-5">
+                <h3 class="text-sm font-semibold text-gray-800 mb-3">Required Documents</h3>
+                <ul class="space-y-2">
+                    @foreach ($offer->getRequiredDocuments() as $doc)
+                        @php $verified = $offer->getDocumentVerificationStatus()[$doc] ?? false; @endphp
+                        <li class="flex items-center gap-2 text-sm">
+                            @if ($verified)
+                                <svg class="h-4 w-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                                <span class="text-green-700">{{ ucwords(str_replace('_', ' ', $doc)) }}</span>
+                            @else
+                                <svg class="h-4 w-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span class="text-red-600">{{ ucwords(str_replace('_', ' ', $doc)) }}</span>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+
+                @if (! $offer->allDocumentsVerified())
+                    <p class="mt-3 rounded-md bg-yellow-50 border border-yellow-200 px-3 py-2 text-xs text-yellow-800">
+                        Your offer acceptance is pending verification of the above documents by our admissions team.
+                    </p>
+                @endif
+            </div>
         @endif
+
+        {{-- Response actions --}}
+        @if ($offer->isAccepted())
+            <div class="rounded-md bg-green-50 border border-green-200 p-4">
+                <p class="text-sm font-medium text-green-800">
+                    Offer Accepted — Thank you! Your acceptance was recorded on
+                    {{ $offer->acceptance_recorded_at?->format('d M Y, h:i A') }}.
+                </p>
+            </div>
+
+        @elseif ($offer->isDeclined())
+            <div class="rounded-md bg-gray-50 border border-gray-200 p-4">
+                <p class="text-sm text-gray-700">You have declined this offer.</p>
+            </div>
+
+        @elseif ($offer->isExpired())
+            <div class="rounded-md bg-red-50 border border-red-200 p-4">
+                <p class="text-sm font-medium text-red-700">This offer is no longer valid.</p>
+            </div>
+
+        @elseif ($canAccept)
+            <div class="space-y-4">
+                <h3 class="text-sm font-semibold text-gray-800">Respond to Your Offer</h3>
+
+                <form method="POST" action="{{ route('portal.offers.accept', $token) }}">
+                    @csrf
+                    <textarea
+                        name="notes"
+                        placeholder="Any notes (optional)"
+                        rows="2"
+                        class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm
+                               focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 mb-2"
+                    ></textarea>
+                    <button
+                        type="submit"
+                        onclick="return confirm('Are you sure you want to ACCEPT this offer?')"
+                        class="w-full rounded-md portal-btn-primary px-4 py-2 text-sm font-semibold
+                               transition-opacity focus:outline-none portal-ring-primary"
+                    >
+                        Accept Offer
+                    </button>
+                </form>
+
+                <form method="POST" action="{{ route('portal.offers.decline', $token) }}">
+                    @csrf
+                    <textarea
+                        name="reason"
+                        placeholder="Reason for declining (optional)"
+                        rows="2"
+                        class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm
+                               focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400 mb-2"
+                    ></textarea>
+                    <button
+                        type="submit"
+                        onclick="return confirm('Are you sure you want to DECLINE this offer?')"
+                        class="w-full rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm
+                               font-semibold text-red-700 hover:bg-red-100 transition-colors"
+                    >
+                        Decline Offer
+                    </button>
+                </form>
+            </div>
+        @endif
+
+        <p class="text-xs text-gray-400">
+            If you have questions, please contact our admissions team.
+            This link is confidential and should not be shared.
+        </p>
+
     </div>
 
-    @if ($offer->isAccepted())
-        <div class="alert-success">
-            <strong>Offer Accepted</strong> — Thank you! Your acceptance was recorded on {{ $offer->acceptance_recorded_at?->format('d M Y, h:i A') }}.
-        </div>
-    @elseif ($offer->isDeclined())
-        <div class="alert-info">
-            <strong>Offer Declined</strong> — You have declined this offer.
-        </div>
-    @elseif ($offer->isExpired())
-        <div class="alert-error">
-            <strong>Offer Expired</strong> — This offer is no longer valid.
-        </div>
-    @elseif ($canAccept)
-        <h2>Respond to Your Offer</h2>
-        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-            <form method="POST" action="{{ route('portal.offers.accept', $token) }}">
-                @csrf
-                <textarea name="notes" placeholder="Any notes (optional)" style="width: 100%; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #ddd;"></textarea>
-                <button type="submit" class="btn btn-accept"
-                    onclick="return confirm('Are you sure you want to ACCEPT this offer?')">
-                    Accept Offer
-                </button>
-            </form>
-            <form method="POST" action="{{ route('portal.offers.decline', $token) }}">
-                @csrf
-                <textarea name="reason" placeholder="Reason for declining (optional)" style="width: 100%; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #ddd;"></textarea>
-                <button type="submit" class="btn btn-decline"
-                    onclick="return confirm('Are you sure you want to DECLINE this offer?')">
-                    Decline Offer
-                </button>
-            </form>
-        </div>
-    @endif
-
-    <p style="margin-top: 32px; font-size: 0.85em; color: #6b7280;">
-        If you have questions, please contact our admissions team. This link is confidential and should not be shared.
-    </p>
-</body>
-</html>
+</x-layouts.portal-guest>

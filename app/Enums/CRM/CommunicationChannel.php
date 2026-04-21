@@ -11,7 +11,8 @@ enum CommunicationChannel: string
     case SMS = 'SMS';
     case WHATSAPP = 'WHATSAPP';
     case VOICE = 'VOICE';
-    case PUSH = 'PUSH';
+    case PUSH   = 'PUSH';
+    case PORTAL = 'PORTAL';
 
     public function label(): string
     {
@@ -21,6 +22,7 @@ enum CommunicationChannel: string
             self::WHATSAPP  => 'WhatsApp',
             self::VOICE     => 'Voice / Call',
             self::PUSH      => 'Push Notification',
+            self::PORTAL    => 'Portal Chat',
         };
     }
 
@@ -32,6 +34,7 @@ enum CommunicationChannel: string
             self::WHATSAPP  => 'chat-bubble-left-right',
             self::VOICE     => 'phone',
             self::PUSH      => 'bell',
+            self::PORTAL    => 'chat-bubble-oval-left',
         };
     }
 

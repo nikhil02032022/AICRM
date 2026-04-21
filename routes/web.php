@@ -51,6 +51,12 @@ use App\Http\Controllers\CRM\Web\ApplicationPipelineWebController;
 use App\Http\Controllers\CRM\Web\ErpConversionController as WebErpConversionController;
 use App\Http\Controllers\CRM\Web\OfferLetterController;
 use App\Http\Controllers\CRM\Portal\OfferLetterPortalController;
+use App\Http\Controllers\CRM\Portal\PortalAuthController;
+use App\Http\Controllers\CRM\Portal\PortalDashboardController;
+use App\Http\Controllers\CRM\Portal\PortalApplicationController;
+use App\Http\Controllers\CRM\Portal\PortalDownloadController;
+use App\Http\Controllers\CRM\Portal\PortalChatController;
+use App\Http\Controllers\CRM\Portal\PortalErpBridgeController;
 use App\Http\Controllers\Web\CRM\PublicBookingController;
 use App\Http\Controllers\Web\CRM\SenderDomainWebController;
 use App\Http\Controllers\Web\CRM\SessionWebController;
@@ -89,13 +95,56 @@ Route::middleware(['throttle:60,1'])->group(function (): void {
     Route::post('/book/{slug}', [PublicBookingController::class, 'submit'])->name('public.booking.submit');
     Route::get('/book/{slug}/confirmation', [PublicBookingController::class, 'confirmation'])->name('public.booking.confirmation');
 
-    // BRD: CRM-AP-015 — Student portal offer acceptance (public, token-authenticated)
-    Route::prefix('portal/offers')->name('portal.offers.')->group(function (): void {
-        Route::get('/{token}', [OfferLetterPortalController::class, 'show'])->name('show');
-        Route::post('/{token}/accept', [OfferLetterPortalController::class, 'accept'])->name('accept');
-        Route::post('/{token}/decline', [OfferLetterPortalController::class, 'decline'])->name('decline');
-    });
 });
+
+// -----------------------------------------------------------------------
+// Applicant portal (SP-001 to SP-008) — branded, public + session auth
+// BRD: Section 8.11 (CRM-SP-001 to CRM-SP-008)
+// -----------------------------------------------------------------------
+Route::prefix('portal')
+    ->name('portal.')
+    ->middleware(['portal.branding', 'throttle:60,1'])
+    ->group(function (): void {
+        // BRD: CRM-AP-015 — Offer acceptance (public, token-authenticated) — SP-005
+        Route::prefix('offers')->name('offers.')->group(function (): void {
+            Route::get('/{token}', [OfferLetterPortalController::class, 'show'])->name('show');
+            Route::post('/{token}/accept', [OfferLetterPortalController::class, 'accept'])->name('accept');
+            Route::post('/{token}/decline', [OfferLetterPortalController::class, 'decline'])->name('decline');
+        });
+        // SP-002: OTP authentication — email-based
+        Route::prefix('auth')->name('auth.')->group(function (): void {
+            Route::get('/login', [PortalAuthController::class, 'showLogin'])->name('login');
+            Route::post('/login', [PortalAuthController::class, 'sendOtp'])->name('send-otp');
+            Route::get('/verify', [PortalAuthController::class, 'showVerifyOtp'])->name('verify-otp');
+            Route::post('/verify', [PortalAuthController::class, 'verifyOtp'])->name('do-verify');
+            Route::post('/logout', [PortalAuthController::class, 'logout'])->name('logout');
+        });
+        // SP-003: dashboard — requires portal session
+        Route::middleware('portal.auth')->group(function (): void {
+            Route::get('/', fn () => redirect()->route('portal.dashboard'))->name('home');
+            Route::get('/dashboard', [PortalDashboardController::class, 'index'])->name('dashboard');
+        });
+        // SP-004: applicant ↔ counsellor chat
+        Route::middleware('portal.auth')->prefix('chat')->name('chat.')->group(function (): void {
+            Route::get('/', [PortalChatController::class, 'index'])->name('index');
+            Route::post('/', [PortalChatController::class, 'store'])->name('store');
+        });
+        // SP-005: downloadable offer letter, admission confirmation, payment receipts
+        Route::middleware('portal.auth')->prefix('downloads')->name('downloads.')->group(function (): void {
+            Route::get('/{applicationUuid}/offer-letter', [PortalDownloadController::class, 'offerLetter'])->name('offer-letter');
+            Route::get('/{applicationUuid}/admission-letter', [PortalDownloadController::class, 'admissionLetter'])->name('admission-letter');
+            Route::get('/receipts/{transactionUuid}', [PortalDownloadController::class, 'paymentReceipt'])->name('payment-receipt');
+        });
+        // SP-006: multiple simultaneous applications
+        Route::middleware('portal.auth')->prefix('applications')->name('applications.')->group(function (): void {
+            Route::get('/', [PortalApplicationController::class, 'index'])->name('index');
+            Route::get('/{applicationUuid}', [PortalApplicationController::class, 'show'])->name('show');
+        });
+        // SP-007: ERP bridge — one-time signed token transition to ERP portal on enrolment
+        Route::middleware('portal.auth')->prefix('applications')->name('applications.')->group(function (): void {
+            Route::get('/{applicationUuid}/erp-transition', [PortalErpBridgeController::class, 'redirect'])->name('erp-transition');
+        });
+    });
 
 // -----------------------------------------------------------------------
 // Guest routes

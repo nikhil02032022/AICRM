@@ -1,2 +1,19 @@
 php artisan queue:work --queue=crm-imports
 php artisan queue:work 
+
+
++---------------------+------------------------+
+| Role                | Email                  |
++---------------------+------------------------+
+| super-admin         | superadmin@a2acrm.test |
+| institution-admin   | admin@demo.edu         |
+| admissions-director | director@demo.edu      |
+| admissions-manager  | manager@demo.edu       |
+| senior-counsellor   | sr.counsellor@demo.edu |
+| junior-counsellor   | jr.counsellor@demo.edu |
+| marketing-manager   | marketing@demo.edu     |
+| finance-officer     | finance@demo.edu       |
+| document-verifier   | docverifier@demo.edu   |
+| agent               | agent@demo.edu         |
+| applicant           | applicant@demo.edu     |
++---------------------+------------------------+

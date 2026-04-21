@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             CrmScholarshipRolePermissionSeeder::class,
             CrmDocumentManagementRolePermissionSeeder::class,
             CrmFeeInstallmentRolePermissionSeeder::class,
+            PortalDataSeeder::class,
         ]);
     }
 }
