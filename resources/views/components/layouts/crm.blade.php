@@ -641,7 +641,7 @@
                 @endcan
 
                 {{-- ── Finance — Group O (BRD: CRM-FM-001 to CRM-FM-013) ── --}}
-                @canany(['fee_dashboard.view', 'payments.view', 'fee_structure.manage'])
+                @canany(['fee_dashboard.view', 'payments.view', 'fee_structure.manage', 'scholarship.category.manage', 'scholarship.award.submit', 'scholarship.award.approve.manager', 'scholarship.award.approve.finance', 'installment.plan.manage'])
                 <div class="my-4 border-t" style="border-color: rgba(99,102,241,0.2)"></div>
                 <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">Finance</p>
 
@@ -669,6 +669,55 @@
                    class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
                           {{ request()->routeIs('crm.payments.refunds.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
                     Refund Requests
+                </a>
+                @endcan
+
+                {{-- BRD: CRM-FM-006 to CRM-FM-009 — Group P --}}
+                @can('scholarship.category.manage')
+                <a href="{{ route('crm.scholarships.categories.index') }}"
+                   aria-current="{{ request()->routeIs('crm.scholarships.categories.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.scholarships.categories.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    Scholarship Categories
+                </a>
+                @endcan
+                @canany(['scholarship.award.submit','scholarship.award.approve.manager','scholarship.award.approve.finance'])
+                <a href="{{ route('crm.scholarships.awards.index') }}"
+                   aria-current="{{ request()->routeIs('crm.scholarships.awards.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.scholarships.awards.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    Scholarship Approvals
+                </a>
+                @endcanany
+                @can('installment.plan.manage')
+                <a href="{{ route('crm.payments.installments.index') }}"
+                   aria-current="{{ request()->routeIs('crm.payments.installments.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.payments.installments.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    Installment Plans
+                </a>
+                @endcan
+                @endcanany
+
+                {{-- BRD: CRM-DM-001 to CRM-DM-010 — Documents (Group P) --}}
+                @canany(['document.checklist.manage','document.review','document.bulk_download'])
+                <div class="my-4 border-t" style="border-color: rgba(99,102,241,0.2)"></div>
+                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">Documents</p>
+
+                @can('document.checklist.manage')
+                <a href="{{ route('crm.documents.checklists.index') }}"
+                   aria-current="{{ request()->routeIs('crm.documents.checklists.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.documents.checklists.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    Checklists
+                </a>
+                @endcan
+                @can('document.review')
+                <a href="{{ route('crm.documents.review.index') }}"
+                   aria-current="{{ request()->routeIs('crm.documents.review.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.documents.review.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    Document Review
                 </a>
                 @endcan
                 @endcanany

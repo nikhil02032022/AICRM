@@ -205,6 +205,67 @@ Route::middleware('auth')->group(function (): void {
             Route::get('fee-dashboard', [\App\Http\Controllers\CRM\Web\Payments\FeeDashboardController::class, 'index'])
                 ->name('fee-dashboard.index')
                 ->middleware('can:fee_dashboard.view');
+
+            // BRD: CRM-FM-009 — Installment plans & per-application schedules
+            Route::prefix('installments')->name('installments.')->group(function (): void {
+                Route::get('/', [\App\Http\Controllers\CRM\Web\Payments\FeeInstallmentPlanController::class, 'index'])
+                    ->name('index')->middleware('can:installment.plan.manage');
+                Route::post('/', [\App\Http\Controllers\CRM\Web\Payments\FeeInstallmentPlanController::class, 'store'])
+                    ->name('store')->middleware('can:installment.plan.manage');
+                Route::put('{plan}', [\App\Http\Controllers\CRM\Web\Payments\FeeInstallmentPlanController::class, 'update'])
+                    ->name('update')->middleware('can:installment.plan.manage');
+                Route::post('{plan}/toggle', [\App\Http\Controllers\CRM\Web\Payments\FeeInstallmentPlanController::class, 'toggle'])
+                    ->name('toggle')->middleware('can:installment.plan.manage');
+                Route::post('apply', [\App\Http\Controllers\CRM\Web\Payments\ApplicationInstallmentController::class, 'apply'])
+                    ->name('apply')->middleware('can:installment.apply');
+            });
+        });
+
+        // BRD: CRM-FM-006 to CRM-FM-008 — Scholarship & waiver web routes
+        Route::prefix('scholarships')->name('scholarships.')->group(function (): void {
+            Route::get('categories', [\App\Http\Controllers\CRM\Web\Scholarships\ScholarshipCategoryController::class, 'index'])
+                ->name('categories.index')->middleware('can:scholarship.category.manage');
+            Route::post('categories', [\App\Http\Controllers\CRM\Web\Scholarships\ScholarshipCategoryController::class, 'store'])
+                ->name('categories.store')->middleware('can:scholarship.category.manage');
+            Route::put('categories/{category}', [\App\Http\Controllers\CRM\Web\Scholarships\ScholarshipCategoryController::class, 'update'])
+                ->name('categories.update')->middleware('can:scholarship.category.manage');
+            Route::post('categories/{category}/toggle', [\App\Http\Controllers\CRM\Web\Scholarships\ScholarshipCategoryController::class, 'toggle'])
+                ->name('categories.toggle')->middleware('can:scholarship.category.manage');
+
+            Route::get('awards', [\App\Http\Controllers\CRM\Web\Scholarships\ScholarshipAwardController::class, 'index'])
+                ->name('awards.index');
+            Route::post('awards', [\App\Http\Controllers\CRM\Web\Scholarships\ScholarshipAwardController::class, 'store'])
+                ->name('awards.store')->middleware('can:scholarship.award.submit');
+            Route::post('awards/{award}/decide', [\App\Http\Controllers\CRM\Web\Scholarships\ScholarshipAwardController::class, 'decide'])
+                ->name('awards.decide');
+        });
+
+        // BRD: CRM-DM-001 to CRM-DM-010 — Document management web routes
+        Route::prefix('documents')->name('documents.')->group(function (): void {
+            Route::get('checklists', [\App\Http\Controllers\CRM\Web\Documents\DocumentChecklistController::class, 'index'])
+                ->name('checklists.index')->middleware('can:document.checklist.manage');
+            Route::post('checklists', [\App\Http\Controllers\CRM\Web\Documents\DocumentChecklistController::class, 'store'])
+                ->name('checklists.store')->middleware('can:document.checklist.manage');
+            Route::put('checklists/{checklist}', [\App\Http\Controllers\CRM\Web\Documents\DocumentChecklistController::class, 'update'])
+                ->name('checklists.update')->middleware('can:document.checklist.manage');
+            Route::post('checklists/{checklist}/toggle', [\App\Http\Controllers\CRM\Web\Documents\DocumentChecklistController::class, 'toggle'])
+                ->name('checklists.toggle')->middleware('can:document.checklist.manage');
+
+            Route::get('review', [\App\Http\Controllers\CRM\Web\Documents\ApplicationDocumentController::class, 'review'])
+                ->name('review.index')->middleware('can:document.review');
+            Route::post('upload', [\App\Http\Controllers\CRM\Web\Documents\ApplicationDocumentController::class, 'upload'])
+                ->name('upload')->middleware('can:document.upload');
+            Route::post('{document}/decide', [\App\Http\Controllers\CRM\Web\Documents\ApplicationDocumentController::class, 'decide'])
+                ->name('decide')->middleware('can:document.review');
+            Route::get('{document}/download', [\App\Http\Controllers\CRM\Web\Documents\ApplicationDocumentController::class, 'download'])
+                ->name('download')->middleware('can:document.review');
+
+            Route::post('bulk-download', [\App\Http\Controllers\CRM\Web\Documents\BulkDocumentDownloadController::class, 'queue'])
+                ->name('bulk-download.queue')->middleware('can:document.bulk_download');
+            Route::get('bulk-download/{job}/status', [\App\Http\Controllers\CRM\Web\Documents\BulkDocumentDownloadController::class, 'status'])
+                ->name('bulk-download.status')->middleware('can:document.bulk_download');
+            Route::get('bulk-download/{job}/download', [\App\Http\Controllers\CRM\Web\Documents\BulkDocumentDownloadController::class, 'download'])
+                ->name('bulk-download.download')->middleware('can:document.bulk_download');
         });
 
         // BRD: CRM-AP-001 — Configurable multi-step application form builder (web)

@@ -278,6 +278,12 @@ class Lead extends Model
         return $this->belongsTo(Lead::class, 'merged_into_uuid', 'uuid');
     }
 
+    // BRD: CRM-DM-002/010 — documents uploaded against any application for this lead
+    public function documents(): HasMany
+    {
+        return $this->hasMany(\App\Models\CRM\Documents\ApplicationDocument::class, 'lead_uuid', 'uuid');
+    }
+
     // -------------------------------------------------------------------------
     // Domain helpers
     // -------------------------------------------------------------------------

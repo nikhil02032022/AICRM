@@ -52,6 +52,16 @@ Schedule::command('crm:payments:dispatch-reminders')->everyFifteenMinutes()
     ->name('crm.payments.dispatch-reminders')
     ->withoutOverlapping();
 
+// BRD: CRM-DM-005 — Dispatch due document reminders every 15 minutes
+Schedule::command('crm:documents:dispatch-reminders')->everyFifteenMinutes()
+    ->name('crm.documents.dispatch-reminders')
+    ->withoutOverlapping();
+
+// BRD: CRM-FM-008 — Escalate stale scholarship approvals every 15 minutes
+Schedule::command('crm:scholarships:dispatch-escalations')->everyFifteenMinutes()
+    ->name('crm.scholarships.dispatch-escalations')
+    ->withoutOverlapping();
+
 // BRD: CRM-AR-020 — Process due scheduled report deliveries every 5 minutes
 Schedule::call(fn () => app(ReportSchedulerService::class)->processDueSchedules())
     ->everyFiveMinutes()

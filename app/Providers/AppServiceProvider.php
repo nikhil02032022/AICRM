@@ -183,6 +183,43 @@ class AppServiceProvider extends ServiceProvider
         // BRD: CRM-FM-005 — Notify counsellor on payment failure
         Event::listen(PaymentFailed::class, NotifyCounsellorOnPaymentFailed::class);
 
+        // -----------------------------------------------------------------------
+        // Group P — Scholarships and Documents (BRD: CRM-FM-006..009, CRM-DM-*)
+        // -----------------------------------------------------------------------
+        Event::listen(
+            \App\Events\CRM\Scholarships\ScholarshipAwardSubmitted::class,
+            \App\Listeners\CRM\Scholarships\NotifyNextApproverOnStageAdvance::class,
+        );
+        Event::listen(
+            \App\Events\CRM\Scholarships\ScholarshipStageAdvanced::class,
+            \App\Listeners\CRM\Scholarships\NotifyNextApproverOnStageAdvance::class,
+        );
+        Event::listen(
+            \App\Events\CRM\Scholarships\ScholarshipAwardApproved::class,
+            \App\Listeners\CRM\Scholarships\ApplyWaiverOnApproved::class,
+        );
+
+        Event::listen(
+            \App\Events\CRM\Documents\DocumentUploaded::class,
+            \App\Listeners\CRM\Documents\UpdateCompletenessOnDocumentChange::class,
+        );
+        Event::listen(
+            \App\Events\CRM\Documents\DocumentVerified::class,
+            \App\Listeners\CRM\Documents\UpdateCompletenessOnDocumentChange::class,
+        );
+        Event::listen(
+            \App\Events\CRM\Documents\DocumentRejected::class,
+            \App\Listeners\CRM\Documents\UpdateCompletenessOnDocumentChange::class,
+        );
+        Event::listen(
+            \App\Events\CRM\Documents\DocumentVerified::class,
+            \App\Listeners\CRM\Documents\NotifyApplicantOnDocumentDecision::class,
+        );
+        Event::listen(
+            \App\Events\CRM\Documents\DocumentRejected::class,
+            \App\Listeners\CRM\Documents\NotifyApplicantOnDocumentDecision::class,
+        );
+
         // BRD: CRM-AI-012 — Persist immutable usage logs for all AI generation/decision events.
         Event::listen(LeadAiScoreCalculatedEvent::class, RecordAiUsageLogFromEvent::class);
         Event::listen(LeadNbaRecommendedEvent::class, RecordAiUsageLogFromEvent::class);

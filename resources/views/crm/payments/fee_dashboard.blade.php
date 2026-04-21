@@ -93,6 +93,43 @@
             </div>
         </div>
 
+        {{-- Scholarship Impact tile (FM-012 / FM-008) --}}
+        @can('scholarship.impact.view')
+        <div class="rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-md bg-purple-50 ring-1 ring-purple-100">
+                            <svg class="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                        </div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-purple-700">Scholarship Impact</p>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-600">
+                        Finance-approved waivers committed for the selected period.
+                    </p>
+                    @if (!empty($scholarshipImpact['by_programme']))
+                        <ul class="mt-3 space-y-1">
+                            @foreach ($scholarshipImpact['by_programme'] as $row)
+                                <li class="flex items-center justify-between text-xs text-gray-600">
+                                    <span>Programme #{{ $row['programme_id'] ?? '—' }}
+                                        <span class="ml-1 rounded-full bg-purple-100 px-1.5 py-0.5 text-purple-700">{{ $row['count'] }} award{{ $row['count'] !== 1 ? 's' : '' }}</span>
+                                    </span>
+                                    <span class="font-semibold text-gray-900">{{ number_format($row['total'], 2) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+                <div class="text-right">
+                    <p class="text-3xl font-bold text-gray-900">{{ number_format($scholarshipImpact['total'], 2) }}</p>
+                    <p class="mt-0.5 text-xs text-gray-500">{{ $scholarshipImpact['count'] }} award{{ $scholarshipImpact['count'] !== 1 ? 's' : '' }}</p>
+                </div>
+            </div>
+        </div>
+        @endcan
+
         {{-- Programme breakdown --}}
         <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
             <div class="border-b border-gray-200 bg-gray-50 px-6 py-3">

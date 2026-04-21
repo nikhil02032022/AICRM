@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 // BRD: CRM-EI-001 — Local cache of Programme catalogue synced from A2A ERP
 // Stub: full ERP sync service implemented in Phase 1 Sprint 3
@@ -61,5 +62,23 @@ class CrmProgramme extends Model
         ->using(LeadProgrammeInterest::class)
         ->withPivot(['is_primary', 'status', 'notes', 'preferred_intake'])
         ->withTimestamps();
+    }
+
+    // BRD: CRM-DM-001
+    public function documentChecklists(): HasMany
+    {
+        return $this->hasMany(\App\Models\CRM\Documents\DocumentChecklist::class, 'programme_id');
+    }
+
+    // BRD: CRM-FM-009
+    public function installmentPlans(): HasMany
+    {
+        return $this->hasMany(\App\Models\CRM\Payments\FeeInstallmentPlan::class, 'programme_id');
+    }
+
+    // BRD: CRM-FM-006
+    public function scholarshipCategories(): HasMany
+    {
+        return $this->hasMany(\App\Models\CRM\Scholarships\ScholarshipCategory::class, 'programme_id');
     }
 }

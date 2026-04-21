@@ -114,6 +114,30 @@ class Application extends Model
         return $this->hasMany(\App\Models\CRM\Payments\PaymentTransaction::class, 'application_uuid', 'uuid');
     }
 
+    // BRD: CRM-FM-008 — scholarship awards on this application
+    public function scholarshipAwards(): HasMany
+    {
+        return $this->hasMany(\App\Models\CRM\Scholarships\ScholarshipAward::class, 'application_uuid', 'uuid');
+    }
+
+    // BRD: CRM-FM-009 — installment schedule rows
+    public function installmentSchedules(): HasMany
+    {
+        return $this->hasMany(\App\Models\CRM\Payments\ApplicationInstallmentSchedule::class, 'application_uuid', 'uuid');
+    }
+
+    // BRD: CRM-DM-002/003 — uploaded documents
+    public function documents(): HasMany
+    {
+        return $this->hasMany(\App\Models\CRM\Documents\ApplicationDocument::class, 'application_uuid', 'uuid');
+    }
+
+    // BRD: CRM-DM-010 — document completeness score (0..100).
+    public function documentCompletenessScore(): float
+    {
+        return app(\App\Services\CRM\Documents\DocumentCompletenessCalculator::class)->scoreFor($this);
+    }
+
     /**
      * Get the current offer letter (most recent non-declined).
      */

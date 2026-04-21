@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint 3 Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0
 **Phase:** 1 - Sprint 3 (AP/FM/DM Delivery)
-**Last Updated:** April 21, 2026 (Group O implementation landed — FM-001 to FM-005 + FM-010 to FM-013 complete; UI rebuilt per `ui-ux-pro-max`; awaiting QA + finance sign-off and gateway live credentials)
+**Last Updated:** April 21, 2026 (Group P implementation landed — FM-006 to FM-009 + DM-001 to DM-005, DM-008 to DM-010 complete; 18/18 Group P tests passing; UI built with `ui-ux-pro-max`; S3/KMS migration for encrypted document storage deferred)
 
 ---
 
@@ -24,7 +24,7 @@ Mobile scope (MB-004, MB-006, MB-007) is explicitly deferred to the final sprint
 | **M** | Application Core Foundation | AP-001 to AP-007 | None (start here) | Completed (AP-001 to AP-007 complete) |
 | **N** | Pipeline, Offer, ERP Handoff | AP-008 to AP-019 | Depends on Group M | Completed (AP-008 to AP-019 complete) |
 | **O** | Fee Collection and Payments Core | FM-001 to FM-005, FM-010 to FM-013 | Depends on Group M and AP states from Group N | Implementation Complete (2026-04-21) — 9/9 tests passing; UI rebuilt per `ui-ux-pro-max`; PayU/CCAvenue adapters stubbed (handover doc); QA + finance sign-off + Razorpay live credentials pending |
-| **P** | Scholarships and Document Core | FM-006 to FM-009, DM-001 to DM-005, DM-008 to DM-010 | Depends on Group M; partial dependency on Group O | Planned |
+| **P** | Scholarships and Document Core | FM-006 to FM-009, DM-001 to DM-005, DM-008 to DM-010 | Depends on Group M; partial dependency on Group O | Implementation Complete (2026-04-21) — 18/18 tests passing; 27 new routes; UI built with `ui-ux-pro-max`; local-only encrypted disk (S3/KMS deferred); QA + admissions/finance sign-off pending |
 | **Q** | Document Integrations Validation and Sprint Closure | DM-006, DM-007 validation/hardening + AP/FM/DM closure | Depends on M, N, O, P | Planned |
 
 ---
@@ -198,9 +198,10 @@ After each group completion:
 | Module | Group | Status | Open Items |
 |---|---|---|---|
 | Application & Admission Pipeline (AP-001 to AP-019) | M, N | ✅ Complete | — |
-| Fee, Scholarship & Payment Management (FM-001 to FM-005, FM-010 to FM-013) | O | ✅ Implementation complete; QA pending | Razorpay live credentials, PayU/CCAvenue full adapters (see Group O handover doc), reconciliation job, scholarship-impact tile (depends on Group P) |
-| Fee, Scholarship & Payment Management (FM-006 to FM-009) | P | ⏳ Planned | — |
-| Document Management (DM-001 to DM-010) | P, Q | ⏳ Planned | — |
+| Fee, Scholarship & Payment Management (FM-001 to FM-005, FM-010 to FM-013) | O | ✅ Implementation complete; QA pending | Razorpay live credentials, PayU/CCAvenue full adapters (see Group O handover doc), reconciliation job |
+| Fee, Scholarship & Payment Management (FM-006 to FM-009) | P | ✅ Implementation complete; QA pending | Installment editor UI polish |
+| Document Management (DM-001 to DM-005, DM-008 to DM-010) | P | ✅ Implementation complete; QA pending | S3/KMS migration for encrypted disk; richer Livewire editors |
+| Document Management (DM-006, DM-007) | Q | ⏳ Planned | DigiLocker / Aadhaar eKYC hardening |
 
 ### Group O Sign-off Checklist
 
@@ -214,3 +215,15 @@ After each group completion:
 - [ ] Razorpay live keys provisioned + ₹1 smoke transaction recorded.
 - [ ] Finance team sign-off on fee dashboard accuracy.
 - [ ] QA regression sign-off across AP → FM flow.
+
+### Group P Sign-off Checklist
+
+- [x] Migrations applied (12) and permission seeders chained (`CrmScholarshipRolePermissionSeeder`, `CrmDocumentManagementRolePermissionSeeder`, `CrmFeeInstallmentRolePermissionSeeder`).
+- [x] All in-scope Req IDs implemented (FM-006/007/008/009, DM-001/002/003/004/005/008/009/010) with code under `App\{Models,Services,Http,Jobs,Listeners,Events,Notifications}\CRM\{Scholarships,Documents}\` and `App\...\CRM\Payments\` for installments.
+- [x] 18/18 Group P automated tests passing (`tests/Unit/CRM/{Scholarships,Documents}` + `tests/Feature/CRM/{Scholarships,Documents,Payments/InstallmentPlanTest.php}`); Group O regression remains 10/10 green.
+- [x] `encrypted_documents` disk configured (local driver only; S3/KMS migration deferred).
+- [x] UI built with `ui-ux-pro-max` design tokens across 5 blade screens + sidebar nav extensions.
+- [x] Test cases document published (`test-cases/sprint3_group_P_test_cases.md`).
+- [x] FM-012 scholarship-impact tile wired into `FeeDashboardController` + `fee_dashboard.blade.php` via `ScholarshipImpactReporter::forInstitution()` (2026-04-21).
+- [ ] Finance + admissions QA regression sign-off (document review, scholarship approval chain, installment recompute on payment confirmation).
+- [ ] S3 + KMS rollout for encrypted document storage (follow-up).

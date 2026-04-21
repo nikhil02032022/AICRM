@@ -394,6 +394,15 @@ Route::prefix('v1/crm')
         // BRD: CRM-FM-004 — Generate payment link for an existing transaction
         Route::post('payments/transactions/{transaction}/links', [\App\Http\Controllers\CRM\Api\Payments\PaymentLinkController::class, 'store'])
             ->name('payments.links.store');
+
+        // BRD: CRM-DM-002 — Document intake (WhatsApp bot / email relays use this endpoint)
+        Route::post('documents/intake', [\App\Http\Controllers\CRM\Api\Documents\DocumentIntakeController::class, 'store'])
+            ->middleware('can:document.upload')
+            ->name('documents.intake');
+
+        // BRD: CRM-FM-007 — Scholarship eligibility evaluator
+        Route::post('scholarships/eligibility', [\App\Http\Controllers\CRM\Api\Scholarships\ScholarshipEligibilityController::class, 'evaluate'])
+            ->name('scholarships.eligibility');
     });
 
 // BRD: CRM-FM-005 — Inbound payment gateway webhook (no auth; signature verified by adapter)
