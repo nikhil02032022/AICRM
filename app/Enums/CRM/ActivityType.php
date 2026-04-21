@@ -19,6 +19,10 @@ enum ActivityType: string
     case SYSTEM = 'system';
     // BRD: CRM-LC-019 — Lead merge is a distinct, irreversible business event
     case MERGE = 'merge';
+    // BRD: CRM-TF-001 / CRM-TF-005 — Task lifecycle entries on lead activity timeline
+    case TASK_CREATED   = 'task_created';
+    case TASK_COMPLETED = 'task_completed';
+    case TASK_UPDATED   = 'task_updated';
 
     public function label(): string
     {
@@ -33,7 +37,10 @@ enum ActivityType: string
             self::DOCUMENT_UPLOADED => 'Document Uploaded',
             self::PAYMENT_RECEIVED => 'Payment Received',
             self::SYSTEM => 'System',
-            self::MERGE => 'Lead Merged',
+            self::MERGE           => 'Lead Merged',
+            self::TASK_CREATED    => 'Task Created',
+            self::TASK_COMPLETED  => 'Task Completed',
+            self::TASK_UPDATED    => 'Task Updated',
         };
     }
 
@@ -51,7 +58,10 @@ enum ActivityType: string
             self::DOCUMENT_UPLOADED => 'paper-clip',
             self::PAYMENT_RECEIVED => 'banknotes',
             self::SYSTEM => 'cog-6-tooth',
-            self::MERGE => 'arrows-pointing-in',
+            self::MERGE           => 'arrows-pointing-in',
+            self::TASK_CREATED    => 'clipboard-document-list',
+            self::TASK_COMPLETED  => 'check-circle',
+            self::TASK_UPDATED    => 'pencil',
         };
     }
 
@@ -68,7 +78,10 @@ enum ActivityType: string
             self::DOCUMENT_UPLOADED => 'amber',
             self::PAYMENT_RECEIVED => 'lime',
             self::SYSTEM => 'gray',
-            self::MERGE => 'rose',
+            self::MERGE           => 'rose',
+            self::TASK_CREATED    => 'purple',
+            self::TASK_COMPLETED  => 'green',
+            self::TASK_UPDATED    => 'yellow',
         };
     }
 
@@ -86,7 +99,10 @@ enum ActivityType: string
             self::DOCUMENT_UPLOADED => '#F59E0B',
             self::PAYMENT_RECEIVED => '#84CC16',
             self::SYSTEM => '#9CA3AF',
-            self::MERGE => '#F43F5E',
+            self::MERGE           => '#F43F5E',
+            self::TASK_CREATED    => '#7C3AED',
+            self::TASK_COMPLETED  => '#16A34A',
+            self::TASK_UPDATED    => '#CA8A04',
         };
     }
 }

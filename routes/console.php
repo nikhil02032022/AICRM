@@ -11,6 +11,8 @@ use App\Jobs\CRM\Automation\EvaluateEventBasedAutomationTriggersJob;
 use App\Jobs\CRM\Automation\EvaluateInactivityAutomationTriggersJob;
 use App\Jobs\CRM\Automation\EvaluateTimedAutomationTriggersJob;
 use App\Jobs\CRM\SendAppointmentReminderJob;
+use App\Jobs\CRM\Tasks\AutoCreateFollowUpTaskJob;
+use App\Jobs\CRM\Tasks\OverdueTaskEscalationJob;
 use App\Services\CRM\Analytics\ReportSchedulerService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -61,6 +63,12 @@ Schedule::command('crm:documents:dispatch-reminders')->everyFifteenMinutes()
 Schedule::command('crm:scholarships:dispatch-escalations')->everyFifteenMinutes()
     ->name('crm.scholarships.dispatch-escalations')
     ->withoutOverlapping();
+
+// BRD: CRM-TF-002 — Daily auto-creation of follow-up tasks for inactive leads
+Schedule::job(new AutoCreateFollowUpTaskJob(), 'crm-default')->dailyAt('06:30');
+
+// BRD: CRM-TF-004 — Hourly overdue task detection and escalation
+Schedule::job(new OverdueTaskEscalationJob(), 'crm-default')->hourly();
 
 // BRD: CRM-AR-020 — Process due scheduled report deliveries every 5 minutes
 Schedule::call(fn () => app(ReportSchedulerService::class)->processDueSchedules())

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -44,6 +45,15 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function withPermission(string $permission): static
+    {
+        return $this->afterCreating(function (User $user) use ($permission): void {
+            $perm = Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+            $user->givePermissionTo($perm);
+            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        });
     }
 
     public function withRole(string $role): static

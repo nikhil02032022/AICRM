@@ -13,7 +13,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="min-h-screen bg-gray-50 font-sans antialiased">
+<body class="h-screen overflow-hidden bg-gray-50 font-sans antialiased">
 
     {{-- Mobile sidebar backdrop --}}
     <div
@@ -849,22 +849,20 @@
                 </a>
                 @endcan
 
+                {{-- Tasks — BRD: Group R --}}
+                @can('crm.tasks.index')
                 <div class="my-4 border-t" style="border-color: rgba(99,102,241,0.2)"></div>
-                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">Coming Soon</p>
-
-                {{-- Modules not yet built — Phase 1+ --}}
-                @foreach([
-                    ['Tasks', 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
-                ] as [$label, $iconPath])
-                    <div class="mb-0.5 flex cursor-not-allowed select-none items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-indigo-500"
-                         title="{{ $label }} — Coming soon" aria-disabled="true">
-                        <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $iconPath }}"/>
-                        </svg>
-                        <span class="flex-1">{{ $label }}</span>
-                        <span class="rounded bg-indigo-900/80 px-1.5 py-0.5 text-xs text-indigo-500">Soon</span>
-                    </div>
-                @endforeach
+                <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">Tasks</p>
+                <a href="{{ route('crm.tasks.index') }}"
+                   aria-current="{{ request()->routeIs('crm.tasks.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.tasks.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    Tasks
+                </a>
+                @endcan
 
             {{-- User footer --}}
             @auth
@@ -928,7 +926,7 @@
             </header>
 
             {{-- Page content --}}
-            <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6" id="main-content">
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6" id="main-content" style="scrollbar-gutter: stable">
 
                 {{-- Flash: success --}}
                 @if (session()->has('success'))

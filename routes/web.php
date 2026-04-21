@@ -1111,6 +1111,49 @@ Route::middleware('auth')->group(function (): void {
                 ->name('store')
                 ->middleware('can:crm.agents.comms.send');
         });
+
+        // BRD: CRM-TF-001 to TF-009 — Task, Activity and Follow-up Management
+        Route::prefix('tasks')->name('tasks.')->group(function (): void {
+            Route::get('/', [\App\Http\Controllers\CRM\Web\Tasks\TaskController::class, 'index'])
+                ->name('index')
+                ->middleware('can:crm.tasks.index');
+            Route::get('/create', [\App\Http\Controllers\CRM\Web\Tasks\TaskController::class, 'create'])
+                ->name('create')
+                ->middleware('can:crm.tasks.create');
+            Route::post('/', [\App\Http\Controllers\CRM\Web\Tasks\TaskController::class, 'store'])
+                ->name('store')
+                ->middleware('can:crm.tasks.create');
+            Route::get('/{task}/edit', [\App\Http\Controllers\CRM\Web\Tasks\TaskController::class, 'edit'])
+                ->name('edit');
+            Route::put('/{task}', [\App\Http\Controllers\CRM\Web\Tasks\TaskController::class, 'update'])
+                ->name('update');
+            Route::delete('/{task}', [\App\Http\Controllers\CRM\Web\Tasks\TaskController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('can:crm.tasks.delete');
+            Route::get('/{task}/complete', [\App\Http\Controllers\CRM\Web\Tasks\TaskCompleteController::class, 'create'])
+                ->name('complete');
+            Route::post('/{task}/complete', [\App\Http\Controllers\CRM\Web\Tasks\TaskCompleteController::class, 'store'])
+                ->name('complete.store');
+            Route::get('/calendar', [\App\Http\Controllers\CRM\Web\Tasks\TaskCalendarController::class, 'index'])
+                ->name('calendar')
+                ->middleware('can:crm.tasks.calendar');
+            Route::post('/bulk-assign', [\App\Http\Controllers\CRM\Web\Tasks\TaskBulkController::class, 'bulkAssign'])
+                ->name('bulk-assign')
+                ->middleware('can:crm.tasks.bulk-assign');
+            Route::post('/bulk-reassign', [\App\Http\Controllers\CRM\Web\Tasks\TaskBulkController::class, 'bulkReassign'])
+                ->name('bulk-reassign')
+                ->middleware('can:crm.tasks.bulk-assign');
+        });
+
+        // BRD: CRM-TF-006, TF-007 — Manager team task view and activity feed
+        Route::prefix('manager')->name('manager.')->group(function (): void {
+            Route::get('/team-tasks', [\App\Http\Controllers\CRM\Web\Tasks\Manager\TeamTaskController::class, 'index'])
+                ->name('team-tasks')
+                ->middleware('can:crm.tasks.team.view');
+            Route::get('/activity-feed', [\App\Http\Controllers\CRM\Web\Tasks\Manager\ActivityFeedController::class, 'index'])
+                ->name('activity-feed')
+                ->middleware('can:crm.tasks.activity-feed.view');
+        });
     });
 
     Route::post('/logout', function (Request $request) {

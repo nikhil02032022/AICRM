@@ -403,6 +403,14 @@ Route::prefix('v1/crm')
         // BRD: CRM-FM-007 — Scholarship eligibility evaluator
         Route::post('scholarships/eligibility', [\App\Http\Controllers\CRM\Api\Scholarships\ScholarshipEligibilityController::class, 'evaluate'])
             ->name('scholarships.eligibility');
+
+        // BRD: CRM-TF-001 to TF-009 — Task management API endpoints
+        Route::apiResource('tasks', \App\Http\Controllers\Api\V1\CRM\Tasks\TaskApiController::class)
+            ->parameters(['tasks' => 'task:uuid']);
+        Route::post('tasks/{task:uuid}/complete', [\App\Http\Controllers\Api\V1\CRM\Tasks\TaskApiController::class, 'complete'])
+            ->name('tasks.complete');
+        Route::apiResource('task-auto-rules', \App\Http\Controllers\Api\V1\CRM\Tasks\TaskAutoRuleApiController::class)
+            ->parameters(['task-auto-rules' => 'taskAutoRule:uuid']);
     });
 
 // BRD: CRM-FM-005 — Inbound payment gateway webhook (no auth; signature verified by adapter)

@@ -14,6 +14,7 @@ use App\Providers\CRM\CrmImportServiceProvider;
 use App\Providers\CRM\CrmLeadServiceProvider;
 use App\Providers\CRM\CrmMarketingServiceProvider;
 use App\Providers\CRM\CrmDocumentServiceProvider;
+use App\Providers\CRM\CrmTaskServiceProvider;
 use App\Providers\CRM\CrmPaymentServiceProvider;
 use App\Providers\CRM\CrmScholarshipServiceProvider;
 use App\Providers\CRM\CrmScoringServiceProvider;
@@ -38,4 +39,5 @@ return [
     CrmPaymentServiceProvider::class,
     CrmScholarshipServiceProvider::class,
     CrmDocumentServiceProvider::class,
+    CrmTaskServiceProvider::class,
 ];
