@@ -1137,6 +1137,9 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/calendar', [\App\Http\Controllers\CRM\Web\Tasks\TaskCalendarController::class, 'index'])
                 ->name('calendar')
                 ->middleware('can:crm.tasks.calendar');
+            Route::get('/bulk-assign', [\App\Http\Controllers\CRM\Web\Tasks\TaskBulkController::class, 'show'])
+                ->name('bulk-assign.show')
+                ->middleware('can:crm.tasks.bulk-assign');
             Route::post('/bulk-assign', [\App\Http\Controllers\CRM\Web\Tasks\TaskBulkController::class, 'bulkAssign'])
                 ->name('bulk-assign')
                 ->middleware('can:crm.tasks.bulk-assign');

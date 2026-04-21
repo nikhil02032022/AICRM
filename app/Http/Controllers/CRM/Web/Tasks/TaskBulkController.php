@@ -6,6 +6,7 @@ namespace App\Http\Controllers\CRM\Web\Tasks;
 
 use App\DTOs\CRM\Tasks\BulkAssignTaskDTO;
 use App\Http\Requests\CRM\Tasks\BulkAssignTaskRequest;
+use App\Models\User;
 use App\Services\CRM\Tasks\TaskService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -17,6 +18,15 @@ final class TaskBulkController
     public function __construct(
         private readonly TaskService $taskService,
     ) {}
+
+    public function show(): View
+    {
+        Gate::authorize('crm.tasks.bulk-assign');
+
+        $users = User::query()->select('id', 'name')->orderBy('name')->get();
+
+        return view('crm.tasks.bulk-assign', compact('users'));
+    }
 
     public function bulkAssign(BulkAssignTaskRequest $request): RedirectResponse
     {

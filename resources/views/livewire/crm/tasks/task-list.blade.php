@@ -1,4 +1,10 @@
-<div wire:poll.30s>
+<div wire:poll.30s
+    x-data="{
+        selected: [],
+        get selectAll() { return this.selected.length > 0 && this.selected.length === this.$el.querySelectorAll('input[data-task-uuid]').length; },
+        toggleAll(e) { const uuids = [...this.$el.querySelectorAll('input[data-task-uuid]')].map(el => el.value); this.selected = e.target.checked ? uuids : []; },
+        goBulkAssign() { window.location = '{{ route('crm.tasks.bulk-assign.show') }}?uuids=' + encodeURIComponent(this.selected.join(',')); }
+    }">
 
     {{-- Search bar --}}
     <div class="relative mb-4">
@@ -73,6 +79,13 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
+                        @can('crm.tasks.bulk-assign')
+                        <th scope="col" class="w-8 px-4 py-3">
+                            <input type="checkbox" @change="toggleAll($event)" :checked="selectAll"
+                                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                aria-label="Select all tasks">
+                        </th>
+                        @endcan
                         <th scope="col" class="table-th">Task</th>
                         <th scope="col" class="table-th">Type</th>
                         <th scope="col" class="table-th">Priority</th>
@@ -89,6 +102,15 @@
                         'hover:bg-gray-50' => ! $task->isOverdue(),
                         'bg-red-50 hover:bg-red-50 border-l-4 border-l-red-400' => $task->isOverdue(),
                     ])>
+
+                        @can('crm.tasks.bulk-assign')
+                        <td class="w-8 px-4 py-3">
+                            <input type="checkbox" x-model="selected" value="{{ $task->uuid }}"
+                                data-task-uuid="{{ $task->uuid }}"
+                                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                aria-label="Select {{ $task->title }}">
+                        </td>
+                        @endcan
 
                         {{-- Task: title + lead --}}
                         <td class="px-4 py-3">
@@ -189,7 +211,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-16 text-center">
+                        <td colspan="8" class="px-4 py-16 text-center">
                             <svg class="mx-auto mb-3 h-10 w-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
@@ -228,6 +250,18 @@
         </div>
         @endif
     </div>
+
+    @can('crm.tasks.bulk-assign')
+    {{-- Bulk action bar --}}
+    <div x-show="selected.length > 0" x-cloak x-transition
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 rounded-xl bg-gray-900 px-5 py-3 text-white shadow-xl">
+        <span class="text-sm font-medium" x-text="selected.length + ' task(s) selected'"></span>
+        <button @click="goBulkAssign()" class="rounded-lg bg-primary-600 px-4 py-1.5 text-sm font-semibold hover:bg-primary-500 transition-colors">
+            Bulk Assign
+        </button>
+        <button @click="selected = []" class="text-gray-400 hover:text-white transition-colors text-xs">Clear</button>
+    </div>
+    @endcan
 
     {{-- Loading overlay --}}
     <div wire:loading.flex class="fixed inset-0 z-50 items-center justify-center bg-white/50">
