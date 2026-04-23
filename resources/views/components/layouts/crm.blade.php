@@ -454,10 +454,36 @@
                 @endcan
                 @endcanany
 
-                {{-- ── Agents — Group L (AG-006, AG-008) ── --}}
-                @canany(['crm.agents.commissions.view', 'crm.agents.comms.view'])
+                {{-- ── Agents — Group U (AG-001–007) + Group L (AG-006, AG-008) ── --}}
+                @canany(['crm.agents.view', 'crm.agents.report.view', 'crm.agents.commissions.view', 'crm.agents.comms.view'])
                 <div class="my-4 border-t" style="border-color: rgba(99,102,241,0.2)"></div>
                 <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">Agents</p>
+
+                {{-- Manage Agents — BRD: AG-001 --}}
+                @can('crm.agents.view')
+                <a href="{{ route('crm.agents.index') }}"
+                   aria-current="{{ request()->routeIs('crm.agents.index', 'crm.agents.create', 'crm.agents.edit', 'crm.agents.referral', 'crm.agents.commission-structures.*') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.agents.index', 'crm.agents.create', 'crm.agents.edit', 'crm.agents.referral', 'crm.agents.commission-structures.*') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+                    </svg>
+                    Manage Agents
+                </a>
+                @endcan
+
+                {{-- Agent Performance Report — BRD: AG-007 --}}
+                @can('crm.agents.report.view')
+                <a href="{{ route('crm.agents.report') }}"
+                   aria-current="{{ request()->routeIs('crm.agents.report') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.agents.report') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
+                    </svg>
+                    Agent Report
+                </a>
+                @endcan
 
                 {{-- Agent Commissions — BRD: AG-006 --}}
                 @can('crm.agents.commissions.view')

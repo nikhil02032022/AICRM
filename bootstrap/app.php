@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\CRM\AgentPortal\AgentAuthenticate;
 use App\Http\Middleware\CRM\Portal\BrandingMiddleware;
 use App\Http\Middleware\CRM\Portal\PortalAuthenticate;
 use App\Http\Middleware\EnsureInstitutionTenancy;
@@ -28,10 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
 
         $middleware->alias([
-            'tenancy'         => EnsureInstitutionTenancy::class,
-            'mfa'             => RequireMfa::class,
-            'portal.branding' => BrandingMiddleware::class,
-            'portal.auth'     => PortalAuthenticate::class,
+            'tenancy'           => EnsureInstitutionTenancy::class,
+            'mfa'               => RequireMfa::class,
+            'portal.branding'   => BrandingMiddleware::class,
+            'portal.auth'       => PortalAuthenticate::class,
+            'agent.portal.auth' => AgentAuthenticate::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint 4 Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0
 **Phase:** 1 - Sprint 4 (TF / SP / AG / AR / SA / CR / AL Delivery)
-**Last Updated:** April 21, 2026 (Group R completed; Groups S, U, V, W pending)
+**Last Updated:** April 22, 2026 (Groups R, S, U completed; Groups V, W pending)
 
 ---
 
@@ -35,8 +35,8 @@ Sprint 4 closes all remaining Must-Have functional modules for Phase 1 v1.0:
 | Group | Theme | BRD Req IDs | Dependency | Status |
 |-------|-------|-------------|------------|--------|
 | **R** | Task, Activity and Follow-up Management | TF-001 to TF-009 | EC (Sprint 1) | ✅ Completed (2026-04-21) |
-| **S** | Student Applicant Portal and Self-Service | SP-001 to SP-008 | AP, FM, DM (Sprint 3) | ⏳ Pending |
-| **U** | Agent and Channel Partner Portal | AG-001–AG-005, AG-007 | LC, CC (Sprint 1); AG-006, AG-008 done in Sprint 2 | ⏳ Pending |
+| **S** | Student Applicant Portal and Self-Service | SP-001 to SP-008 | AP, FM, DM (Sprint 3) | ✅ Completed (2026-04-21) |
+| **U** | Agent and Channel Partner Portal | AG-001–AG-005, AG-007 | LC, CC (Sprint 1); AG-006, AG-008 done in Sprint 2 | ✅ Completed (2026-04-22) |
 | **V** | Analytics, Dashboards and Reporting | AR-001 to AR-021 | All prior sprints | ⏳ Pending |
 | **W** | System Administration, Compliance and Sprint Closure | SA-001–006, SA-008, SA-009, SA-012; CR-001–010; AL-001 | All prior sprints | ⏳ Pending |
 
@@ -249,8 +249,8 @@ After each group completion:
 | Module | Group | Status | Open Items |
 |---|---|---|---|
 | Task, Activity and Follow-up (TF-001 to TF-009) | R | ✅ Completed | 2026-04-21 |
-| Student Applicant Portal (SP-001 to SP-008) | S | ⏳ Pending | — |
-| Agent and Channel Partner Portal (AG-001–005, AG-007) | U | ⏳ Pending | — |
+| Student Applicant Portal (SP-001 to SP-008) | S | ✅ Completed | 2026-04-21 |
+| Agent and Channel Partner Portal (AG-001–005, AG-007) | U | ✅ Completed | 2026-04-22 |
 | Analytics, Dashboards and Reporting (AR-001 to AR-021) | V | ⏳ Pending | Depends on Group W tenancy for scoped queries |
 | System Admin, Compliance, Alumni (SA, CR, AL-001) | W | ⏳ Pending | — |
 
@@ -269,20 +269,20 @@ After each group completion:
 | CRM-TF-007 | Must Have | R | ✅ Completed |
 | CRM-TF-008 | Must Have | R | ✅ Completed |
 | CRM-TF-009 | Must Have | R | ✅ Completed |
-| CRM-SP-001 | Must Have | S | ⏳ Pending |
-| CRM-SP-002 | Must Have | S | ⏳ Pending |
-| CRM-SP-003 | Must Have | S | ⏳ Pending |
-| CRM-SP-004 | Should Have | S | ⏳ Pending |
-| CRM-SP-005 | Must Have | S | ⏳ Pending |
-| CRM-SP-006 | Must Have | S | ⏳ Pending |
-| CRM-SP-007 | Must Have | S | ⏳ Pending |
-| CRM-SP-008 | Must Have | S | ⏳ Pending |
-| CRM-AG-001 | Must Have | U | ⏳ Pending |
-| CRM-AG-002 | Must Have | U | ⏳ Pending |
-| CRM-AG-003 | Must Have | U | ⏳ Pending |
-| CRM-AG-004 | Must Have | U | ⏳ Pending |
-| CRM-AG-005 | Must Have | U | ⏳ Pending |
-| CRM-AG-007 | Must Have | U | ⏳ Pending |
+| CRM-SP-001 | Must Have | S | ✅ Completed |
+| CRM-SP-002 | Must Have | S | ✅ Completed |
+| CRM-SP-003 | Must Have | S | ✅ Completed |
+| CRM-SP-004 | Should Have | S | ✅ Completed |
+| CRM-SP-005 | Must Have | S | ✅ Completed |
+| CRM-SP-006 | Must Have | S | ✅ Completed |
+| CRM-SP-007 | Must Have | S | ✅ Completed |
+| CRM-SP-008 | Must Have | S | ✅ Completed |
+| CRM-AG-001 | Must Have | U | ✅ Completed |
+| CRM-AG-002 | Must Have | U | ✅ Completed |
+| CRM-AG-003 | Must Have | U | ✅ Completed |
+| CRM-AG-004 | Must Have | U | ✅ Completed |
+| CRM-AG-005 | Must Have | U | ✅ Completed |
+| CRM-AG-007 | Must Have | U | ✅ Completed |
 | CRM-AR-001 | Must Have | V | ⏳ Pending |
 | CRM-AR-002 | Must Have | V | ⏳ Pending |
 | CRM-AR-003 | Must Have | V | ⏳ Pending |

@@ -21,6 +21,8 @@ enum LeadSource: string
     case CSV_IMPORT = 'csv_import';
     case API = 'api';
     case QR_CODE = 'qr_code';
+    // BRD: CRM-AG-002 — Lead attributed to an agent via referral link
+    case AGENT = 'agent';
 
     public function label(): string
     {
@@ -39,6 +41,7 @@ enum LeadSource: string
             self::CSV_IMPORT => 'CSV Import',
             self::API => 'API',
             self::QR_CODE => 'QR Code',
+            self::AGENT   => 'Agent Referral',
         };
     }
 

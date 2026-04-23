@@ -1206,6 +1206,25 @@ Route::middleware('auth')->group(function (): void {
                 ->name('activity-feed')
                 ->middleware('can:crm.tasks.activity-feed.view');
         });
+
+        // -----------------------------------------------------------------------
+        // Agent management (CRM admin) — BRD: CRM-AG-001 to AG-007
+        // -----------------------------------------------------------------------
+        Route::prefix('agents')->name('agents.')->middleware('can:crm.agents.view')->group(function (): void {
+            Route::get('/', [\App\Http\Controllers\CRM\Agents\AgentController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\CRM\Agents\AgentController::class, 'create'])->name('create')->middleware('can:crm.agents.create');
+            Route::post('/', [\App\Http\Controllers\CRM\Agents\AgentController::class, 'store'])->name('store')->middleware('can:crm.agents.create');
+            Route::get('/{agent}/edit', [\App\Http\Controllers\CRM\Agents\AgentController::class, 'edit'])->name('edit');
+            Route::put('/{agent}', [\App\Http\Controllers\CRM\Agents\AgentController::class, 'update'])->name('update');
+            Route::delete('/{agent}', [\App\Http\Controllers\CRM\Agents\AgentController::class, 'destroy'])->name('destroy');
+            Route::get('/{agent}/referral', [\App\Http\Controllers\CRM\Agents\AgentReferralController::class, 'show'])->name('referral');
+            Route::get('/{agent}/commission-structures', [\App\Http\Controllers\CRM\Agents\AgentCommissionStructureController::class, 'index'])->name('commission-structures.index');
+            Route::get('/{agent}/commission-structures/create', [\App\Http\Controllers\CRM\Agents\AgentCommissionStructureController::class, 'create'])->name('commission-structures.create');
+            Route::post('/{agent}/commission-structures', [\App\Http\Controllers\CRM\Agents\AgentCommissionStructureController::class, 'store'])->name('commission-structures.store');
+            Route::get('/{agent}/commission-structures/{commissionStructure}/edit', [\App\Http\Controllers\CRM\Agents\AgentCommissionStructureController::class, 'edit'])->name('commission-structures.edit');
+            Route::put('/{agent}/commission-structures/{commissionStructure}', [\App\Http\Controllers\CRM\Agents\AgentCommissionStructureController::class, 'update'])->name('commission-structures.update');
+            Route::get('/report', [\App\Http\Controllers\CRM\Agents\AgentReportController::class, 'index'])->name('report');
+        });
     });
 
     Route::post('/logout', function (Request $request) {
@@ -1216,3 +1235,25 @@ Route::middleware('auth')->group(function (): void {
         return redirect()->route('login');
     })->name('logout');
 });
+
+// -----------------------------------------------------------------------
+// Agent Portal — BRD: CRM-AG-003 — standalone email+password auth portal
+// -----------------------------------------------------------------------
+Route::prefix('agent-portal')
+    ->name('agent-portal.')
+    ->middleware('throttle:60,1')
+    ->group(function (): void {
+        // Public auth routes
+        Route::get('/login', [\App\Http\Controllers\CRM\AgentPortal\AgentPortalAuthController::class, 'showLogin'])->name('login');
+        Route::post('/login', [\App\Http\Controllers\CRM\AgentPortal\AgentPortalAuthController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
+        Route::post('/logout', [\App\Http\Controllers\CRM\AgentPortal\AgentPortalAuthController::class, 'logout'])->name('logout');
+
+        // Protected routes — require valid agent portal session
+        Route::middleware('agent.portal.auth')->group(function (): void {
+            Route::get('/', fn () => redirect()->route('agent-portal.dashboard'));
+            Route::get('/dashboard', [\App\Http\Controllers\CRM\AgentPortal\AgentPortalDashboardController::class, 'index'])->name('dashboard');
+            Route::get('/leads', [\App\Http\Controllers\CRM\AgentPortal\AgentPortalLeadController::class, 'index'])->name('leads.index');
+            Route::get('/leads/create', [\App\Http\Controllers\CRM\AgentPortal\AgentPortalLeadController::class, 'create'])->name('leads.create');
+            Route::post('/leads', [\App\Http\Controllers\CRM\AgentPortal\AgentPortalLeadController::class, 'store'])->name('leads.store');
+        });
+    });

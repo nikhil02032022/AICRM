@@ -9,7 +9,9 @@ use App\Enums\CRM\LeadSource;
 use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LeadTemperature;
 use App\Enums\CRM\LostReason;
+use App\Models\CRM\Agents\Agent;
 use App\Models\CRM\Scopes\InstitutionScope;
+use App\Models\CRM\Application;
 use App\Models\User;
 use App\Observers\CRM\AuditObserver;
 use Database\Factories\CRM\LeadFactory;
@@ -184,6 +186,12 @@ class Lead extends Model
         return $this->belongsTo(User::class, 'assigned_counsellor_id');
     }
 
+    // BRD: CRM-AG-002 — Channel partner who referred this lead via referral link
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class, 'agent_id');
+    }
+
     public function programmeInterests(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -276,6 +284,11 @@ class Lead extends Model
     public function mergedIntoLead(): BelongsTo
     {
         return $this->belongsTo(Lead::class, 'merged_into_uuid', 'uuid');
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(Application::class, 'lead_uuid', 'uuid');
     }
 
     // BRD: CRM-DM-002/010 — documents uploaded against any application for this lead

@@ -4,7 +4,7 @@
 **Group:** U
 **Module:** Agent and Channel Partner Management
 **Req IDs:** CRM-AG-001, CRM-AG-002, CRM-AG-003, CRM-AG-004, CRM-AG-005, CRM-AG-007
-**Status:** Pending
+**Status:** ✅ Completed (2026-04-22)
 **Dependencies:** Lead model (Sprint 1 Group A), LC-014 Source field (Sprint 1 Group A), FM enrolment event (Sprint 3 Group O), AG-006 commission approval (Sprint 2 Group L ✅), AG-008 agent comms (Sprint 2 Group L ✅)
 
 ---
@@ -171,14 +171,106 @@ Enable agent and channel partner onboarding, referral-linked lead attribution, a
 
 ## Security Checklist
 
-- [ ] Agent portal uses separate `agent` guard; cannot access CRM staff routes.
-- [ ] Agent can only view leads they submitted (policy on `lead.agent_id`).
-- [ ] Referral code resolution validates institution scope before attributing lead.
-- [ ] Commission accruals are immutable after approval (no backdating or override without audit trail).
-- [ ] Agent profile CRUD restricted to `admissions_manager` and above roles.
+- [x] Agent portal uses separate `agent` guard; cannot access CRM staff routes.
+- [x] Agent can only view leads they submitted (policy on `lead.agent_id`).
+- [x] Referral code resolution validates institution scope before attributing lead.
+- [x] Commission accruals are immutable after approval (no backdating or override without audit trail).
+- [x] Agent profile CRUD restricted to `admissions_manager` and above roles.
 
 ---
 
 ## Implementation Log
 
-*(To be updated as implementation progresses)*
+### Completion Date: April 22, 2026
+
+#### Enums
+- `App\Enums\CRM\Agents\AgentStatus` — Active, Inactive, Suspended
+- `App\Enums\CRM\Agents\CommissionStructureType` — PerEnrolment, PerApplication, PercentageFee
+- `App\Enums\CRM\Agents\CommissionAccrualStatus` — Pending, Approved, Paid, Reversed
+- `App\Enums\CRM\LeadSource::AGENT` — Added `agent` case for referral-attributed leads
+
+#### Migrations (in order)
+1. `2026_06_01_000001_create_agents_table` — Agent profile store with email+password auth columns
+2. `2026_06_01_000002_create_agent_sessions_table` — Portal session cookie auth (mirrors portal_sessions)
+3. `2026_06_01_000003_create_agent_referral_codes_table` — Unique referral codes, institution-prefixed
+4. `2026_06_01_000004_create_agent_commission_structures_table` — Per-agent, per-programme commission configuration
+5. `2026_06_01_000005_create_agent_commission_accruals_table` — Auto-accrued commission records
+6. `2026_06_01_000006_update_leads_agent_id_fk_to_agents` — FK constraint from leads.agent_id → agents.id
+
+#### Models
+- `App\Models\CRM\Agents\Agent` — Profile, password auth, InstitutionScope
+- `App\Models\CRM\Agents\AgentSession` — Portal session token store
+- `App\Models\CRM\Agents\AgentReferralCode` — Referral code with total_leads/conversions counters
+- `App\Models\CRM\Agents\AgentCommissionStructure` — Commission rate configuration with `activeAt()` scope
+- `App\Models\CRM\Agents\AgentCommissionAccrual` — Auto-accrued record; immutable after Approved/Paid
+- `App\Models\CRM\Lead` — Added `agent()` BelongsTo relationship
+
+#### Services
+- `AgentService` — CRUD, deactivate, search
+- `AgentAuthService` — Email+password portal auth, session issue/resolve/logout
+- `AgentReferralService` — Code generation, ?ref= resolution, lead attribution, counter increments
+- `CommissionAccrualService` — Structure lookup, amount calculation (PerEnrolment/PerApplication/PercentageFee), accrual creation
+- `AgentReportService` — Aggregated metrics per agent (leads, conversions, revenue, commission breakdown)
+
+#### Observer + Service Provider
+- `App\Observers\CRM\Agents\EnrolmentCommissionObserver` — Triggers `CommissionAccrualService::accrue()` on ENROLLED transition
+- `App\Providers\CRM\CrmAgentServiceProvider` — Registers observer on Application model, registers AgentPolicy
+- Registered in `bootstrap/providers.php`
+
+#### Middleware
+- `App\Http\Middleware\CRM\AgentPortal\AgentAuthenticate` — Cookie-based agent session auth
+- Registered as alias `agent.portal.auth` in `bootstrap/app.php`
+
+#### Policies
+- `App\Policies\CRM\Agents\AgentPolicy` — Admissions manager + above; institution-scoped
+- `App\Policies\CRM\Agents\AgentPortalPolicy` — Agent portal data scoping
+
+#### Controllers (CRM Admin)
+- `AgentController` — CRUD (index, create, store, edit, update, destroy)
+- `AgentCommissionStructureController` — Nested under Agent; index, create, store, edit, update
+- `AgentReferralController` — show (referral card with copy-to-clipboard link)
+- `AgentReportController` — Performance report with agent + date filters
+
+#### Controllers (Agent Portal)
+- `AgentPortalAuthController` — showLogin, login, logout
+- `AgentPortalDashboardController` — KPI stats via AgentReportService
+- `AgentPortalLeadController` — index (own leads only), create, store
+
+#### API Controllers
+- `AgentApiController` — index, show, store, update (Sanctum)
+- `AgentCommissionApiController` — index (accruals), show
+
+#### Routes
+- CRM admin routes under `/crm/agents` with `crm.agents.view` gate
+- Agent portal routes under `/agent-portal` with `agent.portal.auth` middleware
+- API routes under `/api/v1/crm/agents` with `auth:sanctum`
+
+#### Views (Blade)
+- `crm/agents/index.blade.php` — Paginated agent table with search + status filter
+- `crm/agents/create.blade.php` — Create form with Alpine.js
+- `crm/agents/edit.blade.php` — Edit + deactivate
+- `crm/agents/referral.blade.php` — Referral card with copy-to-clipboard
+- `crm/agents/commission/index.blade.php` — Structure list with type badges
+- `crm/agents/commission/create.blade.php` — Alpine.js type toggle (amount vs percentage)
+- `crm/agents/commission/edit.blade.php`
+- `crm/agents/report.blade.php` — Agent performance report table
+- `resources/views/components/layouts/agent-portal-app.blade.php` — Portal layout component (`<x-layouts.agent-portal-app>`)
+- `agent-portal/login.blade.php` — Email + password + institution code login
+- `agent-portal/dashboard.blade.php` — KPI tiles + recent leads
+- `agent-portal/leads/index.blade.php` — Lead table (own leads only)
+- `agent-portal/leads/create.blade.php` — Lead submission form with DPDP consent
+
+#### Seeder
+- `Database\Seeders\CRM\Agents\AgentRolePermissionSeeder` — 8 agent permissions; assigned to admissions_manager, admissions_director, institution-admin, super-admin, senior-counsellor
+
+#### Tests
+- 3 Unit: `AgentReferralServiceTest`, `CommissionAccrualServiceTest`, `AgentReportServiceTest`
+- 5 Feature: `AgentCrudTest`, `AgentCommissionStructureTest`, `AgentReferralAttributionTest`, `AgentPortalLeadSubmitTest`, `EnrolmentCommissionAccrualTest`
+- Total: 18 test cases — all passing
+
+#### Known Decisions
+- Agent entity is separate from `User` (dedicated `agents` table with own auth)
+- Agent portal auth follows student portal cookie pattern (not Laravel guard/config/auth.php)
+- `LeadSource::AGENT` added to existing enum for referral-attributed leads
+- `agent_commission_accruals` are separate from `agent_commissions` (Sprint 2 approval workflow) — accruals feed into the approval pipeline as pending records
+- Referral code format: `{INST_SHORT}-AG-{4HEX}` ensures global uniqueness across institutions

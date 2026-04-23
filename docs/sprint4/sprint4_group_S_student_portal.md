@@ -4,7 +4,7 @@
 **Group:** S
 **Module:** Student Applicant Portal and Self-Service
 **Req IDs:** CRM-SP-001 to CRM-SP-008
-**Status:** Pending
+**Status:** ✅ Completed (2026-04-21)
 **Dependencies:** AP (Sprint 3 Groups M/N), FM (Sprint 3 Groups O/P), DM (Sprint 3 Groups P/Q), CC-021 Unified Inbox (Sprint 1 Group F), AP-012 Offer Letter PDF (Sprint 3 Group N)
 
 ---
@@ -174,13 +174,13 @@ Deliver a branded, mobile-responsive self-service portal for applicants to track
 
 ## Security Checklist
 
-- [ ] OTP tokens are hashed before storage; never logged in plain text.
-- [ ] Portal session tokens are hashed; short-lived (configurable, default 8h).
-- [ ] Applicant can only download their own documents (policy check on `Application.applicant_id`).
-- [ ] ERP bridge token is single-use and expires in 5 minutes.
-- [ ] DPDP: right-to-access is surfaced from portal (CR-004 from Group W uses same portal infrastructure).
-- [ ] Rate limiting on OTP requests (max 5 per 10 minutes per mobile/email).
-- [ ] Domain-based branding resolution does not allow cross-institution data leakage.
+- [x] OTP tokens are hashed before storage; never logged in plain text.
+- [x] Portal session tokens are hashed; short-lived (configurable, default 8h).
+- [x] Applicant can only download their own documents (policy check on `Application.applicant_id`).
+- [x] ERP bridge token is single-use and expires in 5 minutes.
+- [x] DPDP: right-to-access is surfaced from portal (CR-004 from Group W uses same portal infrastructure).
+- [x] Rate limiting on OTP requests (max 5 per 10 minutes per mobile/email).
+- [x] Domain-based branding resolution does not allow cross-institution data leakage.
 
 ---
 
@@ -421,3 +421,41 @@ Deliver a branded, mobile-responsive self-service portal for applicants to track
 - The `Chat` nav item in `_nav.blade.php` was already declared (`portal.chat.index`); registering the route makes it active automatically (Route::has check in nav template).
 
 **Test Results:** 12 tests in `tests/Feature/CRM/Portal/PortalChatTest.php`
+
+---
+
+### SP-008 — Institutional Branding (Logo, Colours, Domain) ✅
+**Date:** 2026-04-21 | **Status:** Completed
+
+Implemented jointly with SP-001. See SP-001 implementation log above for full details.
+
+- `BrandingMiddleware` resolves institution from domain/subdomain or `?institution={uuid}` dev bypass
+- Branding config (`logo_url`, `primary_colour`, `secondary_colour`, `institution_name`) injected into all portal views via `$branding` view variable
+- Portal layouts (`portal-guest.blade.php`, `portal-app.blade.php`) consume `$branding` for header logo and CSS custom properties
+- `config/crm_portal.php` defines branding defaults
+
+**Test Results:** Covered by 7 tests in `tests/Feature/CRM/Portal/PortalBrandingTest.php`
+
+---
+
+## Group S Completion Summary
+
+**Completed:** 2026-04-21
+**Total tests:** ~90 Pest tests (unit + feature) across all SP items
+**Req IDs closed:** SP-001, SP-002, SP-003, SP-004, SP-005, SP-006, SP-007, SP-008
+
+| Req ID | Title | Tests | Status |
+|--------|-------|-------|--------|
+| SP-001 | Branded mobile-responsive portal | 7 (PortalBrandingTest) | ✅ |
+| SP-002 | OTP authentication (email) | 16 (PortalOtpAuthTest) | ✅ |
+| SP-003 | Dashboard (status, documents, payments, appointments) | 12 (PortalDashboardTest) | ✅ |
+| SP-004 | Applicant chat with counsellor | 12 (PortalChatTest) | ✅ |
+| SP-005 | Downloadable offer letter, admission letter, receipts | 11 (PortalDownloadTest) | ✅ |
+| SP-006 | Multiple simultaneous applications | 11 (PortalMultiApplicationTest) | ✅ |
+| SP-007 | ERP bridge token on enrolment | 21 (ErpBridgeServiceTest + ErpBridgeTest) | ✅ |
+| SP-008 | Institutional branding | covered by SP-001 | ✅ |
+
+**Open items / deferred:**
+- SMS OTP channel deferred to Sprint 5 (channel column retained in DB for future use)
+- Counsellor-side reply from CRM inbox (SP-004 extension) deferred to future sprint
+- ERP bridge consume endpoint (Sprint 5 EI module)

@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\CRM\AadhaarController;
+use App\Http\Controllers\Api\V1\CRM\Agents\AgentApiController;
+use App\Http\Controllers\Api\V1\CRM\Agents\AgentCommissionApiController;
 use App\Http\Controllers\Api\CRM\AgentCommissionController;
 use App\Http\Controllers\Api\CRM\AgentCommsController;
 use App\Http\Controllers\Api\CRM\AlumniBridgeController;
@@ -476,3 +478,19 @@ Route::prefix('v1/crm/webhooks')
         Route::post('ivr/{provider}', IvrWebhookController::class)
             ->name('ivr');
     });
+
+// -----------------------------------------------------------------------
+// Agent API — BRD: CRM-AG-001, AG-005, AG-007
+// -----------------------------------------------------------------------
+Route::prefix('v1/crm/agents')
+    ->middleware('auth:sanctum')
+    ->name('api.v1.agents.')
+    ->group(function (): void {
+        Route::get('/', [AgentApiController::class, 'index'])->name('index');
+        Route::post('/', [AgentApiController::class, 'store'])->name('store');
+        Route::get('/{agent}', [AgentApiController::class, 'show'])->name('show');
+        Route::patch('/{agent}', [AgentApiController::class, 'update'])->name('update');
+        Route::get('/{agent}/accruals', [AgentCommissionApiController::class, 'index'])->name('accruals.index');
+        Route::get('/{agent}/accruals/{accrual}', [AgentCommissionApiController::class, 'show'])->name('accruals.show');
+    });
+
