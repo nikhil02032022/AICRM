@@ -206,6 +206,76 @@ Route::middleware('auth')->group(function (): void {
             Route::get('conversion-rates', [\App\Http\Controllers\CRM\Web\ConversionReportController::class, 'rates'])
                 ->name('conversion-rates')
                 ->middleware('can:crm.analytics.view');
+
+            // BRD: CRM-AR-008 — Drill-down to individual lead records from dashboard metrics
+            Route::get('drill-down/leads', [\App\Http\Controllers\CRM\Analytics\DrillDownController::class, 'leads'])
+                ->name('drill-down.leads')
+                ->middleware('can:crm.analytics.view');
+
+            // BRD: CRM-AR-001 to CRM-AR-006 — Analytics dashboards (Group V)
+            Route::prefix('dashboards')->name('dashboards.')->group(function (): void {
+                Route::get('institution', [\App\Http\Controllers\CRM\Analytics\DashboardController::class, 'institutionDashboard'])
+                    ->name('institution')
+                    ->middleware('can:crm.analytics.institution');
+                Route::get('counsellor', [\App\Http\Controllers\CRM\Analytics\DashboardController::class, 'counsellorDashboard'])
+                    ->name('counsellor')
+                    ->middleware('can:crm.analytics.view');
+                Route::get('marketing', [\App\Http\Controllers\CRM\Analytics\DashboardController::class, 'marketingDashboard'])
+                    ->name('marketing')
+                    ->middleware('can:crm.analytics.marketing');
+                Route::get('funnel', [\App\Http\Controllers\CRM\Analytics\DashboardController::class, 'funnelDashboard'])
+                    ->name('funnel')
+                    ->middleware('can:crm.analytics.view');
+                Route::get('seat-availability', [\App\Http\Controllers\CRM\Analytics\DashboardController::class, 'seatAvailability'])
+                    ->name('seat-availability')
+                    ->middleware('can:crm.analytics.view');
+                Route::get('executive', [\App\Http\Controllers\CRM\Analytics\DashboardController::class, 'executiveDashboard'])
+                    ->name('executive')
+                    ->middleware('can:crm.analytics.executive');
+            });
+
+            // BRD: CRM-AR-009 to CRM-AR-017 — Standard reports
+            Route::prefix('reports')->name('reports.')->group(function (): void {
+                Route::get('enquiry-register', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'enquiryRegister'])
+                    ->name('enquiry-register')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-010
+                Route::get('counsellor-activity', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'counsellorActivity'])
+                    ->name('counsellor-activity')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-011
+                Route::get('application-status', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'applicationStatus'])
+                    ->name('application-status')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-012
+                Route::get('source-effectiveness', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'sourceEffectiveness'])
+                    ->name('source-effectiveness')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-013
+                Route::get('lost-lead-analysis', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'lostLeadAnalysis'])
+                    ->name('lost-lead-analysis')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-014
+                Route::get('fee-collection', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'feeCollection'])
+                    ->name('fee-collection')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-015
+                Route::get('document-compliance', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'documentCompliance'])
+                    ->name('document-compliance')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-016
+                Route::get('year-on-year', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'yearOnYear'])
+                    ->name('year-on-year')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-017
+                Route::get('agent-performance', [\App\Http\Controllers\CRM\Analytics\ReportController::class, 'agentPerformance'])
+                    ->name('agent-performance')
+                    ->middleware('can:crm.reports.view');
+                // BRD: CRM-AR-019 — Export any standard report to Excel or PDF
+                Route::get('{report}/export', [\App\Http\Controllers\CRM\Analytics\ReportExportController::class, 'export'])
+                    ->name('export')
+                    ->middleware('can:crm.reports.export');
+            });
         });
 
         // BRD: CRM-FM-001 to CRM-FM-013 — Fee/payment web routes

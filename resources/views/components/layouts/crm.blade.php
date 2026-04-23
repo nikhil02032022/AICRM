@@ -609,7 +609,7 @@
 
 
                 {{-- ── Analytics — Group K ── --}}
-                @if(auth()->user()->can('crm.analytics.view') || auth()->user()->can('crm.reports.view') || auth()->user()->can('crm.reports.manage'))
+                @if(auth()->user()->can('crm.analytics.view') || auth()->user()->can('crm.analytics.institution') || auth()->user()->can('crm.analytics.executive') || auth()->user()->can('crm.reports.view') || auth()->user()->can('crm.reports.manage'))
                 <div class="my-4 border-t" style="border-color: rgba(99,102,241,0.2)"></div>
                 <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-indigo-500">Analytics</p>
                 @endif
@@ -637,6 +637,202 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
                     </svg>
                     Conversion Rates
+                </a>
+                @endcan
+
+                {{-- Institution Dashboard — BRD: CRM-AR-001 --}}
+                @can('crm.analytics.institution')
+                <a href="{{ route('crm.analytics.dashboards.institution') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.dashboards.institution') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.dashboards.institution') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+                    </svg>
+                    Institution Dashboard
+                </a>
+                @endcan
+
+                {{-- Counsellor Dashboard — BRD: CRM-AR-002 --}}
+                @can('crm.analytics.view')
+                <a href="{{ route('crm.analytics.dashboards.counsellor') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.dashboards.counsellor') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.dashboards.counsellor') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Counsellor Dashboard
+                </a>
+                @endcan
+
+                {{-- Marketing Dashboard — BRD: CRM-AR-003 --}}
+                @can('crm.analytics.marketing')
+                <a href="{{ route('crm.analytics.dashboards.marketing') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.dashboards.marketing') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.dashboards.marketing') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+                    </svg>
+                    Marketing Dashboard
+                </a>
+                @endcan
+
+                {{-- Admissions Funnel — BRD: CRM-AR-004 --}}
+                @can('crm.analytics.view')
+                <a href="{{ route('crm.analytics.dashboards.funnel') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.dashboards.funnel') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.dashboards.funnel') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                    </svg>
+                    Admissions Funnel
+                </a>
+                @endcan
+
+                {{-- Seat Availability — BRD: CRM-AR-005 --}}
+                @can('crm.analytics.view')
+                <a href="{{ route('crm.analytics.dashboards.seat-availability') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.dashboards.seat-availability') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.dashboards.seat-availability') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
+                    </svg>
+                    Seat Availability
+                </a>
+                @endcan
+
+                {{-- Executive Dashboard — BRD: CRM-AR-006 --}}
+                @can('crm.analytics.executive')
+                <a href="{{ route('crm.analytics.dashboards.executive') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.dashboards.executive') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.dashboards.executive') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"/>
+                    </svg>
+                    Executive Dashboard
+                </a>
+                @endcan
+
+                {{-- Enquiry Register — BRD: CRM-AR-009 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.enquiry-register') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.enquiry-register') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.enquiry-register') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/>
+                    </svg>
+                    Enquiry Register
+                </a>
+                @endcan
+
+                {{-- Counsellor Activity — BRD: CRM-AR-010 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.counsellor-activity') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.counsellor-activity') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.counsellor-activity') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                    </svg>
+                    Counsellor Activity
+                </a>
+                @endcan
+
+                {{-- Application Status — BRD: CRM-AR-011 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.application-status') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.application-status') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.application-status') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 0l-.068.073M8.25 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                    </svg>
+                    Application Status
+                </a>
+                @endcan
+
+                {{-- Source Effectiveness — BRD: CRM-AR-012 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.source-effectiveness') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.source-effectiveness') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.source-effectiveness') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5"/>
+                    </svg>
+                    Source Effectiveness
+                </a>
+                @endcan
+
+                {{-- Lost Lead Analysis — BRD: CRM-AR-013 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.lost-lead-analysis') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.lost-lead-analysis') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.lost-lead-analysis') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                    Lost Lead Analysis
+                </a>
+                @endcan
+
+                {{-- Fee Collection — BRD: CRM-AR-014 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.fee-collection') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.fee-collection') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.fee-collection') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Fee Collection
+                </a>
+                @endcan
+
+                {{-- Document Compliance — BRD: CRM-AR-015 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.document-compliance') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.document-compliance') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.document-compliance') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/>
+                    </svg>
+                    Document Compliance
+                </a>
+                @endcan
+
+                {{-- Year-on-Year Comparison — BRD: CRM-AR-016 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.year-on-year') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.year-on-year') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.year-on-year') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5V21h4.5v-7.5M9 8.25V21h4.5V8.25M15 3v18h4.5V3"/>
+                    </svg>
+                    Year-on-Year
+                </a>
+                @endcan
+
+                {{-- Agent Performance — BRD: CRM-AR-017 --}}
+                @can('crm.reports.view')
+                <a href="{{ route('crm.analytics.reports.agent-performance') }}"
+                   aria-current="{{ request()->routeIs('crm.analytics.reports.agent-performance') ? 'page' : 'false' }}"
+                   class="mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150
+                          {{ request()->routeIs('crm.analytics.reports.agent-performance') ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-200 hover:bg-indigo-800/60 hover:text-white' }}">
+                    <svg class="h-4.5 w-4.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/>
+                    </svg>
+                    Agent Performance
                 </a>
                 @endcan
 

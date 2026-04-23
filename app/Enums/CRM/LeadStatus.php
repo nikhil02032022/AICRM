@@ -53,6 +53,23 @@ enum LeadStatus: string
         };
     }
 
+    public function badgeClass(): string
+    {
+        return match ($this) {
+            self::NEW_ENQUIRY           => 'bg-blue-100 text-blue-800',
+            self::CONTACTED             => 'bg-indigo-100 text-indigo-800',
+            self::COUNSELLING_SCHEDULED => 'bg-violet-100 text-violet-800',
+            self::COUNSELLING_DONE      => 'bg-purple-100 text-purple-800',
+            self::APPLICATION_STARTED   => 'bg-amber-100 text-amber-800',
+            self::APPLICATION_SUBMITTED => 'bg-orange-100 text-orange-800',
+            self::OFFER_ISSUED          => 'bg-cyan-100 text-cyan-800',
+            self::FEE_PAID              => 'bg-teal-100 text-teal-800',
+            self::ENROLLED              => 'bg-green-100 text-green-800',
+            self::DEFERRED              => 'bg-yellow-100 text-yellow-800',
+            self::LOST                  => 'bg-red-100 text-red-800',
+        };
+    }
+
     /** Can this status be converted to an ERP Student Master record? */
     public function isConvertible(): bool
     {

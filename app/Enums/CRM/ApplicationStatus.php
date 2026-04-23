@@ -47,6 +47,21 @@ enum ApplicationStatus: string
         };
     }
 
+    public function badgeClass(): string
+    {
+        return match ($this) {
+            self::UNDER_REVIEW   => 'bg-blue-100 text-blue-800',
+            self::SHORTLISTED    => 'bg-cyan-100 text-cyan-800',
+            self::WAITLISTED     => 'bg-yellow-100 text-yellow-800',
+            self::OFFER_ISSUED   => 'bg-purple-100 text-purple-800',
+            self::OFFER_ACCEPTED => 'bg-green-100 text-green-800',
+            self::OFFER_DECLINED => 'bg-orange-100 text-orange-800',
+            self::ENROLLED       => 'bg-emerald-100 text-emerald-800',
+            self::WITHDRAWN      => 'bg-slate-100 text-slate-700',
+            self::REJECTED       => 'bg-red-100 text-red-800',
+        };
+    }
+
     /**
      * Allowed transitions from this status.
      * Returns array of ApplicationStatus cases this status can transition to.

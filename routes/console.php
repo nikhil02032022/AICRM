@@ -11,6 +11,7 @@ use App\Jobs\CRM\Automation\EvaluateEventBasedAutomationTriggersJob;
 use App\Jobs\CRM\Automation\EvaluateInactivityAutomationTriggersJob;
 use App\Jobs\CRM\Automation\EvaluateTimedAutomationTriggersJob;
 use App\Jobs\CRM\SendAppointmentReminderJob;
+use App\Jobs\CRM\Analytics\RefreshDashboardSnapshotJob;
 use App\Jobs\CRM\Tasks\AutoCreateFollowUpTaskJob;
 use App\Jobs\CRM\Tasks\OverdueTaskEscalationJob;
 use App\Services\CRM\Analytics\ReportSchedulerService;
@@ -69,6 +70,12 @@ Schedule::job(new AutoCreateFollowUpTaskJob(), 'crm-default')->dailyAt('06:30');
 
 // BRD: CRM-TF-004 — Hourly overdue task detection and escalation
 Schedule::job(new OverdueTaskEscalationJob(), 'crm-default')->hourly();
+
+// BRD: CRM-AR-001, AR-006 — Refresh dashboard metric snapshots nightly at 02:00 for all institutions
+Schedule::command('crm:analytics:refresh-snapshots')
+    ->dailyAt('02:00')
+    ->name('crm.analytics.refresh-snapshots')
+    ->withoutOverlapping();
 
 // BRD: CRM-AR-020 — Process due scheduled report deliveries every 5 minutes
 Schedule::call(fn () => app(ReportSchedulerService::class)->processDueSchedules())

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use Database\Seeders\CRM\Analytics\AnalyticsRolePermissionSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -20,6 +21,7 @@ class DatabaseSeeder extends Seeder
             CrmDocumentManagementRolePermissionSeeder::class,
             CrmFeeInstallmentRolePermissionSeeder::class,
             PortalDataSeeder::class,
+            AnalyticsRolePermissionSeeder::class, // BRD: CRM-AR-007 — Analytics permissions
         ]);
     }
 }
