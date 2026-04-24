@@ -103,6 +103,7 @@
                                 @endif
                             </button>
                         </th>
+                        <th scope="col" class="w-24 px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">Conv. %</th>
                         <th scope="col" class="w-32 px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">Counsellor</th>
                         <th scope="col" class="w-28 px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500">Last Touch</th>
                         <th scope="col" class="w-24 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-gray-500">Actions</th>
@@ -184,6 +185,29 @@
                                     <span class="badge badge-{{ $lead->temperature->badgeColour() }}">{{ $lead->temperature->label() }}</span>
                                 @endif
                             </div>
+                        </td>
+
+                        {{-- CRM-AI-001: Conversion Probability --}}
+                        <td class="px-4 py-3">
+                            @php $pred = $lead->latestPrediction; @endphp
+                            @if($pred && $pred->prediction_status?->value === 'completed' && $pred->conversion_probability !== null && (float)$pred->confidence_score >= 0.30)
+                                @php
+                                    $pctVal  = (float)$pred->conversion_probability;
+                                    $pctDisp = number_format($pctVal * 100, 1).'%';
+                                    $pctCls  = match(true) {
+                                        $pctVal >= 0.70 => 'bg-green-100 text-green-700',
+                                        $pctVal >= 0.40 => 'bg-amber-100 text-amber-700',
+                                        default         => 'bg-red-100 text-red-700',
+                                    };
+                                @endphp
+                                <span class="inline-flex items-center rounded-md px-2 py-0.5 font-mono text-xs font-bold {{ $pctCls }}">
+                                    {{ $pctDisp }}
+                                </span>
+                            @elseif($pred && in_array($pred->prediction_status?->value, ['pending','processing']))
+                                <span class="text-xs text-gray-400">…</span>
+                            @else
+                                <span class="text-xs text-gray-300">—</span>
+                            @endif
                         </td>
 
                         {{-- Counsellor --}}

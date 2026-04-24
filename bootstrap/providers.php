@@ -21,6 +21,9 @@ use App\Providers\CRM\CrmPaymentServiceProvider;
 use App\Providers\CRM\CrmScholarshipServiceProvider;
 use App\Providers\CRM\CrmScoringServiceProvider;
 use App\Providers\CRM\CrmWebFormServiceProvider;
+use App\Providers\CRM\CrmAdminServiceProvider;
+use App\Providers\CRM\CrmComplianceServiceProvider;
+use App\Providers\CRM\CrmAlumniServiceProvider;
 use App\Providers\HorizonServiceProvider;
 
 return [
@@ -44,4 +47,7 @@ return [
     CrmTaskServiceProvider::class,
     CrmAgentServiceProvider::class,
     CrmAnalyticsServiceProvider::class,
+    CrmAdminServiceProvider::class,
+    CrmComplianceServiceProvider::class,
+    CrmAlumniServiceProvider::class,
 ];

@@ -34,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'portal.branding'   => BrandingMiddleware::class,
             'portal.auth'       => PortalAuthenticate::class,
             'agent.portal.auth' => AgentAuthenticate::class,
+            'data.residency'    => \App\Http\Middleware\CRM\DataResidencyCheck::class,
+            'dlt.sms.check'     => \App\Http\Middleware\CRM\DltTemplateSmsCheck::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

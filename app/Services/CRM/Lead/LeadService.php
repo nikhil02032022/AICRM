@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\CRM\Lead;
 
 use App\DTOs\CRM\CreateLeadDTO;
+use App\Enums\CRM\Compliance\ConsentType;
 use App\Enums\CRM\LeadStatus;
 use App\Enums\CRM\LostReason;
 use App\Events\CRM\LeadCreatedEvent;
@@ -15,6 +16,7 @@ use App\Jobs\CRM\RecalculateLeadScoreJob;
 use App\Models\CRM\Lead;
 use App\Models\User;
 use App\Repositories\CRM\Lead\LeadRepositoryInterface;
+use App\Services\CRM\Compliance\ConsentService;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
@@ -24,6 +26,7 @@ final class LeadService
 {
     public function __construct(
         private readonly LeadRepositoryInterface $repository,
+        private readonly ConsentService $consentService,
     ) {}
 
     /**
@@ -46,6 +49,16 @@ final class LeadService
         // BRD: CRM-LC-011 — Auto-assign to creating counsellor if actor has that role
         if ($actor->hasRole('counsellor') && $lead->assigned_counsellor_id === null) {
             $this->repository->update($lead, ['assigned_counsellor_id' => $actor->id]);
+        }
+
+        // BRD: CRM-CR-001 / CRM-CR-002 — Capture consent record at lead creation
+        if ($dto->consentGiven) {
+            $this->consentService->capture(
+                $lead,
+                ConsentType::MarketingCommunication,
+                request(),
+                $dto->consentFormVersion ?? '1.0',
+            );
         }
 
         // BRD: CRM-CR-002 — No PII in log messages

@@ -65,6 +65,8 @@ use App\Http\Controllers\Web\CRM\UnifiedInboxWebController;
 use App\Http\Controllers\Web\CRM\WebFormWebController;
 use App\Http\Controllers\Web\CRM\WhatsAppBroadcastWebController;
 use App\Http\Controllers\Web\CRM\WhatsAppWebController;
+use App\Http\Controllers\Web\CRM\AiPredictionWebController;
+use App\Http\Controllers\Web\CRM\AiPredictionFeedbackController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -769,6 +771,15 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/leads/{lead:uuid}/ai-score/recalculate', [LeadScoringWebController::class, 'triggerAiRecalculation'])
             ->name('leads.ai-score.recalculate')
             ->middleware('can:crm.leads.edit');
+
+        // BRD: CRM-AI-001 — Conversion probability prediction badge data and async refresh
+        Route::get('/leads/{lead:uuid}/ai-prediction', [AiPredictionWebController::class, 'prediction'])
+            ->name('leads.ai-prediction');
+        Route::post('/leads/{lead:uuid}/ai-prediction/refresh', [AiPredictionWebController::class, 'refresh'])
+            ->name('leads.ai-prediction.refresh');
+        Route::post('/leads/{lead:uuid}/ai-prediction/feedback', [AiPredictionFeedbackController::class, 'store'])
+            ->name('leads.ai-prediction.feedback');
+
         Route::get('/leads/{lead:uuid}/churn-risk', [LeadScoringWebController::class, 'churnRisk'])
             ->name('leads.churn-risk')
             ->middleware('can:crm.leads.view');
@@ -1295,7 +1306,105 @@ Route::middleware('auth')->group(function (): void {
             Route::put('/{agent}/commission-structures/{commissionStructure}', [\App\Http\Controllers\CRM\Agents\AgentCommissionStructureController::class, 'update'])->name('commission-structures.update');
             Route::get('/report', [\App\Http\Controllers\CRM\Agents\AgentReportController::class, 'index'])->name('report');
         });
+
+    // -----------------------------------------------------------------------
+    // Group W — System Administration (CRM-SA-001 to SA-012)
+    // -----------------------------------------------------------------------
+    Route::prefix('admin')->name('admin.')->middleware('can:crm.admin.access')->group(function (): void {
+
+        // SA-001: Institution management
+        Route::get('/institutions', [\App\Http\Controllers\CRM\Admin\InstitutionController::class, 'index'])->name('institutions.index');
+        Route::get('/institutions/{institution}/edit', [\App\Http\Controllers\CRM\Admin\InstitutionController::class, 'edit'])->name('institutions.edit');
+        Route::put('/institutions/{institution}', [\App\Http\Controllers\CRM\Admin\InstitutionController::class, 'update'])->name('institutions.update');
+
+        // SA-002: Campus management
+        Route::get('/campuses', [\App\Http\Controllers\CRM\Admin\CampusController::class, 'index'])->name('campuses.index');
+        Route::get('/campuses/create', [\App\Http\Controllers\CRM\Admin\CampusController::class, 'create'])->name('campuses.create');
+        Route::post('/campuses', [\App\Http\Controllers\CRM\Admin\CampusController::class, 'store'])->name('campuses.store');
+        Route::get('/campuses/{campus}/edit', [\App\Http\Controllers\CRM\Admin\CampusController::class, 'edit'])->name('campuses.edit');
+        Route::put('/campuses/{campus}', [\App\Http\Controllers\CRM\Admin\CampusController::class, 'update'])->name('campuses.update');
+        Route::delete('/campuses/{campus}', [\App\Http\Controllers\CRM\Admin\CampusController::class, 'destroy'])->name('campuses.destroy');
+
+        // SA-003: Academic year management
+        Route::get('/academic-years', [\App\Http\Controllers\CRM\Admin\AcademicYearController::class, 'index'])->name('academic-years.index');
+        Route::get('/academic-years/create', [\App\Http\Controllers\CRM\Admin\AcademicYearController::class, 'create'])->name('academic-years.create');
+        Route::post('/academic-years', [\App\Http\Controllers\CRM\Admin\AcademicYearController::class, 'store'])->name('academic-years.store');
+        Route::get('/academic-years/{academicYear}/edit', [\App\Http\Controllers\CRM\Admin\AcademicYearController::class, 'edit'])->name('academic-years.edit');
+        Route::put('/academic-years/{academicYear}', [\App\Http\Controllers\CRM\Admin\AcademicYearController::class, 'update'])->name('academic-years.update');
+        Route::post('/academic-years/{academicYear}/rollover', [\App\Http\Controllers\CRM\Admin\AcademicYearController::class, 'rollover'])->name('academic-years.rollover');
+        Route::post('/academic-years/{academicYear}/activate', [\App\Http\Controllers\CRM\Admin\AcademicYearController::class, 'activate'])->name('academic-years.activate');
+
+        // SA-004: Audit trail (read-only)
+        Route::get('/audit-logs', [\App\Http\Controllers\CRM\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('/audit-logs/{id}', [\App\Http\Controllers\CRM\Admin\AuditLogController::class, 'show'])->name('audit-logs.show');
+
+        // SA-005: Data import / export
+        Route::get('/data-import', [\App\Http\Controllers\CRM\Admin\DataImportController::class, 'index'])->name('data-import.index');
+        Route::post('/data-import/upload', [\App\Http\Controllers\CRM\Admin\DataImportController::class, 'upload'])->name('data-import.upload')->middleware('data.residency');
+        Route::get('/data-export', [\App\Http\Controllers\CRM\Admin\DataExportController::class, 'index'])->name('data-export.index');
+        Route::post('/data-export/export', [\App\Http\Controllers\CRM\Admin\DataExportController::class, 'export'])->name('data-export.export');
+
+        // SA-006: System configuration
+        Route::get('/system-config', [\App\Http\Controllers\CRM\Admin\SystemConfigController::class, 'index'])->name('system-config.index');
+        Route::post('/system-config', [\App\Http\Controllers\CRM\Admin\SystemConfigController::class, 'update'])->name('system-config.update');
+
+        // SA-009: Notification templates
+        Route::get('/notification-templates', [\App\Http\Controllers\CRM\Admin\NotificationTemplateController::class, 'index'])->name('notification-templates.index');
+        Route::get('/notification-templates/create', [\App\Http\Controllers\CRM\Admin\NotificationTemplateController::class, 'create'])->name('notification-templates.create');
+        Route::post('/notification-templates', [\App\Http\Controllers\CRM\Admin\NotificationTemplateController::class, 'store'])->name('notification-templates.store');
+        Route::get('/notification-templates/{notificationTemplate}/edit', [\App\Http\Controllers\CRM\Admin\NotificationTemplateController::class, 'edit'])->name('notification-templates.edit');
+        Route::put('/notification-templates/{notificationTemplate}', [\App\Http\Controllers\CRM\Admin\NotificationTemplateController::class, 'update'])->name('notification-templates.update');
+        Route::delete('/notification-templates/{notificationTemplate}', [\App\Http\Controllers\CRM\Admin\NotificationTemplateController::class, 'destroy'])->name('notification-templates.destroy');
+        Route::post('/notification-templates/{notificationTemplate}/preview', [\App\Http\Controllers\CRM\Admin\NotificationTemplateController::class, 'preview'])->name('notification-templates.preview');
+
+        // SA-012: Backups
+        Route::get('/backups', [\App\Http\Controllers\CRM\Admin\BackupController::class, 'index'])->name('backups.index');
+        Route::post('/backups/trigger', [\App\Http\Controllers\CRM\Admin\BackupController::class, 'trigger'])->name('backups.trigger');
+        Route::get('/backups/{backupLog}/download', [\App\Http\Controllers\CRM\Admin\BackupController::class, 'download'])->name('backups.download');
     });
+
+    // -----------------------------------------------------------------------
+    // Group W — Compliance (CRM-CR-001 to CR-010)
+    // -----------------------------------------------------------------------
+    Route::prefix('compliance')->name('compliance.')->middleware('can:crm.compliance.access')->group(function (): void {
+
+        // CR-001/002: Consent records (read-only)
+        Route::get('/consent', [\App\Http\Controllers\CRM\Compliance\ConsentController::class, 'index'])->name('consent.index');
+        Route::get('/consent/{id}', [\App\Http\Controllers\CRM\Compliance\ConsentController::class, 'show'])->name('consent.show');
+
+        // CR-003: Opt-out management
+        Route::get('/opt-out', [\App\Http\Controllers\CRM\Compliance\OptOutController::class, 'index'])->name('opt-out.index');
+        Route::post('/opt-out/{optOutLog}/process', [\App\Http\Controllers\CRM\Compliance\OptOutController::class, 'processManual'])->name('opt-out.process');
+
+        // CR-004: Data access requests
+        Route::get('/data-access', [\App\Http\Controllers\CRM\Compliance\DataAccessRequestController::class, 'index'])->name('data-access.index');
+        Route::get('/data-access/{dataAccessRequest}', [\App\Http\Controllers\CRM\Compliance\DataAccessRequestController::class, 'show'])->name('data-access.show');
+        Route::post('/data-access/{dataAccessRequest}/process', [\App\Http\Controllers\CRM\Compliance\DataAccessRequestController::class, 'process'])->name('data-access.process');
+
+        // CR-005: PII erasure
+        Route::get('/erasure', [\App\Http\Controllers\CRM\Compliance\PiiErasureController::class, 'index'])->name('erasure.index');
+        Route::get('/erasure/{piiErasureRequest}', [\App\Http\Controllers\CRM\Compliance\PiiErasureController::class, 'show'])->name('erasure.show');
+        Route::post('/erasure/{leadId}/schedule', [\App\Http\Controllers\CRM\Compliance\PiiErasureController::class, 'schedule'])->name('erasure.schedule');
+
+        // CR-009: Data Processing Agreement
+        Route::get('/dpa', [\App\Http\Controllers\CRM\Compliance\DpaController::class, 'show'])->name('dpa.show');
+
+        // CR-010: Security incidents
+        Route::get('/security-incidents', [\App\Http\Controllers\CRM\Compliance\SecurityIncidentController::class, 'index'])->name('security-incidents.index');
+        Route::get('/security-incidents/create', [\App\Http\Controllers\CRM\Compliance\SecurityIncidentController::class, 'create'])->name('security-incidents.create');
+        Route::post('/security-incidents', [\App\Http\Controllers\CRM\Compliance\SecurityIncidentController::class, 'store'])->name('security-incidents.store');
+        Route::get('/security-incidents/{securityIncident}', [\App\Http\Controllers\CRM\Compliance\SecurityIncidentController::class, 'show'])->name('security-incidents.show');
+        Route::put('/security-incidents/{securityIncident}', [\App\Http\Controllers\CRM\Compliance\SecurityIncidentController::class, 'update'])->name('security-incidents.update');
+    });
+
+    // -----------------------------------------------------------------------
+    // Group W — Alumni Pipeline (CRM-AL-001)
+    // -----------------------------------------------------------------------
+    Route::prefix('alumni')->name('alumni.')->middleware('can:crm.alumni.pipeline.view')->group(function (): void {
+        Route::get('/pipeline', [\App\Http\Controllers\CRM\Alumni\AlumniPipelineController::class, 'index'])->name('pipeline.index');
+    });
+
+    }); // end crm prefix group
 
     Route::post('/logout', function (Request $request) {
         Auth::logout();

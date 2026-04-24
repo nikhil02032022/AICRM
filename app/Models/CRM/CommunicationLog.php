@@ -7,6 +7,7 @@ namespace App\Models\CRM;
 use App\Enums\CRM\CommunicationChannel;
 use App\Enums\CRM\MessageDirection;
 use App\Enums\CRM\MessageStatus;
+use App\Events\CRM\CommunicationLogCreatedEvent;
 use App\Models\CRM\Scopes\InstitutionScope;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,6 +32,9 @@ class CommunicationLog extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new InstitutionScope);
+
+        // BRD: CRM-AI-001 — Trigger conversion prediction refresh on new communication entries
+        static::created(static fn (self $log) => CommunicationLogCreatedEvent::dispatch($log));
     }
 
     /** @var list<string> */

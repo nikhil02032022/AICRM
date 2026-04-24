@@ -82,3 +82,21 @@ Schedule::call(fn () => app(ReportSchedulerService::class)->processDueSchedules(
     ->everyFiveMinutes()
     ->name('crm.report-scheduler.process-due')
     ->withoutOverlapping();
+
+// BRD: CRM-CR-003 — Opt-out must be honoured within 24h; process every 15 min
+Schedule::job(new \App\Jobs\CRM\Compliance\ProcessOptOutJob(), 'crm-compliance')
+    ->everyFifteenMinutes()
+    ->name('crm.compliance.process-opt-out')
+    ->withoutOverlapping();
+
+// BRD: CRM-CR-005 — PII erasure within 30 days; run daily at 02:30
+Schedule::job(new \App\Jobs\CRM\Compliance\ErasePersonalDataJob(), 'crm-compliance')
+    ->dailyAt('02:30')
+    ->name('crm.compliance.erase-personal-data')
+    ->withoutOverlapping();
+
+// BRD: CRM-SA-012 — Daily automated database backup
+Schedule::job(new \App\Jobs\CRM\Admin\DatabaseBackupJob(), 'crm-admin')
+    ->dailyAt('03:00')
+    ->name('crm.admin.database-backup')
+    ->withoutOverlapping();

@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
@@ -254,6 +255,12 @@ class Lead extends Model
     public function aiLeadScores(): HasMany
     {
         return $this->hasMany(AiLeadScore::class, 'lead_id')->latest('calculated_at');
+    }
+
+    // BRD: CRM-AI-001 — Latest conversion probability prediction for display in lead list and detail views.
+    public function latestPrediction(): HasOne
+    {
+        return $this->hasOne(AiLeadScore::class, 'lead_id')->latestOfMany('calculated_at');
     }
 
     // BRD: CRM-LQ-010 — Churn risk snapshots for this lead (latest first).

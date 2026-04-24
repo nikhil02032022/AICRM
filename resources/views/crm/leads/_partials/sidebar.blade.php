@@ -502,4 +502,9 @@
                 </div>
                 @endcan
 
+                {{-- CRM-AI-001 — Conversion Probability Badge --}}
+                @can('ai.prediction.view', $lead)
+                <livewire:crm.lead.conversion-probability-badge :lead-uuid="$lead->uuid" />
+                @endcan
+
             </div>{{-- end LEFT --}}

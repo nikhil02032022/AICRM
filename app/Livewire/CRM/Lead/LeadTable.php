@@ -99,6 +99,7 @@ final class LeadTable extends Component
         ])->with([
             'assignedCounsellor:id,name',
             'programmeInterests:id,name',
+            'latestPrediction:id,lead_id,conversion_probability,confidence_score,prediction_status,calculated_at',
         ]);
 
         if ($this->search !== '') {

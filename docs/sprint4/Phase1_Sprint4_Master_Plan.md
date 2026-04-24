@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint 4 Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0
 **Phase:** 1 - Sprint 4 (TF / SP / AG / AR / SA / CR / AL Delivery)
-**Last Updated:** April 23, 2026 (Groups R, S, U, V completed — all Must Have and Should Have delivered; AR-021 Could Have deferred; Group W pending)
+**Last Updated:** April 23, 2026 (Sprint 4 CLOSED — all groups R, S, U, V, W completed; all Must Have and Should Have delivered; AR-021 Could Have deferred to Sprint 5)
 
 ---
 
@@ -38,7 +38,7 @@ Sprint 4 closes all remaining Must-Have functional modules for Phase 1 v1.0:
 | **S** | Student Applicant Portal and Self-Service | SP-001 to SP-008 | AP, FM, DM (Sprint 3) | ✅ Completed (2026-04-21) |
 | **U** | Agent and Channel Partner Portal | AG-001–AG-005, AG-007 | LC, CC (Sprint 1); AG-006, AG-008 done in Sprint 2 | ✅ Completed (2026-04-22) |
 | **V** | Analytics, Dashboards and Reporting | AR-001 to AR-021 | All prior sprints | ✅ Completed (2026-04-23) — AR-021 Could Have deferred to Sprint 5 |
-| **W** | System Administration, Compliance and Sprint Closure | SA-001–006, SA-008, SA-009, SA-012; CR-001–010; AL-001 | All prior sprints | ⏳ Pending |
+| **W** | System Administration, Compliance and Sprint Closure | SA-001–006, SA-008, SA-009, SA-012; CR-001–010; AL-001 | All prior sprints | ✅ Completed (2026-04-23) |
 
 ---
 
@@ -252,7 +252,7 @@ After each group completion:
 | Student Applicant Portal (SP-001 to SP-008) | S | ✅ Completed | 2026-04-21 |
 | Agent and Channel Partner Portal (AG-001–005, AG-007) | U | ✅ Completed | 2026-04-22 |
 | Analytics, Dashboards and Reporting (AR-001 to AR-021) | V | ✅ Completed | All Must Have (AR-001–017, AR-019) and Should Have (AR-018, AR-020) completed (2026-04-23); AR-021 Could Have deferred to Sprint 5 |
-| System Admin, Compliance, Alumni (SA, CR, AL-001) | W | ⏳ Pending | — |
+| System Admin, Compliance, Alumni (SA, CR, AL-001) | W | ✅ Completed | 2026-04-23 |
 
 ---
 
@@ -304,23 +304,57 @@ After each group completion:
 | CRM-AR-019 | Must Have | V | ✅ Completed (2026-04-23) |
 | CRM-AR-020 | Should Have | V | ✅ Completed (2026-04-23) |
 | CRM-AR-021 | Could Have | V | ⏳ Pending |
-| CRM-SA-001 | Must Have | W | ⏳ Pending |
-| CRM-SA-002 | Must Have | W | ⏳ Pending |
-| CRM-SA-003 | Must Have | W | ⏳ Pending |
-| CRM-SA-004 | Must Have | W | ⏳ Pending |
-| CRM-SA-005 | Must Have | W | ⏳ Pending |
-| CRM-SA-006 | Must Have | W | ⏳ Pending |
-| CRM-SA-008 | Must Have | W | ⏳ Pending |
-| CRM-SA-009 | Must Have | W | ⏳ Pending |
-| CRM-SA-012 | Must Have | W | ⏳ Pending |
-| CRM-CR-001 | Must Have | W | ⏳ Pending |
-| CRM-CR-002 | Must Have | W | ⏳ Pending |
-| CRM-CR-003 | Must Have | W | ⏳ Pending |
-| CRM-CR-004 | Must Have | W | ⏳ Pending |
-| CRM-CR-005 | Must Have | W | ⏳ Pending |
-| CRM-CR-006 | Must Have | W | ⏳ Pending |
-| CRM-CR-007 | Must Have | W | ⏳ Pending |
-| CRM-CR-008 | Must Have | W | ⏳ Pending |
-| CRM-CR-009 | Must Have | W | ⏳ Pending |
-| CRM-CR-010 | Must Have | W | ⏳ Pending |
-| CRM-AL-001 | Must Have | W | ⏳ Pending |
+| CRM-SA-001 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-SA-002 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-SA-003 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-SA-004 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-SA-005 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-SA-006 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-SA-008 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-SA-009 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-SA-012 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-001 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-002 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-003 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-004 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-005 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-006 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-007 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-008 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-009 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-CR-010 | Must Have | W | ✅ Completed (2026-04-23) |
+| CRM-AL-001 | Must Have | W | ✅ Completed (2026-04-23) |
+
+---
+
+## Sprint 4 Closure Remarks — 2026-04-23
+
+**Sprint 4 is CLOSED.** All five groups (R, S, U, V, W) have been implemented end-to-end.
+
+### Group W Delivery Summary
+
+**Phases completed:**
+1. **Migrations** — 9 new tables: `academic_years`, `system_configs`, `notification_templates`, `backup_logs`, `opt_out_logs`, `data_access_requests`, `pii_erasure_requests`, `security_incidents`, `alumni_pipeline`
+2. **Enums** — 9 enums across `Admin/`, `Compliance/`, `Alumni/` namespaces; all implement `label()`, `badgeClass()`, `color()`
+3. **Models** — 9 Eloquent models; Admin models use `InstitutionScope` + `AuditObserver`; Alumni model auto-tracked; Compliance models scoped to institution
+4. **Traits + Observer** — `HasInstitutionScope`, `ObservesAudit`, `HasCampusScope`; `GraduationObserver` fires on `ApplicationStatus::ENROLLED`
+5. **Services** — 14 services: TenancyService, AcademicYearService, SystemConfigService, NotificationTemplateService, DataImportService, DataExportService (Admin); ConsentService, OptOutService, DataAccessService, PiiErasureService, DataResidencyService, DltTemplateValidatorService, BreachNotificationService (Compliance); AlumniPipelineService (Alumni)
+6. **Jobs** — 7 queued jobs across `crm-admin`, `crm-compliance`, `crm-alumni` queues; 3 artisan commands; 3 scheduled entries in `routes/console.php`
+7. **Controllers** — 10 Admin + 6 Compliance + 1 Alumni + 3 Portal controllers; all authorise via Policy
+8. **Policies** — 6 policies covering Institution, Campus, AcademicYear, SystemConfig, AuditLog, Compliance, Alumni
+9. **Middleware** — `data.residency` (enforces India storage in prod/staging) + `dlt.sms.check` (advisory DLT warning); registered as aliases in `bootstrap/app.php`
+10. **Routes** — ~75 routes added to `routes/web.php` under `crm.admin.*`, `crm.compliance.*`, `crm.alumni.*` prefixes
+11. **Views** — 32 Blade views (17 Admin + 15 Compliance/Alumni/Portal); all use responsive table wrapper pattern with `card overflow-hidden` + `overflow-x-auto` + `table-th`/`table-td`
+12. **Sidebar** — System Administration (9 links) + Compliance (6 links) + Alumni (1 link) sections added to `crm.blade.php` layout with `@can` guards
+13. **Seeders** — 4 seeders: SystemAdmin, Compliance, Alumni role-permission seeders + InstitutionSeeder (dev-only); registered in DatabaseSeeder
+14. **Service Providers** — CrmAdminServiceProvider, CrmComplianceServiceProvider, CrmAlumniServiceProvider; registered in `bootstrap/providers.php`
+15. **Consent wiring** — ConsentService integrated into LeadService::create() when `$dto->consentGiven === true`
+16. **Tests** — 13 Pest test files (5 Unit + 8 Feature); ~49 test cases covering all Group W req IDs
+17. **Documentation** — `sprint4_group_W_test_cases.md` (40 test cases), `user-manual-group-W.md` (full role-based manual)
+
+### Deferred to Sprint 5
+- CRM-AR-021 (Could Have) — advanced report scheduling
+- CRM-AL-002, AL-003, AL-004 — extended alumni features
+- Mobile App (MB-001–MB-008)
+- ERP Integration remaining (EI-001–EI-007, EI-009)
+- NFR implementation (performance, scaling, security hardening)
