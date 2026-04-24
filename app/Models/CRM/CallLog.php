@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\CRM;
 
+use App\Enums\CRM\AI\TranscriptionStatus;
 use App\Enums\CRM\CallDirection;
 use App\Enums\CRM\CallDisposition;
 use App\Enums\CRM\CallStatus;
@@ -54,6 +55,12 @@ class CallLog extends Model
         'disposition_notes',
         'call_consent_given',
         'recording_url',
+        'transcript_text',
+        'transcription_summary',
+        'transcription_status',
+        'transcription_model',
+        'transcription_token_count',
+        'transcribed_at',
         'status',
         'initiated_by',
         'called_at',
@@ -69,10 +76,13 @@ class CallLog extends Model
             'direction'           => CallDirection::class,
             'disposition'         => CallDisposition::class,
             'status'              => CallStatus::class,
-            'call_consent_given'  => 'boolean',
-            'called_at'           => 'datetime',
-            'answered_at'         => 'datetime',
-            'ended_at'            => 'datetime',
+            'call_consent_given'        => 'boolean',
+            'transcription_summary'     => 'array',
+            'transcription_status'      => TranscriptionStatus::class,
+            'transcribed_at'            => 'datetime',
+            'called_at'                 => 'datetime',
+            'answered_at'               => 'datetime',
+            'ended_at'                  => 'datetime',
         ];
     }
 

@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('alumni_nps_snapshots', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('institution_id')->constrained('institutions')->cascadeOnDelete();
-            $table->foreignId('academic_year_id')->constrained('academic_years')->cascadeOnDelete();
+            $table->unsignedBigInteger('academic_year_id');
+            // Note: DB-level FK to academic_years is deferred; table ordering prevents it here
             $table->unsignedBigInteger('programme_id')->nullable();
             $table->foreign('programme_id')->references('id')->on('crm_programmes')->nullOnDelete();
             $table->smallInteger('nps_score'); // promoters_pct - detractors_pct (-100 to +100)

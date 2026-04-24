@@ -16,10 +16,7 @@ return new class extends Migration
             $table->string('referral_code', 8)->nullable()->after('referred_by_alumni_id');
             $table->unsignedBigInteger('referral_campaign_id')->nullable()->after('referral_code');
 
-            $table->foreign('referred_by_alumni_id')
-                ->references('id')
-                ->on('alumni_pipeline')
-                ->nullOnDelete();
+            // Note: DB-level FK to alumni_pipeline is deferred; table ordering prevents it here
 
             $table->foreign('referral_campaign_id')
                 ->references('id')
@@ -33,7 +30,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('leads', function (Blueprint $table): void {
-            $table->dropForeign(['referred_by_alumni_id']);
             $table->dropForeign(['referral_campaign_id']);
             $table->dropIndex(['referred_by_alumni_id']);
             $table->dropColumn(['referred_by_alumni_id', 'referral_code', 'referral_campaign_id']);

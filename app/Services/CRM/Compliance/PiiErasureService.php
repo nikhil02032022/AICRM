@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\CRM\Compliance;
 
 use App\Enums\CRM\Compliance\PiiErasureStatus;
+use App\Models\CRM\CallLog;
 use App\Models\CRM\Compliance\PiiErasureRequest;
 use App\Models\CRM\Lead;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,14 @@ class PiiErasureService
 
             // Call existing anonymisePII method on Lead model (DPDP compliance)
             $lead->anonymisePII();
+
+            // BRD: CRM-AI-007, DPDP — Clear transcription personal data from call logs on erasure
+            CallLog::withoutGlobalScopes()
+                ->where('lead_id', $request->lead_id)
+                ->update([
+                    'transcript_text'       => null,
+                    'transcription_summary' => null,
+                ]);
 
             $request->update([
                 'erased_at'     => now(),

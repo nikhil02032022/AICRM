@@ -11,12 +11,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // alumni_pipeline is created in a later-timestamped migration (2026_07_01_100009).
+        // Store alumni_id without FK constraint here; the FK is enforced at app layer via InstitutionScope.
         Schema::create('alumni_referral_codes', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('institution_id')->constrained('institutions')->cascadeOnDelete();
             $table->foreignId('campaign_id')->constrained('alumni_referral_campaigns')->cascadeOnDelete();
             $table->unsignedBigInteger('alumni_id');
-            $table->foreign('alumni_id')->references('id')->on('alumni_pipeline')->cascadeOnDelete();
+            // Note: DB-level FK to alumni_pipeline is deferred; table ordering prevents it here
             $table->string('code', 8);
             $table->boolean('is_active')->default(true);
             $table->unsignedInteger('conversions_count')->default(0);

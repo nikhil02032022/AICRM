@@ -9,6 +9,8 @@
                 { id: 'business_hours',label: 'Business Hours' },
                 { id: 'locale',        label: 'Locale' },
                 { id: 'notifications', label: 'Notifications' },
+                { id: 'api_tokens',    label: 'API Tokens' },
+                { id: 'ip_whitelist',  label: 'IP Whitelist' },
             ]
         }"
     >
@@ -266,6 +268,74 @@
                     </div>
                 </div>
             </form>
+        </div>
+
+        {{-- ── API TOKENS ── --}}
+        <div x-show="activeTab === 'api_tokens'" x-cloak>
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-semibold text-gray-800 border-b border-gray-100 pb-3">Analytics API Tokens</h2>
+                <p class="text-sm text-gray-600">
+                    Issue institution-scoped Bearer tokens for Power BI, Tableau, or any BI tool. Tokens carry the
+                    <code class="text-xs bg-gray-100 rounded px-1">analytics:read</code> scope and are rate-limited
+                    to 60 requests per minute. Aggregate data only — no personal information is returned.
+                </p>
+                <div class="flex gap-3">
+                    <a href="{{ route('crm.admin.api-tokens.index') }}" class="btn-primary">
+                        Manage API Tokens
+                    </a>
+                </div>
+                <div class="mt-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-xs text-blue-700 space-y-1">
+                    <p class="font-semibold">Available endpoints</p>
+                    <p>Base URL: <code class="bg-white rounded px-1">{{ url('/api/v1/crm/analytics') }}</code></p>
+                    <p><code class="bg-white rounded px-1">GET /leads</code> — Lead funnel metrics by stage and source</p>
+                    <p><code class="bg-white rounded px-1">GET /pipeline</code> — Application counts by programme</p>
+                    <p><code class="bg-white rounded px-1">GET /fees</code> — Fee collection summary</p>
+                    <p><code class="bg-white rounded px-1">GET /counsellors</code> — Counsellor performance metrics</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── IP WHITELIST (NFR-SE-005) ── --}}
+        <div x-show="activeTab === 'ip_whitelist'" x-cloak>
+            <div class="card p-6 space-y-5">
+                <div>
+                    <h2 class="text-base font-semibold text-gray-900">Admin IP Whitelist</h2>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Restrict admin panel access to specific IP addresses. Leave blank to allow access from any IP.
+                        Add one IP address per line.
+                    </p>
+                </div>
+
+                <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <strong>Warning:</strong> Ensure your own IP address is listed before saving, or you will be locked out.
+                    Use <code class="bg-white rounded px-1">php artisan crm:admin:clear-ip-whitelist</code> for emergency recovery.
+                </div>
+
+                <form method="POST" action="{{ route('crm.admin.system-config.update') }}">
+                    @csrf
+                    @method('PUT')
+                    <div class="form-group">
+                        <label for="admin_ip_whitelist" class="form-label">Allowed IP Addresses</label>
+                        <textarea
+                            id="admin_ip_whitelist"
+                            name="admin_ip_whitelist"
+                            rows="8"
+                            class="form-input font-mono text-sm"
+                            placeholder="192.168.1.1&#10;10.0.0.1&#10;203.0.113.42"
+                        >{{ old('admin_ip_whitelist', $config['admin_ip_whitelist'] ?? '') }}</textarea>
+                        <p class="mt-1 text-xs text-gray-500">One IP address per line.</p>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="btn-primary">Save IP Whitelist</button>
+                    </div>
+                </form>
+
+                @if(!empty($config['admin_ip_whitelist']))
+                    <p class="text-sm font-medium text-green-700">IP whitelist is <strong>active</strong>. Admin access is restricted.</p>
+                @else
+                    <p class="text-sm text-gray-500">IP whitelist is <strong>inactive</strong>. Admin panel is accessible from any IP.</p>
+                @endif
+            </div>
         </div>
 
     </div>

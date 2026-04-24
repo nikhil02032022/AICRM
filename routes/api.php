@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\CRM\DiallerController;
 use App\Http\Controllers\Api\CRM\ApplicationFormDraftController;
 use App\Http\Controllers\Api\CRM\ApplicationFormTemplateController;
 use App\Http\Controllers\Api\CRM\ApplicationPipelineController;
+use App\Http\Controllers\CRM\Api\AnalyticsApiController;
 use App\Http\Controllers\CRM\Api\ErpConversionController;
 use App\Http\Controllers\CRM\Api\OfferLetterController;
 use App\Http\Controllers\Api\CRM\LeadController;
@@ -496,5 +497,19 @@ Route::prefix('v1/crm/agents')
         Route::patch('/{agent}', [AgentApiController::class, 'update'])->name('update');
         Route::get('/{agent}/accruals', [AgentCommissionApiController::class, 'index'])->name('accruals.index');
         Route::get('/{agent}/accruals/{accrual}', [AgentCommissionApiController::class, 'show'])->name('accruals.show');
+    });
+
+// -----------------------------------------------------------------------
+// Analytics API — BRD: CRM-AR-021 — Power BI / Tableau integration
+// Rate-limited to 60 req/min per token; ability gate inside controller.
+// -----------------------------------------------------------------------
+Route::prefix('v1/crm/analytics')
+    ->middleware(['auth:sanctum', 'throttle:60,1'])
+    ->name('api.v1.crm.analytics.')
+    ->group(function (): void {
+        Route::get('leads',       [AnalyticsApiController::class, 'leads'])->name('leads');
+        Route::get('pipeline',    [AnalyticsApiController::class, 'pipeline'])->name('pipeline');
+        Route::get('fees',        [AnalyticsApiController::class, 'feeCollection'])->name('fees');
+        Route::get('counsellors', [AnalyticsApiController::class, 'counsellorPerformance'])->name('counsellors');
     });
 

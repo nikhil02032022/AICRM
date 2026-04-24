@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\CRM\EscalateUnactionedLeadsJob;
+use App\Jobs\CRM\System\AlertFailedJobsJob;
 use App\Jobs\CRM\GenerateEnrolmentForecastJob;
 use App\Jobs\CRM\GenerateDailyPriorityLeadListJob;
 use App\Jobs\CRM\GenerateNbaJourneyJob;
@@ -99,4 +100,10 @@ Schedule::job(new \App\Jobs\CRM\Compliance\ErasePersonalDataJob(), 'crm-complian
 Schedule::job(new \App\Jobs\CRM\Admin\DatabaseBackupJob(), 'crm-admin')
     ->dailyAt('03:00')
     ->name('crm.admin.database-backup')
+    ->withoutOverlapping();
+
+// NFR-AV-002 — Daily check for failed jobs; alerts admins when count exceeds threshold
+Schedule::job(AlertFailedJobsJob::class, 'crm-default')
+    ->dailyAt('08:00')
+    ->name('crm.system.alert-failed-jobs')
     ->withoutOverlapping();

@@ -32,11 +32,16 @@ class User extends Authenticatable
         'is_active',
         'mfa_enabled',
         'mfa_verified_at',
+        'google2fa_secret',
+        'mfa_enabled_at',
+        'mfa_recovery_codes',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'google2fa_secret',
+        'mfa_recovery_codes',
     ];
 
     protected function casts(): array
@@ -44,9 +49,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'mfa_verified_at' => 'datetime',
+            'mfa_enabled_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'mfa_enabled' => 'boolean',
+            'google2fa_secret' => 'encrypted',
+            'mfa_recovery_codes' => 'encrypted:array',
         ];
     }
 

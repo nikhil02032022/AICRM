@@ -33,13 +33,14 @@ final class SystemConfigController extends Controller
         $institutionId = $request->user()->institution_id;
 
         $settingsMap = [
-            'timezone'       => 'string',
-            'locale'         => 'string',
-            'business_hours' => 'json',
-            'date_format'    => 'string',
-            'currency'       => 'string',
-            'logo_path'      => 'string',
-            'primary_colour' => 'string',
+            'timezone'          => 'string',
+            'locale'            => 'string',
+            'business_hours'    => 'json',
+            'date_format'       => 'string',
+            'currency'          => 'string',
+            'logo_path'         => 'string',
+            'primary_colour'    => 'string',
+            'admin_ip_whitelist' => 'string',
         ];
 
         foreach ($settingsMap as $key => $type) {

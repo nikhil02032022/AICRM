@@ -20,6 +20,7 @@ use App\Http\Controllers\Web\CRM\ReportSchedulerWebController;
 use App\Http\Controllers\Web\CRM\SystemHealthWebController;
 use App\Http\Controllers\Web\CRM\WorkflowTemplateWebController;
 use App\Http\Controllers\Web\CRM\CallLogWebController;
+use App\Http\Controllers\Web\CRM\CallTranscriptionController;
 use App\Http\Controllers\Web\CRM\CallDispositionWebController;
 use App\Http\Controllers\Web\CRM\CallMonitorWebController;
 use App\Http\Controllers\Web\CRM\CallScriptWebController;
@@ -70,6 +71,11 @@ use App\Http\Controllers\Web\CRM\AiPredictionFeedbackController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+// -----------------------------------------------------------------------
+// NFR-AV-001 — Health check endpoint (public, no auth, for load balancer probes)
+// -----------------------------------------------------------------------
+Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health');
 
 // -----------------------------------------------------------------------
 // Public routes (no auth — web enquiry forms)
@@ -184,8 +190,17 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
 
+    // NFR-SE-003 — MFA setup and verification routes (exempt from RequireMfa middleware itself)
+    Route::prefix('crm/mfa')->name('crm.mfa.')->middleware('throttle:5,1')->group(function (): void {
+        Route::get('/setup', [\App\Http\Controllers\CRM\Auth\MfaController::class, 'setup'])->name('setup');
+        Route::post('/enable', [\App\Http\Controllers\CRM\Auth\MfaController::class, 'enable'])->name('enable');
+        Route::get('/verify', [\App\Http\Controllers\CRM\Auth\MfaController::class, 'showVerify'])->name('show-verify');
+        Route::post('/verify', [\App\Http\Controllers\CRM\Auth\MfaController::class, 'verify'])->name('verify');
+        Route::delete('/disable/{user}', [\App\Http\Controllers\CRM\Auth\MfaController::class, 'disable'])->name('disable');
+    });
+
     // BRD: CRM-LC-011 — Lead management web views
-    Route::prefix('crm')->name('crm.')->group(function (): void {
+    Route::prefix('crm')->name('crm.')->middleware('mfa')->group(function (): void {
         Route::get('/leads', [LeadWebController::class, 'index'])
             ->name('leads.index')
             ->middleware('can:crm.leads.view');
@@ -998,6 +1013,13 @@ Route::middleware('auth')->group(function (): void {
                 Route::get('calls/{callLog:uuid}/recording', [CallLogWebController::class, 'playRecording'])
                     ->name('calls.recording')
                     ->middleware('can:crm.communication.send');
+                // BRD: CRM-AI-007 — Call log detail view and transcription retry
+                Route::get('calls/{callLog:uuid}', [CallLogWebController::class, 'show'])
+                    ->name('calls.show')
+                    ->middleware('can:crm.communication.send');
+                Route::post('calls/{callLog:uuid}/transcription/retry', [CallTranscriptionController::class, 'retry'])
+                    ->name('calls.transcription.retry')
+                    ->middleware('can:crm.communication.send');
                 Route::post('leads/{lead:uuid}/call', [CallLogWebController::class, 'initiateCall'])
                     ->name('leads.call')
                     ->middleware('can:crm.communication.send');
@@ -1314,7 +1336,7 @@ Route::middleware('auth')->group(function (): void {
     // -----------------------------------------------------------------------
     // Group W — System Administration (CRM-SA-001 to SA-012)
     // -----------------------------------------------------------------------
-    Route::prefix('admin')->name('admin.')->middleware('can:crm.admin.access')->group(function (): void {
+    Route::prefix('admin')->name('admin.')->middleware(['can:crm.admin.access', 'admin.ip'])->group(function (): void {
 
         // SA-001: Institution management
         Route::get('/institutions', [\App\Http\Controllers\CRM\Admin\InstitutionController::class, 'index'])->name('institutions.index');
@@ -1351,6 +1373,13 @@ Route::middleware('auth')->group(function (): void {
         // SA-006: System configuration
         Route::get('/system-config', [\App\Http\Controllers\CRM\Admin\SystemConfigController::class, 'index'])->name('system-config.index');
         Route::post('/system-config', [\App\Http\Controllers\CRM\Admin\SystemConfigController::class, 'update'])->name('system-config.update');
+
+        // AR-021: API token management for BI tools (Power BI, Tableau)
+        Route::prefix('api-tokens')->name('api-tokens.')->group(function (): void {
+            Route::get('/', [\App\Http\Controllers\CRM\Admin\ApiTokenController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\CRM\Admin\ApiTokenController::class, 'store'])->name('store');
+            Route::delete('/{token}', [\App\Http\Controllers\CRM\Admin\ApiTokenController::class, 'destroy'])->name('destroy');
+        });
 
         // SA-009: Notification templates
         Route::get('/notification-templates', [\App\Http\Controllers\CRM\Admin\NotificationTemplateController::class, 'index'])->name('notification-templates.index');

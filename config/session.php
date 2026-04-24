@@ -171,7 +171,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // NFR-SE-005: Defaults to true in production; override with SESSION_SECURE_COOKIE=false in dev
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -201,7 +202,8 @@ return [
     |
     */
 
-    'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    // NFR-SE-005: 'strict' prevents session cookie from being sent on cross-site requests
+    'same_site' => env('SESSION_SAME_SITE', 'strict'),
 
     /*
     |--------------------------------------------------------------------------

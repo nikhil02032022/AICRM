@@ -1,0 +1,57 @@
+A2A CRM — Test Baseline
+Sprint 5 Group AC — NFR Production Hardening
+Generated: 2026-04-24
+
+Note: No coverage driver (Xdebug/PCOV) installed in this environment.
+The following is a test results baseline for Group AC tests.
+
+=== Group AC Tests (30/30 passing) ===
+
+Unit\CRM\Security\MfaServiceTest (8 tests)
+  ✓ enableMfa returns qr_url, secret, and 8 recovery codes
+  ✓ enableMfa stores encrypted secret on user model
+  ✓ verifyTotp returns true for valid TOTP code
+  ✓ verifyTotp returns false for invalid TOTP code
+  ✓ activateMfa sets mfa_enabled true and mfa_enabled_at timestamp
+  ✓ disableMfa clears all MFA fields and sets mfa_enabled false
+  ✓ verifyRecoveryCode accepts a valid recovery code and removes it
+  ✓ verifyRecoveryCode rejects invalid code
+
+Unit\CRM\System\HealthCheckServiceTest (3 tests)
+  ✓ check returns ok status when all services are healthy
+  ✓ check returns expected structure with latency_ms for database
+  ✓ check includes pending_jobs and failed_jobs in queue check
+
+Feature\CRM\Security\AdminIpWhitelistTest (5 tests)
+  ✓ admin route passes when IP whitelist is empty
+  ✓ admin route is blocked with 403 for IP not in whitelist
+  ✓ admin route is allowed when request IP is in whitelist
+  ✓ GET /health bypasses IP whitelist and returns 200
+  ✓ crm:admin:clear-ip-whitelist command clears whitelist for given institution
+
+Feature\CRM\Security\MfaSetupFlowTest (8 tests)
+  ✓ admin without MFA is redirected to setup on accessing protected route
+  ✓ counsellor without MFA is not redirected to MFA setup
+  ✓ GET /crm/mfa/setup returns 200 for admin
+  ✓ admin can enable MFA with valid TOTP code
+  ✓ MFA enable rejects invalid TOTP code
+  ✓ admin with MFA enabled is redirected to verify when session flag is not set
+  ✓ POST /crm/mfa/verify sets session flag and redirects with valid code
+  ✓ MFA verify rejects invalid code
+
+Feature\CRM\System\HealthEndpointTest (4 tests)
+  ✓ GET /health returns 200 JSON with status ok when all services healthy
+  ✓ GET /health does not expose sensitive internal information
+  ✓ GET /health returns 503 when database is unavailable
+  ✓ GET /health is accessible without authentication
+
+Feature\CRM\Performance\DashboardCacheTest (2 tests)
+  ✓ institution dashboard KPIs are served from cache on second request
+  ✓ dashboard cache key includes institution ID for tenant isolation
+
+Total: 30 passed (84 assertions) — Duration: ~30s
+
+=== Coverage Target ===
+Target: ≥60% (≥70% preferred)
+Driver: Not available (requires Xdebug or PCOV)
+To generate: Install Xdebug then run: php artisan test --coverage --min=60

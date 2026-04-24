@@ -7,6 +7,71 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## A2A Educational CRM
+
+Multi-tenant CRM for educational institutions built on Laravel 13. Covers lead management, application pipeline, counselling, alumni, analytics, and AI-assisted workflows.
+
+### Required Environment Variables
+
+```env
+APP_KEY=base64:...
+APP_ENV=production
+DB_CONNECTION=mysql
+DB_DATABASE=a2a_crm
+DB_USERNAME=...
+DB_PASSWORD=...
+REDIS_HOST=127.0.0.1
+QUEUE_CONNECTION=redis
+CACHE_STORE=redis
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=strict
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### Deployment Checklist
+
+```bash
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan db:seed --class=PermissionSeeder --force
+php artisan db:seed --class=Database\\Seeders\\CRM\\Compliance\\ComplianceRolePermissionSeeder --force
+npm run build
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan horizon:terminate   # then restart Horizon via supervisor
+```
+
+### Queue Workers (Laravel Horizon)
+
+Start Horizon to process queued jobs (AI transcription, email campaigns, notifications):
+
+```bash
+php artisan horizon
+```
+
+Horizon dashboard is available at `/horizon` (requires super-admin role). Supervisor configuration is in `config/horizon.php` with 11 queue supervisors tuned per workload.
+
+### API Documentation
+
+Interactive API docs (Scribe) are available at `/docs` after running:
+
+```bash
+php artisan scribe:generate
+```
+
+OpenAPI spec and Postman collection are in `storage/app/private/scribe/`.
+
+### Health Endpoint
+
+`GET /health` — returns JSON with database/Redis/queue status. Returns `200 ok` or `503 degraded`. No authentication required (for load balancer probes).
+
+### MFA
+
+Admins (`institution-admin`, `admissions_manager`, `super-admin`) are required to set up TOTP MFA on first login. Use `DELETE /crm/mfa/disable/{user}` to disable MFA for a user (requires super-admin authorization). Emergency IP whitelist reset: `php artisan crm:admin:clear-ip-whitelist --institution={id}`.
+
+---
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

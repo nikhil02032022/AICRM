@@ -162,26 +162,43 @@ Expose CRM analytics data through authenticated REST API endpoints that can be c
 
 ## Implementation Log
 
-**Status:** Pending — implementation not yet started.
+**Status:** ✅ Completed — 2026-04-24
 
-### Planned Phases
+### Phases Completed
 
-**Phase A — Migration and Sanctum setup**
-- Add institution_id to personal_access_tokens
+**Phase A — Migration** ✅
+- `database/migrations/2026_05_03_100001_add_institution_id_to_personal_access_tokens.php`
+- Adds `institution_id` (unsignedBigInteger, nullable, indexed, FK) to `personal_access_tokens`
 
-**Phase B — Service**
-- AnalyticsApiService delegating to existing Sprint 4 analytics services
+**Phase B — Service** ✅
+- `app/Services/CRM/Analytics/AnalyticsApiService.php`
+- Delegates to FunnelAnalyticsService, InstitutionDashboardService, CounsellorDashboardService, ReportService
+- PII stripping enforced at service boundary
 
-**Phase C — HTTP Layer**
-- AnalyticsApiController, ApiTokenController, routes, middleware
+**Phase C — HTTP Layer** ✅
+- `app/Http/Controllers/CRM/Api/AnalyticsApiController.php` — 4 endpoints (leads, pipeline, fees, counsellors)
+- `app/Http/Controllers/CRM/Admin/ApiTokenController.php` — index, store, destroy
+- `routes/api.php` — analytics route group under `v1/crm/analytics/` with `auth:sanctum` + `throttle:60,1`
+- `routes/web.php` — admin api-tokens routes
 
-**Phase D — Views**
-- Token management UI card in system-config admin view
+**Phase D — Views** ✅
+- `resources/views/crm/admin/api-tokens/index.blade.php` — full token management UI
+- `resources/views/crm/admin/system-config/index.blade.php` — added API Tokens tab
 
-**Phase E — Documentation**
-- OpenAPI 3.0 spec file
+**Phase E — Policy and Permissions** ✅
+- `app/Policies/CRM/Admin/ApiTokenPolicy.php`
+- `database/seeders/CRM/Admin/ApiTokenPermissionSeeder.php`
+- `app/Providers/AppServiceProvider.php` — policy registered
+- `database/seeders/PermissionSeeder.php` — `api_token.manage` added
 
-**Phase F — Tests**
-- Unit and Feature test files
+**Phase F — OpenAPI Spec** ✅
+- `docs/api/analytics-api.yaml` — full OpenAPI 3.0 spec with 4 paths, all schemas, error responses
 
-**Estimated test count:** 14 test cases
+**Phase G — Tests** ✅
+- `tests/Unit/CRM/Analytics/AnalyticsApiServiceTest.php` — delegation and PII stripping
+- `tests/Feature/CRM/Analytics/AnalyticsApiAuthTest.php` — auth, ability gate, institution isolation
+- `tests/Feature/CRM/Analytics/AnalyticsApiLeadsTest.php` — leads endpoint contract
+- `tests/Feature/CRM/Analytics/AnalyticsApiPipelineTest.php` — pipeline/fees/counsellors contracts
+- `tests/Feature/CRM/Analytics/ApiTokenManagementTest.php` — token CRUD and RBAC
+
+**Actual test count:** 28 test cases across 5 files

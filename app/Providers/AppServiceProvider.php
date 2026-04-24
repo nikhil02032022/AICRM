@@ -71,9 +71,16 @@ use App\Listeners\CRM\LogErpMatchActivity;
 use App\Listeners\CRM\LogMergeActivity;
 use App\Listeners\CRM\TriggerScoringWorkflowListener;
 use App\Listeners\CRM\TriggerStatusWorkflowListener;
+use App\Models\CRM\CallLog;
+use App\Models\User;
+use App\Policies\CRM\Admin\ApiTokenPolicy;
+use App\Policies\CRM\Auth\MfaPolicy;
+use App\Policies\CRM\Communication\CallTranscriptionPolicy;
 use App\Services\CRM\TenantManager;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -85,6 +92,15 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // BRD: CRM-AI-007 — Policy for AI call transcription retry and view
+        Gate::policy(CallLog::class, CallTranscriptionPolicy::class);
+
+        // BRD: CRM-AR-021 — Policy for API token management (admin-only)
+        Gate::policy(PersonalAccessToken::class, ApiTokenPolicy::class);
+
+        // NFR-SE-003 — Policy for MFA management (admin can disable MFA for users)
+        Gate::policy(User::class, MfaPolicy::class);
+
         // BRD: CRM-LC-003, CRM-LC-004, CRM-LC-008 — Trigger dedup after every digital channel import
         Event::listen(DigitalLeadImportedEvent::class, TriggerDuplicateDetectionOnImport::class);
 

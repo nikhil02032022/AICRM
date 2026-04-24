@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenancy'           => EnsureInstitutionTenancy::class,
             'mfa'               => RequireMfa::class,
+            'admin.ip'          => \App\Http\Middleware\CRM\AdminIpWhitelist::class,
             'portal.branding'   => BrandingMiddleware::class,
             'portal.auth'       => PortalAuthenticate::class,
             'agent.portal.auth' => AgentAuthenticate::class,

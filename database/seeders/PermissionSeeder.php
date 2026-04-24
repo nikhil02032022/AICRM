@@ -118,6 +118,21 @@ class PermissionSeeder extends Seeder
             'alumni.referral.view',   // view referral campaigns and codes
             'alumni.referral.manage', // create/edit campaigns, generate/share codes
             'alumni.nps.manage',      // enter and view NPS snapshots
+            // Group AB — Analytics API for BI Tools (BRD: CRM-AR-021)
+            'api_token.manage',       // issue and revoke institution-scoped API tokens
+            // Group AC — Compliance (BRD: CRM-CR-007 to CRM-CR-010)
+            'crm.compliance.access',
+            'crm.compliance.consent.view',
+            'crm.compliance.opt-out.view',
+            'crm.compliance.opt-out.process',
+            'crm.compliance.data-access.view',
+            'crm.compliance.data-access.process',
+            'crm.compliance.erasure.view',
+            'crm.compliance.erasure.schedule',
+            'crm.compliance.incidents.view',
+            'crm.compliance.incidents.create',
+            'crm.compliance.incidents.update',
+            'crm.compliance.dpa.download',
         ];
     }
 

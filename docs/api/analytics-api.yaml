@@ -1,0 +1,438 @@
+openapi: 3.0.3
+info:
+  title: A2A-CRM Analytics API
+  description: |
+    Institution-scoped analytics endpoints for Power BI, Tableau, and other BI tools.
+
+    **Authentication:** Bearer token (Laravel Sanctum). Issue tokens from
+    Admin → System Config → API Tokens. Tokens carry the `analytics:read` ability
+    and are bound to a single institution.
+
+    **Rate limit:** 60 requests per minute per token (HTTP 429 when exceeded).
+
+    **Data policy:** All responses are aggregate only — no personally identifiable
+    information (name, email, phone) is returned (DPDP Act 2023 compliance).
+
+    **Date range:** All endpoints accept optional `from_date` and `to_date` query
+    parameters (YYYY-MM-DD). Defaults to current active academic year start → today.
+  version: "1.0.0"
+  contact:
+    name: MEETCS Dev Team
+    email: dev@meetcs.in
+  license:
+    name: Internal / Confidential
+
+servers:
+  - url: https://{instance}.a2acrm.in/api/v1/crm
+    description: Production instance
+    variables:
+      instance:
+        default: demo
+        description: Institution subdomain
+  - url: http://localhost/api/v1/crm
+    description: Local development
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Analytics
+    description: Aggregate analytics endpoints for external BI consumers
+
+paths:
+  /analytics/leads:
+    get:
+      tags: [Analytics]
+      operationId: getLeadFunnelMetrics
+      summary: Lead funnel metrics
+      description: |
+        Returns stage-wise lead counts with conversion and drop-off rates,
+        plus a per-source breakdown of leads, applications, and enrolments.
+      parameters:
+        - $ref: '#/components/parameters/from_date'
+        - $ref: '#/components/parameters/to_date'
+      responses:
+        '200':
+          description: Lead funnel metrics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AnalyticsEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          stages:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/LeadFunnelStage'
+                          by_source:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/LeadBySource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /analytics/pipeline:
+    get:
+      tags: [Analytics]
+      operationId: getPipelineMetrics
+      summary: Application pipeline by programme
+      description: Returns application counts grouped by programme with offer and enrolment breakdowns.
+      parameters:
+        - $ref: '#/components/parameters/from_date'
+        - $ref: '#/components/parameters/to_date'
+      responses:
+        '200':
+          description: Pipeline metrics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AnalyticsEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PipelineItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /analytics/fees:
+    get:
+      tags: [Analytics]
+      operationId: getFeeCollectionMetrics
+      summary: Fee collection summary
+      description: Returns aggregate fee collected, pending, and refunded amounts for the period.
+      parameters:
+        - $ref: '#/components/parameters/from_date'
+        - $ref: '#/components/parameters/to_date'
+      responses:
+        '200':
+          description: Fee collection summary
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AnalyticsEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FeeCollectionSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /analytics/counsellors:
+    get:
+      tags: [Analytics]
+      operationId: getCounsellorPerformanceMetrics
+      summary: Counsellor performance metrics
+      description: |
+        Returns per-counsellor performance grid with leads handled, conversions,
+        task completion rate, and average response time.
+        Counsellor names are not returned (PII policy); use `counsellor_id` to join
+        with your own directory if needed.
+      parameters:
+        - $ref: '#/components/parameters/from_date'
+        - $ref: '#/components/parameters/to_date'
+      responses:
+        '200':
+          description: Counsellor performance metrics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AnalyticsEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CounsellorPerformanceItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+      description: Issue tokens from Admin → System Config → API Tokens. Token must have `analytics:read` ability.
+
+  parameters:
+    from_date:
+      name: from_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        example: "2025-07-01"
+      description: Start of the reporting period (YYYY-MM-DD). Defaults to current academic year start.
+    to_date:
+      name: to_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        example: "2026-04-24"
+      description: End of the reporting period (YYYY-MM-DD). Must be ≥ from_date. Defaults to today.
+
+  schemas:
+    AnalyticsMeta:
+      type: object
+      required: [from_date, to_date, institution_id, generated_at]
+      properties:
+        from_date:
+          type: string
+          format: date
+          example: "2025-07-01"
+        to_date:
+          type: string
+          format: date
+          example: "2026-04-24"
+        institution_id:
+          type: integer
+          example: 5
+        generated_at:
+          type: string
+          format: date-time
+          example: "2026-04-24T10:30:00+05:30"
+
+    AnalyticsLinks:
+      type: object
+      required: [self]
+      properties:
+        self:
+          type: string
+          format: uri
+          example: "https://demo.a2acrm.in/api/v1/crm/analytics/leads?from_date=2025-07-01&to_date=2026-04-24"
+
+    AnalyticsEnvelope:
+      type: object
+      required: [data, meta, links]
+      properties:
+        meta:
+          $ref: '#/components/schemas/AnalyticsMeta'
+        links:
+          $ref: '#/components/schemas/AnalyticsLinks'
+
+    LeadFunnelStage:
+      type: object
+      required: [stage, label, count, conversion_rate, drop_off_count, drop_off_rate]
+      properties:
+        stage:
+          type: string
+          enum: [enquiry, contacted, counselled, applied, offered, fee_paid, enrolled]
+          example: contacted
+        label:
+          type: string
+          example: Contacted
+        count:
+          type: integer
+          example: 842
+        conversion_rate:
+          type: number
+          format: float
+          description: Percentage of leads from prior stage that reached this stage.
+          example: 74.5
+        drop_off_count:
+          type: integer
+          example: 288
+        drop_off_rate:
+          type: number
+          format: float
+          example: 25.5
+
+    LeadBySource:
+      type: object
+      required: [source, total_leads, total_applied, total_enrolled]
+      properties:
+        source:
+          type: string
+          example: google_ads
+        total_leads:
+          type: integer
+          example: 320
+        total_applied:
+          type: integer
+          example: 148
+        total_enrolled:
+          type: integer
+          example: 61
+
+    PipelineItem:
+      type: object
+      required: [programme_id, programme, total_applications, total_offers, total_enrolments]
+      properties:
+        programme_id:
+          type: integer
+          example: 12
+        programme:
+          type: string
+          example: MBA
+        total_applications:
+          type: integer
+          example: 210
+        total_offers:
+          type: integer
+          example: 155
+        total_enrolments:
+          type: integer
+          example: 98
+
+    FeeCollectionSummary:
+      type: object
+      required: [collected, pending_amount, refunded, total_transactions, successful_count]
+      properties:
+        collected:
+          type: number
+          format: float
+          description: Total amount successfully collected (INR).
+          example: 4820000.00
+        pending_amount:
+          type: number
+          format: float
+          description: Amount in initiated/pending state.
+          example: 312000.00
+        refunded:
+          type: number
+          format: float
+          description: Amount refunded or in refund-pending state.
+          example: 25000.00
+        total_transactions:
+          type: integer
+          example: 310
+        successful_count:
+          type: integer
+          example: 284
+
+    CounsellorPerformanceItem:
+      type: object
+      required: [counsellor_id, total_leads, total_converted, conversion_rate, total_tasks, tasks_completed, avg_response_hours]
+      properties:
+        counsellor_id:
+          type: integer
+          description: Internal user ID. No name returned (PII policy).
+          example: 42
+        total_leads:
+          type: integer
+          example: 87
+        total_converted:
+          type: integer
+          example: 31
+        conversion_rate:
+          type: number
+          format: float
+          description: Percentage of leads converted to enrolled.
+          example: 35.6
+        total_tasks:
+          type: integer
+          example: 214
+        tasks_completed:
+          type: integer
+          example: 198
+        avg_response_hours:
+          type: number
+          format: float
+          description: Average hours from lead creation to first contact.
+          example: 1.4
+
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: Unauthenticated.
+
+    ValidationErrorResponse:
+      type: object
+      required: [message, errors]
+      properties:
+        message:
+          type: string
+          example: The to_date field must be a date after or equal to from_date.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Unauthenticated.
+
+    Forbidden:
+      description: Token lacks `analytics:read` ability or belongs to a different institution.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Token does not have the analytics:read ability.
+
+    ValidationError:
+      description: Invalid `from_date` or `to_date` format or ordering.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+    RateLimited:
+      description: Rate limit exceeded (60 requests/minute per token).
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds to wait before retrying.
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Maximum requests per minute.
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in the current window.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Too Many Requests.

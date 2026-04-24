@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\CRM;
 
+use App\Enums\CRM\AI\TranscriptionStatus;
 use App\Http\Controllers\Controller;
+use App\Jobs\CRM\AI\TranscribeCallJob;
 use App\Models\CRM\CallLog;
 use App\Models\CRM\Lead;
 use App\Services\CRM\Communication\CallDispositionService;
@@ -67,6 +69,16 @@ final class CallLogWebController extends Controller
         return view('crm.communication.voice.index', compact('callLogs', 'dispositionOptions', 'dispositionLabelMap', 'search', 'hasRecording', 'fromDate', 'toDate'));
     }
 
+    // BRD: CRM-AI-007 — Call log detail view with transcription panel
+    public function show(CallLog $callLog): View
+    {
+        $this->authorize('crm.communication.send');
+
+        $callLog->load(['lead', 'initiatedBy']);
+
+        return view('crm.communication.voice.show', compact('callLog'));
+    }
+
     // BRD: CRM-TC-008 — Consent-gated recording playback
     public function playRecording(CallLog $callLog): RedirectResponse
     {
@@ -107,9 +119,19 @@ final class CallLogWebController extends Controller
             ],
             'disposition_notes' => ['nullable', 'string', 'max:1000'],
             'duration_seconds'  => ['nullable', 'integer', 'min:0'],
+            'transcript_text'   => ['nullable', 'string', 'max:50000'],
         ]);
 
         $this->voiceService->finaliseCallLog($callLog, $outcome);
+
+        // BRD: CRM-AI-007 — Queue transcription job when counsellor supplies a transcript
+        if (! empty($outcome['transcript_text'])) {
+            $callLog->update([
+                'transcript_text'     => $outcome['transcript_text'],
+                'transcription_status' => TranscriptionStatus::Pending,
+            ]);
+            TranscribeCallJob::dispatch($callLog->uuid);
+        }
 
         $mustPromptFollowUp =
             $callLog->lead !== null

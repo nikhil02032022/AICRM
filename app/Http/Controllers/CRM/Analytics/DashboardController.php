@@ -14,6 +14,7 @@ use App\Services\CRM\Analytics\MarketingDashboardService;
 use App\Services\CRM\Analytics\ExecutiveDashboardService;
 use App\Services\CRM\Analytics\SeatAvailabilityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 // BRD: CRM-AR-001 to CRM-AR-006 — Analytics dashboard web controllers
@@ -44,10 +45,14 @@ final class DashboardController extends Controller
             'to'   => $request->input('to', now()->toDateString()),
         ];
 
-        $kpis       = $this->institutionService->getSummaryKpis($scope, $filters);
-        $byProgramme = $this->institutionService->getByProgramme($scope, $filters);
-        $bySource    = $this->institutionService->getBySource($scope, $filters);
-        $trend       = $this->institutionService->getMonthlyTrend($scope);
+        $cachePrefix = "dashboard:inst:{$scope['institution_id']}";
+        $filterKey   = md5(serialize($filters));
+
+        // NFR-P-001: 5-minute cache on expensive KPI aggregation queries
+        $kpis       = Cache::remember("{$cachePrefix}:kpis:{$filterKey}", 300, fn () => $this->institutionService->getSummaryKpis($scope, $filters));
+        $byProgramme = Cache::remember("{$cachePrefix}:by_prog:{$filterKey}", 300, fn () => $this->institutionService->getByProgramme($scope, $filters));
+        $bySource    = Cache::remember("{$cachePrefix}:by_src:{$filterKey}", 300, fn () => $this->institutionService->getBySource($scope, $filters));
+        $trend       = Cache::remember("{$cachePrefix}:trend", 300, fn () => $this->institutionService->getMonthlyTrend($scope));
 
         return view('crm.analytics.dashboards.institution', compact(
             'kpis', 'byProgramme', 'bySource', 'trend', 'filters',
@@ -111,10 +116,14 @@ final class DashboardController extends Controller
             'to'   => $request->input('to', now()->toDateString()),
         ];
 
-        $kpis            = $this->executiveService->getKpiTiles($scope, $filters);
-        $trend           = $this->executiveService->getMonthlyTrend($scope);
-        $topProgrammes   = $this->executiveService->getTopProgrammes($scope, $filters);
-        $campusBreakdown = $this->executiveService->getCampusBreakdown($scope, $filters);
+        $cachePrefix = "dashboard:exec:{$scope['institution_id']}";
+        $filterKey   = md5(serialize($filters));
+
+        // NFR-P-001: 5-minute cache on executive KPI aggregations
+        $kpis            = Cache::remember("{$cachePrefix}:kpis:{$filterKey}", 300, fn () => $this->executiveService->getKpiTiles($scope, $filters));
+        $trend           = Cache::remember("{$cachePrefix}:trend", 300, fn () => $this->executiveService->getMonthlyTrend($scope));
+        $topProgrammes   = Cache::remember("{$cachePrefix}:top_prog:{$filterKey}", 300, fn () => $this->executiveService->getTopProgrammes($scope, $filters));
+        $campusBreakdown = Cache::remember("{$cachePrefix}:campus:{$filterKey}", 300, fn () => $this->executiveService->getCampusBreakdown($scope, $filters));
 
         // BRD: CRM-AL-004 — NPS data for alumni NPS card on executive dashboard
         $npsLatest = $this->alumniNpsService->getLatestScore($scope['institution_id']);
@@ -150,8 +159,12 @@ final class DashboardController extends Controller
             'to'   => $request->input('to', now()->toDateString()),
         ];
 
-        $stages    = $this->funnelService->getFunnelStages($scope, $filters);
-        $bySource  = $this->funnelService->getFunnelBySource($scope, $filters);
+        $cachePrefix = "dashboard:funnel:{$scope['institution_id']}";
+        $filterKey   = md5(serialize($filters));
+
+        // NFR-P-001: 5-minute cache on funnel aggregation queries
+        $stages    = Cache::remember("{$cachePrefix}:stages:{$filterKey}", 300, fn () => $this->funnelService->getFunnelStages($scope, $filters));
+        $bySource  = Cache::remember("{$cachePrefix}:by_src:{$filterKey}", 300, fn () => $this->funnelService->getFunnelBySource($scope, $filters));
 
         return view('crm.analytics.dashboards.funnel', compact(
             'stages', 'bySource', 'filters',
