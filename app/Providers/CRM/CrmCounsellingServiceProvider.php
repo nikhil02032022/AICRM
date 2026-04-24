@@ -8,6 +8,7 @@ use App\Models\CRM\Activity;
 use App\Models\CRM\CounsellingSession;
 use App\Models\CRM\CounsellorAvailabilitySlot;
 use App\Observers\CRM\AuditObserver;
+use App\Policies\CRM\Counselling\WalkInQueuePolicy;
 use App\Policies\CRM\CounsellingSessionPolicy;
 use App\Repositories\CRM\Activity\ActivityRepositoryInterface;
 use App\Repositories\CRM\Activity\EloquentActivityRepository;
@@ -17,6 +18,11 @@ use App\Repositories\CRM\Counselling\CounsellorAvailabilitySlotRepositoryInterfa
 use App\Repositories\CRM\Counselling\EloquentCounsellingSessionRepository;
 use App\Repositories\CRM\Counselling\EloquentCounsellorAssignmentConfigRepository;
 use App\Repositories\CRM\Counselling\EloquentCounsellorAvailabilitySlotRepository;
+use App\Services\CRM\Counselling\VideoMeeting\GoogleMeetProvider;
+use App\Services\CRM\Counselling\VideoMeeting\VideoMeetingProviderInterface;
+use App\Services\CRM\Counselling\VideoMeeting\ZoomProvider;
+use App\Services\CRM\Counselling\VideoMeeting\WebRtcProvider;
+use App\Models\CRM\WalkInToken;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -44,6 +50,16 @@ final class CrmCounsellingServiceProvider extends ServiceProvider
             CounsellorAvailabilitySlotRepositoryInterface::class,
             EloquentCounsellorAvailabilitySlotRepository::class,
         );
+
+        // BRD: CRM-EC-018 — VideoMeeting provider binding; resolved by config key crm_video.provider
+        $this->app->bind(VideoMeetingProviderInterface::class, function ($app) {
+            $key = config('crm_video.provider', 'none');
+            return match ($key) {
+                'google_meet' => $app->make(GoogleMeetProvider::class),
+                'webrtc' => $app->make(WebRtcProvider::class),
+                default => $app->make(ZoomProvider::class),
+            };
+        });
     }
 
     public function boot(): void
@@ -53,5 +69,6 @@ final class CrmCounsellingServiceProvider extends ServiceProvider
         CounsellorAvailabilitySlot::observe(AuditObserver::class);
 
         Gate::policy(CounsellingSession::class, CounsellingSessionPolicy::class);
+        Gate::policy(WalkInToken::class, WalkInQueuePolicy::class);
     }
 }

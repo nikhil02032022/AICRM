@@ -91,6 +91,10 @@ Route::middleware(['throttle:60,1'])->group(function (): void {
     Route::post('/chat/widget/{institution:uuid}/submit', [PublicChatWidgetController::class, 'submit'])->name('public.chat-widget.submit');
     Route::get('/kiosk/{institution:uuid}', [PublicKioskController::class, 'show'])->name('public.kiosk.show');
     Route::post('/kiosk/{institution:uuid}/submit', [PublicKioskController::class, 'submit'])->name('public.kiosk.submit');
+    // BRD: CRM-EC-019 — Walk-in token issuance from kiosk (public, no auth)
+    Route::post('/kiosk/{institution:uuid}/walk-in-token', [\App\Http\Controllers\CRM\Web\WalkInKioskController::class, 'issue'])->name('public.kiosk.walk-in-token');
+    // BRD: CRM-EC-019 — Public TV queue display screen (no auth, token numbers only)
+    Route::get('/queue/{institution:uuid}/display', [\App\Http\Controllers\CRM\Web\WalkInQueueController::class, 'display'])->name('public.queue.display');
 
     // BRD: CRM-EC-016 — Public appointment booking (lead UUID as slug, rate-limited)
     Route::get('/book/{slug}', [PublicBookingController::class, 'show'])->name('public.booking.show');
@@ -1403,6 +1407,44 @@ Route::middleware('auth')->group(function (): void {
     Route::prefix('alumni')->name('alumni.')->middleware('can:crm.alumni.pipeline.view')->group(function (): void {
         Route::get('/pipeline', [\App\Http\Controllers\CRM\Alumni\AlumniPipelineController::class, 'index'])->name('pipeline.index');
     });
+
+    // -----------------------------------------------------------------------
+    // Group Z — Alumni Referral Campaigns & NPS (CRM-AL-002, CRM-AL-003, CRM-AL-004)
+    // -----------------------------------------------------------------------
+    Route::prefix('alumni/referral')->name('alumni.referral.')->group(function (): void {
+        Route::resource('campaigns', \App\Http\Controllers\CRM\Alumni\AlumniReferralCampaignController::class)
+            ->names('campaigns');
+        Route::post('campaigns/{campaign}/activate', [\App\Http\Controllers\CRM\Alumni\AlumniReferralCampaignController::class, 'activate'])
+            ->name('campaigns.activate');
+        Route::post('campaigns/{campaign}/pause', [\App\Http\Controllers\CRM\Alumni\AlumniReferralCampaignController::class, 'pause'])
+            ->name('campaigns.pause');
+        Route::get('campaigns/{campaign}/codes', [\App\Http\Controllers\CRM\Alumni\AlumniReferralCodeController::class, 'index'])
+            ->name('codes.index');
+        Route::post('campaigns/{campaign}/codes/{alumni}/generate', [\App\Http\Controllers\CRM\Alumni\AlumniReferralCodeController::class, 'generate'])
+            ->name('codes.generate');
+        Route::post('codes/{code}/share', [\App\Http\Controllers\CRM\Alumni\AlumniReferralCodeController::class, 'share'])
+            ->name('codes.share');
+    });
+
+    Route::prefix('admin/nps')->name('admin.nps.')->middleware('can:alumni.nps.manage')->group(function (): void {
+        Route::get('/', [\App\Http\Controllers\CRM\Admin\AlumniNpsController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\CRM\Admin\AlumniNpsController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\CRM\Admin\AlumniNpsController::class, 'store'])->name('store');
+    });
+
+        // -----------------------------------------------------------------------
+        // Group Y — Video Counselling & Walk-in Queue
+        // BRD: CRM-EC-018 (video link) | CRM-EC-019 (walk-in queue)
+        // -----------------------------------------------------------------------
+
+        // EC-019: Counsellor walk-in queue management (auth + permission required)
+        Route::prefix('walk-in-queue')->name('walk-in-queue.')->middleware('can:walk_in_queue.manage')->group(function (): void {
+            Route::get('/', [\App\Http\Controllers\CRM\Web\WalkInQueueController::class, 'index'])->name('index');
+            Route::post('/call-next', [\App\Http\Controllers\CRM\Web\WalkInQueueController::class, 'callNext'])->name('call-next');
+            Route::post('/tokens/{token}/serve', [\App\Http\Controllers\CRM\Web\WalkInQueueController::class, 'serve'])->name('tokens.serve');
+            Route::post('/tokens/{token}/skip', [\App\Http\Controllers\CRM\Web\WalkInQueueController::class, 'skip'])->name('tokens.skip');
+            Route::get('/stats', [\App\Http\Controllers\CRM\Web\WalkInQueueController::class, 'stats'])->name('stats')->middleware('can:walk_in_queue.stats');
+        });
 
     }); // end crm prefix group
 

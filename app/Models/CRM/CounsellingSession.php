@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\CRM;
 
 use App\Enums\CRM\CounsellingSessionStatus;
+use App\Enums\CRM\Counselling\VideoProvider;
 use App\Enums\CRM\SessionType;
 use App\Models\CRM\Scopes\InstitutionScope;
 use App\Models\User;
@@ -52,6 +53,8 @@ class CounsellingSession extends Model
         'reminder_1h_sent',
         'booking_token',
         'booking_token_expires_at',
+        'meeting_link',
+        'meeting_provider',
     ];
 
     /** @return array<string, mixed> */
@@ -65,6 +68,7 @@ class CounsellingSession extends Model
             'booking_token_expires_at' => 'datetime',
             'reminder_24h_sent' => 'boolean',
             'reminder_1h_sent' => 'boolean',
+            'meeting_provider' => VideoProvider::class,
         ];
     }
 

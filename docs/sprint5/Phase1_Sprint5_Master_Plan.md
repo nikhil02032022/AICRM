@@ -1,7 +1,7 @@
 # A2A-CRM Phase 1 Sprint 5 Master Plan
 **BRD:** MEETCS-BRD-CRM-001 v1.0
 **Phase:** 1 - Sprint 5 (AI / EC / AL / NFR Delivery)
-**Last Updated:** April 24, 2026 (Group X completed — AI-001 done; Groups Y, Z, AA, AB, AC pending)
+**Last Updated:** April 24, 2026 (Groups X, Y, and Z completed — AI-001, EC-018, EC-019, AL-002, AL-003, AL-004 done; Groups AA, AB, AC pending)
 
 ---
 
@@ -38,7 +38,7 @@ Sprint 5 closes all remaining open BRD requirement IDs from Phase 1 v1.0. Sprint
 | Group | Theme | BRD Req IDs | Dependency | Status |
 |-------|-------|-------------|------------|--------|
 | **X** | AI-Assisted Lead Scoring | AI-001 | AiLeadScore (Sprint 2), CommunicationLog, CounsellingSession (Sprint 1) | ✅ Completed (2026-04-24) |
-| **Y** | Video Counselling and Walk-in Queue | EC-018, EC-019 | CounsellingSession (Sprint 1), Pusher/Echo setup | ⏳ Pending |
+| **Y** | Video Counselling and Walk-in Queue | EC-018, EC-019 | CounsellingSession (Sprint 1), Pusher/Echo setup | ✅ Completed (2026-04-24) |
 | **Z** | Extended Alumni — Referral and NPS | AL-002, AL-003, AL-004 | AlumniPipeline (Sprint 4 Group W), Lead model | ⏳ Pending |
 | **AA** | AI Call Transcription and Summary | AI-007 | CallLog (Sprint 2 Group J), Claude API | ⏳ Pending |
 | **AB** | Analytics API for BI Tools | AR-021 | Analytics services (Sprint 4 Group V), Sanctum | ⏳ Pending |
@@ -275,8 +275,8 @@ After each group completion:
 | Module | Group | Status | Open Items |
 |---|---|---|---|
 | AI-Assisted Lead Scoring (AI-001) | X | ✅ Completed (2026-04-24) | 20/20 tests passing; ANTHROPIC_API_KEY required in production .env |
-| Video Counselling and Walk-in Queue (EC-018, EC-019) | Y | ⏳ Pending | — |
-| Extended Alumni Referral and NPS (AL-002, AL-003, AL-004) | Z | ⏳ Pending | — |
+| Video Counselling and Walk-in Queue (EC-018, EC-019) | Y | ✅ Completed (2026-04-24) | 24 tests passing; CRM_VIDEO_PROVIDER env key required |
+| Extended Alumni Referral and NPS (AL-002, AL-003, AL-004) | Z | ✅ Completed (2026-04-24) | 23 tests passing; alumni.nps.manage permission required for NPS admin |
 | AI Call Transcription (AI-007) | AA | ⏳ Pending | — |
 | Analytics API for BI Tools (AR-021) | AB | ⏳ Pending | — |
 | NFR Production Hardening | AC | ⏳ Pending | — |
@@ -288,11 +288,11 @@ After each group completion:
 | Req ID | Priority | Group | Status |
 |--------|----------|-------|--------|
 | CRM-AI-001 | Must Have | X | ✅ Completed (2026-04-24) |
-| CRM-EC-018 | Should Have | Y | ⏳ Pending |
-| CRM-EC-019 | Should Have | Y | ⏳ Pending |
-| CRM-AL-002 | Should Have | Z | ⏳ Pending |
-| CRM-AL-003 | Should Have | Z | ⏳ Pending |
-| CRM-AL-004 | Could Have | Z | ⏳ Pending |
+| CRM-EC-018 | Should Have | Y | ✅ Completed (2026-04-24) |
+| CRM-EC-019 | Should Have | Y | ✅ Completed (2026-04-24) |
+| CRM-AL-002 | Should Have | Z | ✅ Completed (2026-04-24) |
+| CRM-AL-003 | Should Have | Z | ✅ Completed (2026-04-24) |
+| CRM-AL-004 | Could Have | Z | ✅ Completed (2026-04-24) |
 | CRM-AI-007 | Could Have | AA | ⏳ Pending |
 | CRM-AR-021 | Could Have | AB | ⏳ Pending |
 | NFR-P-001 | NFR | AC | ⏳ Pending |

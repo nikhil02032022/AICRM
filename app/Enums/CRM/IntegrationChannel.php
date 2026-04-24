@@ -20,6 +20,8 @@ enum IntegrationChannel: string
     case BULK_CSV = 'bulk_csv';
     // BRD: CRM-LC-020 — A2A ERP Student Master outbound lookup channel
     case ERP_A2A = 'erp_a2a';
+    // BRD: CRM-EC-018 — Google Meet OAuth2 credentials for video counselling
+    case GOOGLE_MEET = 'google_meet';
 
     public function label(): string
     {
@@ -32,6 +34,7 @@ enum IntegrationChannel: string
             self::COLLEGEDUNIA => 'Collegedunia',
             self::BULK_CSV => 'Bulk CSV / Excel Upload',
             self::ERP_A2A => 'A2A ERP Student Master',
+            self::GOOGLE_MEET => 'Google Meet (Video Counselling)',
         };
     }
 

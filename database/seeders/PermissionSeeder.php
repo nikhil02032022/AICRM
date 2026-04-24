@@ -111,6 +111,13 @@ class PermissionSeeder extends Seeder
             'crm.settings.workflow-templates.manage',
             // Group K — System Health (BRD: CRM-SA-011)
             'crm.admin.system-health.view',
+            // Group Y — Walk-in Queue (BRD: CRM-EC-019)
+            'walk_in_queue.manage',   // call next, serve, skip tokens at own campus
+            'walk_in_queue.stats',    // view daily analytics
+            // Group Z — Alumni Referral + NPS (BRD: CRM-AL-002, CRM-AL-003, CRM-AL-004)
+            'alumni.referral.view',   // view referral campaigns and codes
+            'alumni.referral.manage', // create/edit campaigns, generate/share codes
+            'alumni.nps.manage',      // enter and view NPS snapshots
         ];
     }
 

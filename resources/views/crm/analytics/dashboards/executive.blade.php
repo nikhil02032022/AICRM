@@ -71,6 +71,53 @@
         @endforeach
     </div>
 
+    {{-- BRD: CRM-AL-004 — Alumni NPS Score Card --}}
+    @if($npsLatest)
+    @php
+        $npsColour = $npsLatest->nps_score > 50
+            ? 'text-green-600'
+            : ($npsLatest->nps_score >= 0 ? 'text-yellow-500' : 'text-red-500');
+        $npsBg = $npsLatest->nps_score > 50
+            ? 'bg-green-50 border-green-200'
+            : ($npsLatest->nps_score >= 0 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200');
+    @endphp
+    <div class="mb-8">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {{-- NPS Score Tile --}}
+            <div class="rounded-xl border {{ $npsBg }} p-5 shadow-sm">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Alumni NPS Score</p>
+                <p class="mt-2 text-4xl font-bold tabular-nums {{ $npsColour }}">{{ $npsLatest->scoreLabel() }}</p>
+                <p class="mt-1 text-xs text-gray-500">
+                    Promoters {{ $npsLatest->promoters_pct }}% &middot;
+                    Detractors {{ $npsLatest->detractors_pct }}%
+                </p>
+                <p class="mt-1 text-xs text-gray-400">
+                    Survey date: {{ $npsLatest->survey_date->format('d M Y') }}
+                    &nbsp;&bull;&nbsp;
+                    {{ $npsLatest->source->label() }}
+                </p>
+            </div>
+
+            {{-- NPS Trend Sparkline (last 12 months) --}}
+            <div class="col-span-1 sm:col-span-2 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">NPS Trend (12 months)</p>
+                @if($npsTrend->count() > 1)
+                    <div class="relative h-20">
+                        <canvas id="npsSparkline"></canvas>
+                    </div>
+                @else
+                    <p class="text-sm text-gray-400 py-4">Not enough data points for a trend chart yet.</p>
+                @endif
+                <div class="mt-2 flex items-center justify-end">
+                    @can('alumni.nps.manage')
+                    <a href="{{ route('crm.admin.nps.index') }}" class="text-xs text-indigo-600 hover:underline">View all NPS data →</a>
+                    @endcan
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- 12-Month Trend Chart --}}
     <div class="card p-5 mb-6">
         <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">12-Month Trend</h2>
@@ -160,6 +207,35 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
     <script>
+    @if($npsLatest && $npsTrend->count() > 1)
+    (function () {
+        const npsTrend = @json($npsTrend->map(fn($s) => ['date' => $s->survey_date->format('M y'), 'score' => $s->nps_score]));
+        new Chart(document.getElementById('npsSparkline'), {
+            type: 'line',
+            data: {
+                labels: npsTrend.map(t => t.date),
+                datasets: [{
+                    data: npsTrend.map(t => t.score),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.08)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    borderWidth: 2,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' NPS: ' + ctx.parsed.y } } },
+                scales: {
+                    y: { ticks: { font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { ticks: { font: { size: 10 } } },
+                },
+            },
+        });
+    })();
+    @endif
     (function () {
         const trend = @json($trend);
         const labels = trend.map(t => {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\CRM\Analytics;
 
 use App\Http\Controllers\Controller;
+use App\Services\CRM\Alumni\AlumniNpsService;
 use App\Services\CRM\Analytics\CounsellorDashboardService;
 use App\Services\CRM\Analytics\DashboardScopeService;
 use App\Services\CRM\Analytics\InstitutionDashboardService;
@@ -27,6 +28,8 @@ final class DashboardController extends Controller
         private readonly FunnelAnalyticsService      $funnelService,
         private readonly SeatAvailabilityService     $seatService,
         private readonly ExecutiveDashboardService   $executiveService,
+        // BRD: CRM-AL-004 — NPS trend for executive dashboard sparkline
+        private readonly AlumniNpsService            $alumniNpsService,
     ) {}
 
     // BRD: CRM-AR-001 — Institution admissions dashboard: leads, applications, offers, enrolments, revenue
@@ -113,8 +116,13 @@ final class DashboardController extends Controller
         $topProgrammes   = $this->executiveService->getTopProgrammes($scope, $filters);
         $campusBreakdown = $this->executiveService->getCampusBreakdown($scope, $filters);
 
+        // BRD: CRM-AL-004 — NPS data for alumni NPS card on executive dashboard
+        $npsLatest = $this->alumniNpsService->getLatestScore($scope['institution_id']);
+        $npsTrend  = $this->alumniNpsService->getTrend($scope['institution_id'], 12);
+
         return view('crm.analytics.dashboards.executive', compact(
             'kpis', 'trend', 'topProgrammes', 'campusBreakdown', 'filters',
+            'npsLatest', 'npsTrend',
         ));
     }
 

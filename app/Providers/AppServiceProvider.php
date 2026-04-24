@@ -127,6 +127,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CounsellingSessionCompletedEvent::class, LogSessionCompletedActivity::class);
         Event::listen(CounsellingSessionCancelledEvent::class, LogSessionCancelledActivity::class);
 
+        // BRD: CRM-EC-019 — Walk-in queue broadcast events (Pusher channel: walk-in.{campus_id})
+        // No application-layer listener needed; ShouldBroadcast interface handles the queue dispatch
+
         // -----------------------------------------------------------------------
         // Group F — Communication Engine events (BRD: CRM-CC-001 to CRM-CC-025)
         // -----------------------------------------------------------------------

@@ -46,6 +46,15 @@
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                {{-- BRD: CRM-EC-018 — Join Video Call button when meeting link is set --}}
+                                                @if ($session->meeting_link && $session->meeting_provider?->value !== 'none')
+                                                    <a href="{{ $session->meeting_link }}"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       class="mr-3 text-indigo-600 hover:text-indigo-900">
+                                                        Join {{ $session->meeting_provider?->label() ?? 'Video' }}
+                                                    </a>
+                                                @endif
                                                 @can('crm.sessions.edit')
                                                     <a href="#" class="text-indigo-600 hover:text-indigo-900 mr-3">Update Outcome</a>
                                                 @endcan

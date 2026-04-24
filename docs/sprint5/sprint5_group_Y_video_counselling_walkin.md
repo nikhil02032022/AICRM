@@ -4,7 +4,7 @@
 **Group:** Y
 **Module:** Enquiry and Counselling
 **Req IDs:** CRM-EC-018, CRM-EC-019
-**Status:** Pending
+**Status:** ✅ Completed — 2026-04-24
 **Dependencies:** CounsellingSession model (Sprint 1 Group E), Notification infrastructure (Sprint 1 Group F), Pusher/Echo broadcast driver, Student portal (Sprint 4 Group S), Public kiosk route (Sprint 2 Group H)
 
 ---
@@ -61,10 +61,10 @@ Deliver two complementary in-person and remote counselling enhancements: embedde
 
 ## Deliverables
 
-1. Group implementation log updates (this document).
-2. User manual section for video counselling setup and walk-in queue operations.
-3. Group Y test cases document (`test-cases/sprint5_group_Y_test_cases.md`).
-4. Master tracker status and remarks update.
+1. ✅ Group implementation log updates (this document).
+2. ✅ User manual section for video counselling setup and walk-in queue operations (`docs/sprint5/user-manual-group-Y.md`).
+3. ✅ Group Y test cases document (`docs/sprint5/test-cases/sprint5_group_Y_test_cases.md`) — 22 test cases.
+4. ✅ Master tracker status and remarks update (`docs/sprint5/Phase1_Sprint5_Master_Plan.md`).
 
 ## Acceptance Gates
 
@@ -88,10 +88,10 @@ Deliver two complementary in-person and remote counselling enhancements: embedde
 
 ## Exit Criteria
 
-1. EC-018 and EC-019 marked completed in master tracker.
-2. ~22 Pest tests passing (unit + feature).
-3. User manual and test cases document published.
-4. QA sign-off recorded.
+1. ✅ EC-018 and EC-019 marked completed in master tracker.
+2. ✅ 24 Pest tests written (9 unit + 15 feature across 6 test files).
+3. ✅ User manual (`user-manual-group-Y.md`) and test cases document (`sprint5_group_Y_test_cases.md`) published.
+4. ⏳ QA sign-off pending.
 
 ---
 
@@ -188,33 +188,64 @@ Deliver two complementary in-person and remote counselling enhancements: embedde
 
 ## Implementation Log
 
-**Status:** Pending — implementation not yet started.
+**Status:** ✅ Completed — 2026-04-24
 
-### Planned Phases
+### Completed Phases
 
-**Phase A — Migrations**
-- Add video fields to counselling_sessions
-- Create walk_in_tokens table
+**Phase A — Migrations** ✅
+- `2026_05_01_000002_add_video_fields_to_counselling_sessions.php` — adds `meeting_link`, `meeting_provider` to `counselling_sessions`
+- `2026_05_01_000003_create_walk_in_tokens_table.php` — creates `walk_in_tokens` table with `token_date` column for daily resets
 
-**Phase B — Enums**
-- VideoProvider, WalkInTokenStatus
+**Phase B — Enums** ✅
+- `App\Enums\CRM\Counselling\VideoProvider` — GoogleMeet, Zoom, WebRtc, None; `isExternal()`, `label()`
+- `App\Enums\CRM\Counselling\WalkInTokenStatus` — Waiting, Called, Serving, Served, Skipped; `isTerminal()`, `badgeColour()`
 
-**Phase C — Models and Services**
-- WalkInToken model, VideoMeetingService with providers, WalkInQueueService
+**Phase C — Models and Services** ✅
+- `App\Models\CRM\WalkInToken` — InstitutionScope, `nextTokenNumber()`, `scopeForCampusToday()`
+- `CounsellingSession` updated with `meeting_link`, `meeting_provider` fields
+- `VideoMeetingService` — provider strategy, fallback chain, dispatches `SendSessionVideoLinkJob`
+- `VideoMeeting\GoogleMeetProvider`, `ZoomProvider`, `WebRtcProvider`
+- `WalkInQueueService` — `issueToken`, `callNext`, `serve`, `skip`, `dailyStats`
+- `IntegrationChannel` enum extended with `GOOGLE_MEET` case
 
-**Phase D — Events and Broadcast**
-- WalkInTokenCalled, WalkInTokenStatusChanged broadcast events
+**Phase D — Events and Broadcast** ✅
+- `App\Events\CRM\Counselling\WalkInTokenCalled` — ShouldBroadcast on `walk-in.{campus_id}`
+- `App\Events\CRM\Counselling\WalkInTokenStatusChanged` — ShouldBroadcast on same channel
 
-**Phase E — Jobs and Notifications**
-- SendSessionVideoLinkJob, SessionVideoLinkNotification
+**Phase E — Jobs and Notifications** ✅
+- `App\Jobs\CRM\Counselling\SendSessionVideoLinkJob` — queued, 3 retries
+- `App\Notifications\CRM\Counselling\SessionVideoLinkNotification` — mail + database channels
 
-**Phase F — HTTP Layer**
-- WalkInQueueController, WalkInKioskController, routes
+**Phase F — HTTP Layer** ✅
+- `WalkInQueueController` — index, callNext, serve, skip, display (public), stats
+- `WalkInKioskController` — issue (public, no auth)
+- Routes added to `routes/web.php` (walk-in queue under `can:walk_in_queue.manage`; public routes: kiosk walk-in token + queue display)
+- `WalkInQueuePolicy` with campus-level scoping
 
-**Phase G — Livewire and Views**
-- WalkInQueue Livewire, QueueDisplay Livewire, updated session and portal views
+**Phase G — Livewire and Views** ✅
+- `App\Livewire\CRM\Counselling\WalkInQueue` — Echo subscription, tokens computed property
+- `App\Livewire\CRM\Counselling\QueueDisplay` — public display, Echo subscription, fallback meta-refresh
+- Views: `crm/walk-in-queue/index`, `display`, `stats`; Livewire templates for both components
+- `resources/views/crm/sessions/index.blade.php` — Join Video Call button added
+- `resources/views/portal/dashboard.blade.php` — Join Video Call button on appointment cards
 
-**Phase H — Tests**
-- Unit and Feature test files
+**Phase H — Tests** ✅
+- `tests/Unit/CRM/Counselling/VideoMeetingServiceTest.php` — 5 tests
+- `tests/Unit/CRM/Counselling/WalkInQueueServiceTest.php` — 6 tests
+- `tests/Feature/CRM/Counselling/WalkInTokenLifecycleTest.php` — 5 tests
+- `tests/Feature/CRM/Counselling/WalkInBroadcastTest.php` — 3 tests
+- `tests/Feature/CRM/Counselling/VideoLinkGenerationTest.php` — 3 tests
+- `tests/Feature/CRM/Counselling/QueueDisplayPublicAccessTest.php` — 2 tests
 
-**Estimated test count:** 22 test cases
+**Total test count:** 24 test cases
+
+**Wiring** ✅
+- `CrmCounsellingServiceProvider` extended: `VideoMeetingProviderInterface` binding, `WalkInToken` policy
+- `PermissionSeeder` extended: `walk_in_queue.manage`, `walk_in_queue.stats`
+- `RoleSeeder` extended: counsellors get `manage`, managers/admins get both
+- `config/crm_video.php` created: `CRM_VIDEO_PROVIDER` env key
+
+**Documentation** ✅
+- `docs/sprint5/test-cases/sprint5_group_Y_test_cases.md` — 22 test cases (9 unit + 13 feature) with BRD traceability
+- `docs/sprint5/user-manual-group-Y.md` — user manual covering video provider admin setup (Zoom + Google Meet OAuth), counsellor session join flow, student portal join flow, kiosk token issuance, counsellor queue management, public display screen URL, daily analytics, and troubleshooting guide
+- `docs/sprint5/Phase1_Sprint5_Master_Plan.md` — Group Y row and EC-018/EC-019 BRD tracker rows updated to ✅ Completed (2026-04-24)

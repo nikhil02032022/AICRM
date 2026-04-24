@@ -69,10 +69,14 @@ final class PublicFormController extends Controller
             abort(404, 'This enquiry form is no longer available.');
         }
 
+        // BRD: CRM-AL-003 — Capture ?ref=CODE for alumni referral tracking (sanitised in service)
+        $refCode = $request->query('ref');
+
         $lead = $this->service->handlePublicSubmission(
             form: $form,
             data: $request->validated(),
             ip: $request->ip() ?? '0.0.0.0',
+            refCode: is_string($refCode) ? $refCode : null,
         );
 
         // XHR / fetch request — return JSON

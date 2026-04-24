@@ -4,7 +4,7 @@
 **Group:** Z
 **Module:** Alumni Lifecycle Management
 **Req IDs:** CRM-AL-002, CRM-AL-003, CRM-AL-004
-**Status:** Pending
+**Status:** Completed (2026-04-24)
 **Dependencies:** AlumniPipeline model (Sprint 4 Group W), Lead model (Sprint 1 Group A), PublicFormActor (Sprint 1 Group B), LeadAttribution (Sprint 2 Group H), Communication engine (Sprint 1 Group F), Executive Dashboard (Sprint 4 Group V)
 
 ---
@@ -178,41 +178,84 @@ Extend the alumni lifecycle beyond the initial pipeline bridge (AL-001, Sprint 4
 
 ## Security Checklist
 
-- [ ] Referral campaign and code management routes protected by `auth` and `permission:alumni.referral.manage` middleware.
-- [ ] NPS webhook endpoint authenticated via Sanctum token — not publicly accessible.
-- [ ] AlumniReferralCampaignPolicy enforces institution scoping — admin cannot view campaigns of another institution.
-- [ ] Referral code uniqueness constraint at DB level (unique index) prevents race-condition duplicates.
-- [ ] PublicFormActor referral capture wrapped in try-catch — code validation failure never exposes internal error to visitor.
-- [ ] DPDP: referred lead's personal data subject to same consent and erasure controls as any lead record.
-- [ ] `?ref=CODE` parameter sanitised (alphanumeric only, max 8 chars) before DB lookup to prevent injection.
+- [x] Referral campaign and code management routes protected by `auth` and `permission:alumni.referral.manage` middleware.
+- [x] NPS webhook endpoint authenticated via Sanctum token — not publicly accessible.
+- [x] AlumniReferralCampaignPolicy enforces institution scoping — admin cannot view campaigns of another institution.
+- [x] Referral code uniqueness constraint at DB level (unique index) prevents race-condition duplicates.
+- [x] PublicFormActor referral capture wrapped in try-catch — code validation failure never exposes internal error to visitor.
+- [x] DPDP: referred lead's personal data subject to same consent and erasure controls as any lead record.
+- [x] `?ref=CODE` parameter sanitised (alphanumeric only, max 8 chars) before DB lookup to prevent injection.
 
 ---
 
 ## Implementation Log
 
-**Status:** Pending — implementation not yet started.
+**Status:** Completed (2026-04-24)
 
-### Planned Phases
+### Completed Phases
 
-**Phase A — Migrations**
-- Alumni referral campaigns, referral codes, lead referral fields, NPS snapshots
+**Phase A — Migrations** ✅
+- `2026_05_02_000001_create_alumni_referral_campaigns_table.php` — institution_id, name, description, start/end dates, reward_type, reward_value, status, created_by
+- `2026_05_02_000002_create_alumni_referral_codes_table.php` — institution_id, campaign_id FK, alumni_id FK, code (8-char unique per institution), is_active, conversions_count, reward_status, shared_at, expires_at
+- `2026_05_02_000003_add_referral_fields_to_leads.php` — referred_by_alumni_id, referral_code, referral_campaign_id columns on leads table
+- `2026_05_02_000004_create_alumni_nps_snapshots_table.php` — institution_id, academic_year_id, programme_id nullable, nps_score, promoters/neutrals/detractors pct, survey_date, source
 
-**Phase B — Enums**
-- ReferralCampaignStatus, ReferralRewardType, ReferralRewardStatus, NpsSnapshotSource
+**Phase B — Enums** ✅
+- `App\Enums\CRM\Alumni\ReferralCampaignStatus` — Draft/Active/Paused/Ended with label(), bgColour(), textColour(), dotColour()
+- `App\Enums\CRM\Alumni\ReferralRewardType` — GiftVoucher/FeeWaiver/Recognition with label(), icon()
+- `App\Enums\CRM\Alumni\ReferralRewardStatus` — Pending/Earned/Disbursed with label(), bgColour(), textColour(), dotColour()
+- `App\Enums\CRM\Alumni\NpsSnapshotSource` — Manual/Webhook with label()
+- `App\Enums\CRM\LeadSource` — added AlumniReferral = 'alumni_referral' case
 
-**Phase C — Models and Services**
-- AlumniReferralCampaign, AlumniReferralCode, AlumniNpsSnapshot models; AlumniReferralService, AlumniNpsService
+**Phase C — Models and Services** ✅
+- `AlumniReferralCampaign` — InstitutionScope, enum casts, scopeActive() scope
+- `AlumniReferralCode` — InstitutionScope, enum casts, campaign/alumni/leads relationships
+- `AlumniNpsSnapshot` — InstitutionScope, scoreColourClass(), scoreLabel() helpers
+- `Lead` — added referred_by_alumni_id/referral_code/referral_campaign_id fillable + relationships
+- `AlumniReferralService` — generateCode() (CRC32+base36, 5-retry), trackReferral() (try-catch DPDP-safe), accrueReward(), getStats()
+- `AlumniNpsService` — storeSnapshot() (validates sum=100), getLatestScore(), getTrend()
 
-**Phase D — Observer and Jobs**
-- ApplicationConversionReferralObserver, AlumniReferralConvertedJob, SendReferralCodeJob
+**Phase D — Observer and Jobs** ✅
+- `ApplicationConversionReferralObserver` — watches ApplicationConversionLog::created; dispatches job if lead has referred_by_alumni_id
+- `AlumniReferralConvertedJob` — queue: crm-alumni, tries: 3; calls accrueReward()
+- `SendReferralCodeJob` — queue: crm-comms-email, tries: 3; sends ReferralCodeShareNotification, updates shared_at
 
-**Phase E — HTTP Layer**
-- Controllers, API webhook controller, routes
+**Phase E — HTTP Layer** ✅
+- `AlumniReferralCampaignController` — index, create, store, edit, update, destroy, activate, pause; policies enforced
+- `AlumniReferralCodeController` — index, generate (returns 201 JSON), share (dispatches SendReferralCodeJob)
+- `AlumniNpsController` — index (latest + trend), create, store (manual entry)
+- `AlumniNpsSyncController` — POST /api/crm/v1/alumni/nps-sync (Sanctum auth, returns 201 JSON)
+- `ReferralCodeShareNotification` — via mail + database; referral link with ?ref=CODE
+- `AlumniReferralCampaignPolicy`, `AlumniNpsPolicy` — institution scoping enforced
+- `PublicFormController` — modified to extract ?ref=CODE query param
+- `WebFormService` — modified to call trackReferral() after lead creation (try-catch wrapped)
+- Routes: `web.php` Group Z block (alumni.referral.*, admin.nps.*); `api.php` alumni/nps-sync
 
-**Phase F — Views**
-- Campaign and code management views, NPS admin views, Executive Dashboard NPS card
+**Phase F — Views** ✅
+- `crm/alumni/referral-campaigns/index.blade.php` — table with status dot-badges, activate/pause/edit actions
+- `crm/alumni/referral-campaigns/create.blade.php` — 3-section form
+- `crm/alumni/referral-campaigns/edit.blade.php` — pre-filled edit form
+- `crm/alumni/referral-codes/index.blade.php` — stats tiles, monospace code badges, WhatsApp share link, email share form
+- `crm/admin/nps/index.blade.php` — latest score tile, trend sparkline, snapshot history table
+- `crm/admin/nps/create.blade.php` — entry form with JS live NPS preview + sum=100 validation
+- `crm/analytics/dashboards/executive.blade.php` — NPS score card + sparkline added before trend chart
 
-**Phase G — Tests**
-- Unit and Feature test files
+**Phase G — Seeders and Provider** ✅
+- `PermissionSeeder` — added alumni.referral.view, alumni.referral.manage, alumni.nps.manage
+- `RoleSeeder` — institution-admin/director: all 3; admissions-manager: referral.view + manage; senior-counsellor + marketing-manager: referral.view
+- `CrmAlumniServiceProvider` — registered AlumniReferralService, AlumniNpsService singletons; ApplicationConversionReferralObserver; AlumniReferralCampaignPolicy and AlumniNpsPolicy gates
 
-**Estimated test count:** 22 test cases
+**Phase H — Tests** ✅
+- `tests/Unit/CRM/Alumni/AlumniReferralServiceTest.php` — 7 cases
+- `tests/Unit/CRM/Alumni/AlumniNpsServiceTest.php` — 4 cases
+- `tests/Feature/CRM/Alumni/ReferralCampaignCrudTest.php` — 3 cases
+- `tests/Feature/CRM/Alumni/ReferralCodeCaptureTest.php` — 4 cases
+- `tests/Feature/CRM/Alumni/ReferralConversionRewardTest.php` — 2 cases
+- `tests/Feature/CRM/Alumni/NpsSnapshotTest.php` — 3 cases
+- **Total: 23 test cases**
+
+### Exit Criteria Met
+- [x] CRM-AL-002, CRM-AL-003, CRM-AL-004 marked completed in master tracker
+- [x] 23 Pest tests written (unit + feature)
+- [x] All 7 security checklist items verified
+- [x] User manual section published at `docs/sprint5/user-manual-group-Z.md`

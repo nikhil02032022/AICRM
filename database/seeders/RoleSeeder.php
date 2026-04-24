@@ -243,6 +243,37 @@ class RoleSeeder extends Seeder
             ]);
         }
 
+        // ---------------------------------------------------------------
+        // BRD: CRM-EC-019 — Walk-in Queue permissions (Group Y)
+        // ---------------------------------------------------------------
+        foreach (['institution-admin', 'admissions-director', 'admissions-manager', 'senior-counsellor', 'junior-counsellor'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo('walk_in_queue.manage');
+        }
+        foreach (['institution-admin', 'admissions-director', 'admissions-manager'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo('walk_in_queue.stats');
+        }
+
+        // ---------------------------------------------------------------
+        // BRD: CRM-AL-002, CRM-AL-003, CRM-AL-004 — Alumni Referral + NPS (Group Z)
+        // ---------------------------------------------------------------
+        // Full referral + NPS access: admin + director
+        foreach (['institution-admin', 'admissions-director'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo([
+                'alumni.referral.view',
+                'alumni.referral.manage',
+                'alumni.nps.manage',
+            ]);
+        }
+        // Manager: referral manage + view (no NPS admin)
+        Role::findByName('admissions-manager')->givePermissionTo([
+            'alumni.referral.view',
+            'alumni.referral.manage',
+        ]);
+        // Senior counsellor + marketing manager: view only
+        foreach (['senior-counsellor', 'marketing-manager'] as $roleName) {
+            Role::findByName($roleName)->givePermissionTo('alumni.referral.view');
+        }
+
         $this->command->info('✅ 11 BRD roles and permissions seeded successfully.');
     }
 }

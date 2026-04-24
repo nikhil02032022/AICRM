@@ -12,6 +12,7 @@ use App\Events\CRM\WebFormSubmittedEvent;
 use App\Models\CRM\Lead;
 use App\Models\CRM\WebForm;
 use App\Repositories\CRM\WebForm\WebFormRepositoryInterface;
+use App\Services\CRM\Alumni\AlumniReferralService;
 use App\Services\CRM\Lead\LeadService;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
@@ -27,6 +28,7 @@ final class WebFormService
     public function __construct(
         private readonly WebFormRepositoryInterface $repository,
         private readonly LeadService $leadService,
+        private readonly AlumniReferralService $alumniReferralService,
     ) {}
 
     /**
@@ -104,7 +106,7 @@ final class WebFormService
      *
      * @param  array<string, mixed>  $data  Validated data from PublicFormSubmissionRequest
      */
-    public function handlePublicSubmission(WebForm $form, array $data, string $ip): Lead
+    public function handlePublicSubmission(WebForm $form, array $data, string $ip, ?string $refCode = null): Lead
     {
         // Force the source from the form's pre-configured source (overrides any submitted value)
         $data['source'] = $form->source->value;
@@ -134,6 +136,11 @@ final class WebFormService
         $actor = new PublicFormActor(institutionId: $form->institution_id);
 
         $lead = $this->leadService->create($dto, $actor);
+
+        // BRD: CRM-AL-003 — Tag lead with alumni referral metadata if a valid ?ref=CODE was provided
+        if ($refCode !== null && $refCode !== '') {
+            $this->alumniReferralService->trackReferral($refCode, $lead);
+        }
 
         Log::info('Public form submission created lead', [
             'form_uuid' => $form->uuid,

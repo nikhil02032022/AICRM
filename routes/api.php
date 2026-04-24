@@ -359,6 +359,10 @@ Route::prefix('v1/crm')
         Route::get('integrations/aadhaar/{aadhaarEkycLog:uuid}', [AadhaarController::class, 'show'])
             ->name('integrations.aadhaar.show');
 
+        // BRD: CRM-AL-004 — Group Z: NPS webhook from A2A Alumni module (Sanctum token auth)
+        Route::post('alumni/nps-sync', [\App\Http\Controllers\CRM\Api\AlumniNpsSyncController::class, 'store'])
+            ->name('alumni.nps-sync');
+
         // BRD: EI-008 — Alumni Bridge API (ERP server-to-server consumers)
         Route::get('integrations/alumni-bridge', [AlumniBridgeController::class, 'index'])
             ->name('integrations.alumni-bridge.index');

@@ -154,6 +154,15 @@
                                 </span>
                             @endif
                         </div>
+                        {{-- BRD: CRM-EC-018 — Join Video Call button when meeting link is available --}}
+                        @if ($session->meeting_link && $session->meeting_provider?->value !== 'none')
+                            <a href="{{ $session->meeting_link }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="shrink-0 ml-4 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500">
+                                Join {{ $session->meeting_provider?->label() ?? 'Video' }}
+                            </a>
+                        @endif
                     </div>
                 @endforeach
             </div>

@@ -74,6 +74,10 @@ class Lead extends Model
         'status',
         'assigned_counsellor_id',
         'agent_id',
+        // BRD: CRM-AL-003 — Alumni referral tracking columns
+        'referred_by_alumni_id',
+        'referral_code',
+        'referral_campaign_id',
         'consent_given',
         'consent_timestamp',
         'consent_ip',
@@ -191,6 +195,18 @@ class Lead extends Model
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class, 'agent_id');
+    }
+
+    // BRD: CRM-AL-003 — Alumni who referred this lead via a referral code
+    public function referringAlumni(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\CRM\Alumni\AlumniPipeline::class, 'referred_by_alumni_id');
+    }
+
+    // BRD: CRM-AL-003 — Referral campaign through which this lead was acquired
+    public function referralCampaign(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\CRM\Alumni\AlumniReferralCampaign::class, 'referral_campaign_id');
     }
 
     public function programmeInterests(): BelongsToMany
